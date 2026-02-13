@@ -1,92 +1,55 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-require('dotenv').config();
-
-const connectDB = require('./config/database');
-const aqiRoutes = require('./routes/aqi');
-const userRoutes = require('./routes/users');
-const favoritesRoutes = require('./routes/favorites');
-const alertsRoutes = require('./routes/alerts');
-
+const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.get("/", (req, res) => {
-  res.send("Server is running 🚀");
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-// Connect to MongoDB
-connectDB();
-
-// Serve static files
-const path = require('path');
-app.use(express.static(path.join(__dirname)));
 
 // Middleware
-app.use(helmet());
-app.use(cors({
-  origin: '*',
-  credentials: false
-}));
 app.use(express.json());
-app.use(morgan('combined'));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+// Root route (so the domain doesn't 404)
+app.get("/", (req, res) => {
+  res.json({
+    name: "AQI API",
+    status: "running",
+    environment: process.env.NODE_ENV
+  });
 });
-app.use('/api/', limiter);
-
-// Routes
-app.use('/api/aqi', aqiRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/favorites', favoritesRoutes);
-app.use('/api/alerts', alertsRoutes);
 
 // Health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message || 'Internal Server Error',
-      status: err.status || 500
-    }
+// ✅ AQI endpoint (YOUR CODE — CORRECT)
+app.get("/api/aqi", async (req, res) => {
+  const city = req.query.city;
+
+  if (!city) {
+    return res.status(400).json({
+      error: "City parameter is required"
+    });
+  }
+
+  res.json({
+    city,
+    message: "AQI endpoint is working 🚀"
   });
 });
 
-// 404 handler
+// 404 handler (MUST be last)
 app.use((req, res) => {
   res.status(404).json({
     error: {
-      message: 'Route not found',
+      message: "Route not found",
       status: 404
     }
   });
 });
 
-// Start server
+// Start server (ALWAYS last)
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 AQI API server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
-
-module.exports = app;
