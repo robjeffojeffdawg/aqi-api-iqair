@@ -264,7 +264,7 @@
 
             try {
                 const response = await fetch(
-                    `http://localhost:3000/api/aqi/nearby?lat=${userLat}&lon=${userLon}`
+                    `api/aqi/nearby?lat=${userLat}&lon=${userLon}`
                 );
                 const data = await response.json();
 
@@ -353,7 +353,7 @@
         // Load countries
         async function loadCountries() {
             try {
-                const response = await fetch('http://localhost:3000/api/aqi/countries');
+                const response = await fetch('/api/aqi/countries');
                 const data = await response.json();
 
                 const select = document.getElementById('countrySelect');
@@ -384,7 +384,7 @@
             if (!country) return;
 
             try {
-                const response = await fetch(`http://localhost:3000/api/aqi/states?country=${encodeURIComponent(country)}`);
+                const response = await fetch(`api/aqi/states?country=${encodeURIComponent(country)}`);
                 const data = await response.json();
 
                 stateSelect.innerHTML = '<option value="">Select State...</option>';
@@ -417,7 +417,7 @@
 
             try {
                 const response = await fetch(
-                    `http://localhost:3000/api/aqi/cities?state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`
+                    `api/aqi/cities?state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`
                 );
                 const data = await response.json();
 
@@ -451,7 +451,7 @@
             content.textContent = 'Loading air quality data...';
 
             try {
-                let url = `http://localhost:3000/api/aqi/city?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`;
+                let url = `api/aqi/city?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`;
                 if (state) url += `&state=${encodeURIComponent(state)}`;
 
                 const response = await fetch(url);

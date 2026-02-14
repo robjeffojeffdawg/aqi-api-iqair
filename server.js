@@ -1,15 +1,21 @@
 const express = require("express");
+const path = require("path");
+
 const app = express();
+
+// Serve frontend
+app.use(express.static(path.join(__dirname, "public")));
 
 // Middleware
 app.use(express.json());
 
-// Root route (so the domain doesn't 404)
-app.get("/", (req, res) => {
+// Root route
+// NOTE: This will be overridden by public/index.html if it exists
+app.get("/api", (req, res) => {
   res.json({
     name: "AQI API",
     status: "running",
-    environment: process.env.NODE_ENV
+    environment: process.env.NODE_ENV || "production"
   });
 });
 
@@ -22,7 +28,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// ✅ AQI endpoint (YOUR CODE — CORRECT)
+// AQI endpoint
 app.get("/api/aqi", async (req, res) => {
   const city = req.query.city;
 
@@ -38,7 +44,7 @@ app.get("/api/aqi", async (req, res) => {
   });
 });
 
-// 404 handler (MUST be last)
+// 404 handler (LAST)
 app.use((req, res) => {
   res.status(404).json({
     error: {
@@ -48,7 +54,7 @@ app.use((req, res) => {
   });
 });
 
-// Start server (ALWAYS last)
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 AQI API server running on port ${PORT}`);
