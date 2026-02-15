@@ -44,8 +44,86 @@ router.get('/nearby', async (req, res, next) => {
 
 // GET /api/aqi/city
 // Get detailed data for a specific city
-// GET /api/aqi/city
-// Get detailed data for a specific city
+
+router.get('/city', async (req, res, next) => {
+  try {
+    const { city, state, country } = req.query;
+
+    if (!city || !country) {
+      return res.status(400).json({
+        error: 'City and country are required',
+        example: '/api/aqi/city?city=Bangkok&country=Thailand'
+      });
+    }
+
+    console.log(`Attempting to fetch: ${city}, ${state || 'no state'}, ${country}`);
+
+    // Strategy 1: Try with provided state (if given)
+    if (state) {
+      try {
+        const details = await iqairService.getCityData(city, state, country);
+        return res.json({
+          success: true,
+          data: details,
+          method: 'with-state'
+        });
+      } catch (stateError) {
+        console.log('Failed with state:', stateError.message);
+        // Continue to next strategy
+      }
+    }
+
+    // Strategy 2: Try with city as both city and state (works for major cities like Bangkok)
+    try {
+      console.log('Trying city as state...');
+      const details = await iqairService.getCityData(city, city, country);
+      return res.json({
+        success: true,
+        data: details,
+        method: 'city-as-state',
+        note: 'Found using city name as state'
+      });
+    } catch (cityStateError) {
+      console.log('Failed with city as state:', cityStateError.message);
+      // Continue to next strategy
+    }
+
+    // Strategy 3: Try without state
+    try {
+      console.log('Trying without state...');
+      const details = await iqairService.getCityData(city, null, country);
+      return res.json({
+        success: true,
+        data: details,
+        method: 'no-state'
+      });
+    } catch (noStateError) {
+      console.log('Failed without state:', noStateError.message);
+    }
+
+    // All strategies failed - return helpful error
+    return res.status(404).json({
+      success: false,
+      error: 'City not found',
+      query: { city, state, country },
+      suggestions: [
+        'Try using /api/aqi/nearby with coordinates for best accuracy',
+        'Use /api/aqi/search-city for fuzzy search',
+        'Browse /api/aqi/states and /api/aqi/cities to find exact names',
+        'Some cities require the state parameter (e.g., Los Angeles, California, USA)'
+      ],
+      alternatives: {
+        nearby: `/api/aqi/nearby?lat=YOUR_LAT&lon=YOUR_LON`,
+        search: `/api/aqi/search-city?query=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`,
+        browse: `/api/aqi/countries`
+      }
+    });
+
+  } catch (error) {
+    console.error('City endpoint error:', error);
+    next(error);
+  }
+});
 
 // GET /api/aqi/search-city
 // Smart search that tries multiple methods to find a city
