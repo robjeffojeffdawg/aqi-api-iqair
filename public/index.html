@@ -230,7 +230,8 @@
     </div>
 
     <script>
-        let userLat, userLon;
+    const API_URL = 'https://aqi-api-iqair-production.up.railway.app';
+    let userLat, userLon;
 
         // Get current location
         async function getCurrentLocation() {
@@ -264,7 +265,7 @@
 
             try {
                 const response = await fetch(
-                    `api/aqi/nearby?lat=${userLat}&lon=${userLon}`
+    `${API_URL}/api/aqi/nearby?lat=${userLat}&lon=${userLon}`
                 );
                 const data = await response.json();
 
@@ -353,7 +354,7 @@
         // Load countries
         async function loadCountries() {
             try {
-                const response = await fetch('/api/aqi/countries');
+              const response = await fetch(`${API_URL}/api/aqi/countries`);
                 const data = await response.json();
 
                 const select = document.getElementById('countrySelect');
@@ -384,7 +385,7 @@
             if (!country) return;
 
             try {
-                const response = await fetch(`api/aqi/states?country=${encodeURIComponent(country)}`);
+                const response = await fetch(`${API_URL}/api/aqi/states?country=${encodeURIComponent(country)}`);
                 const data = await response.json();
 
                 stateSelect.innerHTML = '<option value="">Select State...</option>';
@@ -451,8 +452,7 @@
             content.textContent = 'Loading air quality data...';
 
             try {
-                let url = `api/aqi/city?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`;
-                if (state) url += `&state=${encodeURIComponent(state)}`;
+                let url = `${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`;
 
                 const response = await fetch(url);
                 const data = await response.json();
