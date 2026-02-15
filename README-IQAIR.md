@@ -1,3 +1,16 @@
+## 📖 API Documentation
+
+See [API-DOCUMENTATION.md](./API-DOCUMENTATION.md) for complete API reference.
+
+### Quick Start
+
+**Primary method (recommended):**
+```
+GET /api/aqi/nearby?lat=13.7563&lon=100.5018
+```
+
+Use coordinates for best results! The `/api/aqi/city` endpoint is unreliable due to IQAir API limitations.
+
 # AQI PM2.5 API Backend (IQAir Edition)
 
 A complete RESTful API backend for serving air quality data from **IQAir** to multiple clients with user authentication, favorites, alerts, and caching.
