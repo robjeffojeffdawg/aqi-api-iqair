@@ -64,6 +64,29 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Root route - API info
+app.get('/', (req, res) => {
+  res.json({
+    name: "AQI Monitor API",
+    version: "1.0.0",
+    status: "running",
+    documentation: "/api-docs (coming soon)",
+    endpoints: {
+      health: "/health",
+      nearbyAQI: "/api/aqi/nearby?lat=LAT&lon=LON",
+      countries: "/api/aqi/countries",
+      states: "/api/aqi/states?country=COUNTRY",
+      cities: "/api/aqi/cities?state=STATE&country=COUNTRY"
+    },
+    note: "Use /api/aqi/nearby with coordinates for best results"
+  });
+});
+
+// Health check
+app.get('/health', (req, res) => {
+  // ... existing code
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
