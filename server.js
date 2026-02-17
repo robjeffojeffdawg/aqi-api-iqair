@@ -24,6 +24,18 @@ connectDB().catch(err => {
 // Middleware
 app.use(helmet());
 app.use(cors());
+// CORS Configuration
+app.use(cors({
+  origin: [
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
+    'https://robjeffojeffdawg.github.io',
+    'https://robjeffojeffdawg.github.io/aqi-api-iqair/'  
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(morgan('combined'));
 

@@ -352,92 +352,133 @@
         }
 
         // Load countries
-        async function loadCountries() {
-            try {
-              const response = await fetch(`${API_URL}/api/aqi/countries`);
-                const data = await response.json();
+async function loadCountries() {
+    const select = document.getElementById('countrySelect');
+    select.disabled = true;
+    select.innerHTML = '<option value="">Loading countries...</option>';
 
-                const select = document.getElementById('countrySelect');
-                select.innerHTML = '<option value="">Select Country...</option>';
-                
-                data.data.countries.forEach(c => {
-                    const option = document.createElement('option');
-                    option.value = c.country;
-                    option.textContent = c.country;
-                    select.appendChild(option);
-                });
-
-            } catch (error) {
-                showError('Failed to load countries: ' + error.message);
-            }
+    try {
+        console.log('Fetching countries from:', `${API_URL}/api/aqi/countries`);
+        
+        const response = await fetch(`${API_URL}/api/aqi/countries`);
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
+        
+        const data = await response.json();
+        console.log('Countries data:', data);
+
+        select.innerHTML = '<option value="">Select Country...</option>';
+        
+        if (data.success && data.data.countries && data.data.countries.length > 0) {
+            data.data.countries.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.country;
+                option.textContent = c.country;
+                select.appendChild(option);
+            });
+            select.disabled = false;
+            console.log(`✅ Loaded ${data.data.countries.length} countries`);
+        } else {
+            throw new Error('No countries returned from API');
+        }
+
+    } catch (error) {
+        console.error('❌ Error loading countries:', error);
+        select.innerHTML = '<option value="">Error loading countries</option>';
+        showError(`Failed to load countries: ${error.message}`);
+    }
+}
 
         // Load states
-        async function loadStates() {
-            const country = document.getElementById('countrySelect').value;
-            const stateSelect = document.getElementById('stateSelect');
-            const citySelect = document.getElementById('citySelect');
-            
-            stateSelect.disabled = true;
-            citySelect.disabled = true;
-            stateSelect.innerHTML = '<option value="">Loading...</option>';
+     
+async function loadStates() {
+    const select = document.getElementById('stateSelect');
+    select.disabled = true;
+    select.innerHTML = '<option value="">Loading states...</option>';
 
-            if (!country) return;
+    try {
+        console.log('Fetching states from:', `${API_URL}/api/aqi/states`);
 
-            try {
-                const response = await fetch(`${API_URL}/api/aqi/states?country=${encodeURIComponent(country)}`);
-                const data = await response.json();
-
-                stateSelect.innerHTML = '<option value="">Select State...</option>';
-                
-                data.data.states.forEach(s => {
-                    const option = document.createElement('option');
-                    option.value = s.state;
-                    option.textContent = s.state;
-                    stateSelect.appendChild(option);
-                });
-
-                stateSelect.disabled = false;
-
-            } catch (error) {
-                showError('Failed to load states: ' + error.message);
-                stateSelect.innerHTML = '<option value="">Error loading states</option>';
-            }
+        
+        const response = await fetch(`${API_URL}/api/aqi/states`);
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
+        
+        const data = await response.json();
+        console.log('States data:', data);
+
+        select.innerHTML = '<option value="">Select State...</option>';
+        
+        if (data.success && data.data.states && data.data.states.length > 0) {
+            data.data.states.forEach(s => {
+                const option = document.createElement('option');
+                option.value = s.state;
+                option.textContent = s.state;
+                select.appendChild(option);
+            });
+            select.disabled = false;
+            console.log(`✅ Loaded ${data.data.states.length} states`);
+        } else {
+            throw new Error('No states returned from API');
+        }
+
+    } catch (error) {
+        console.error('❌ Error loading states:', error);
+        select.innerHTML = '<option value="">Error loading states</option>';
+        showError(`Failed to load states: ${error.message}`);
+    }
+}
 
         // Load cities
-        async function loadCities() {
-            const country = document.getElementById('countrySelect').value;
-            const state = document.getElementById('stateSelect').value;
-            const citySelect = document.getElementById('citySelect');
-            
-            citySelect.disabled = true;
-            citySelect.innerHTML = '<option value="">Loading...</option>';
+       
+async function loadCities() {
+    const select = document.getElementById('citySelect');
+    select.disabled = true;
+    select.innerHTML = '<option value="">Loading cities...</option>';
 
-            if (!state) return;
-
-            try {
-                const response = await fetch(
-                    `api/aqi/cities?state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`
-                );
-                const data = await response.json();
-
-                citySelect.innerHTML = '<option value="">Select City...</option>';
-                
-                data.data.cities.forEach(c => {
-                    const option = document.createElement('option');
-                    option.value = c.city;
-                    option.textContent = c.city;
-                    citySelect.appendChild(option);
-                });
-
-                citySelect.disabled = false;
-
-            } catch (error) {
-                showError('Failed to load cities: ' + error.message);
-                citySelect.innerHTML = '<option value="">Error loading cities</option>';
-            }
+    try {
+        console.log('Fetching cities from:', `${API_URL}/api/aqi/cities`);
+        
+        const response = await fetch(`${API_URL}/api/aqi/cities`);
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
+        
+        const data = await response.json();
+        console.log('Cities data:', data);
+
+        select.innerHTML = '<option value="">Select City...</option>';
+        
+        if (data.success && data.data.cities && data.data.cities.length > 0) {
+            data.data.cities.forEach(c => {
+                const option = document.createElement('option');
+                option.value = c.city;
+                option.textContent = c.city;
+                select.appendChild(option);
+            });
+            select.disabled = false;
+            console.log(`✅ Loaded ${data.data.cities.length} cities`);
+        } else {
+            throw new Error('No cities returned from API');
+        }
+
+    } catch (error) {
+        console.error('❌ Error loading cities:', error);
+        select.innerHTML = '<option value="">Error loading cities</option>';
+        showError(`Failed to load cities: ${error.message}`);
+    }
+}
 
         // Load city data
         async function loadCityData() {
