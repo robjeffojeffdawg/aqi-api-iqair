@@ -193,16 +193,50 @@
             font-size: 12px;
             margin-right: 4px;
         }
+
+        .spinner {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #e2e8f0;
+  border-top: 5px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-container {
+  text-align: center;
+  padding: 40px;
+  color: white;
+}
+
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
 
 <a href="/about.html" style="font-size:14px; color:#667eea; font-weight:600;">
   About
 </a>
+<div class="navbar">
+  <div class="nav-left">
+    <img src="/images/logo.png" alt="AQI Logo" class="nav-logo">
+    <span class="nav-title">Live AQI Monitor</span>
+  </div>
 
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/about.html">About</a>
+  </div>
+</div>
+
+  <div class="header"></div>
             <h1>🌍 Live AQI Monitor</h1>
             <div class="subtitle">Powered by IQAir - Real-time air quality data worldwide</div>
             
@@ -235,7 +269,10 @@
         </div>
 
         <div id="error"></div>
-        <div id="content" class="loading">Click "Use My Location" to get started</div>
+       <div id="content" class="loading-container">
+  <div class="spinner"></div>
+  <div>Click "Use My Location" to get started</div>
+</div>
         <div class="last-updated" id="lastUpdated"></div>
     </div>
 
@@ -270,9 +307,11 @@
         // Load nearest city
         async function loadNearestCity() {
             const content = document.getElementById('content');
-            content.className = 'loading';
-            content.textContent = 'Loading air quality data...';
-
+        content.className = 'loading-container';
+content.innerHTML = `
+  <div class="spinner"></div>
+  <div>Loading air quality data…</div>
+`;
             try {
                 const response = await fetch(
     `${API_URL}/api/aqi/nearby?lat=${userLat}&lon=${userLon}`
@@ -499,9 +538,11 @@ async function loadCities() {
             if (!city) return;
 
             const content = document.getElementById('content');
-            content.className = 'loading';
-            content.textContent = 'Loading air quality data...';
-
+     content.className = 'loading-container';
+content.innerHTML = `
+  <div class="spinner"></div>
+  <div>Loading air quality data…</div>
+`;
             try {
                 let url = `${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`;
 
