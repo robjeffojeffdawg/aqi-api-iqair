@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/png" href="/images/logo.png" />
+   
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-180x180.png">
@@ -11,7 +11,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live AQI Monitor - IQAir</title>
-      <link rel="icon" href="/your-icon.png" />
+    
     <style>
         * {
             margin: 0;
@@ -218,23 +218,67 @@
   color: white;
 }
 
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 16px 24px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+}
+
+.nav-title {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 18px;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.nav-links a:hover {
+    color: #5568d3;
+    transform: translateY(-1px);
+}
+
     </style>
 </head>
 <body>
     <div class="container">
 
-<a href="/about.html" style="font-size:14px; color:#667eea; font-weight:600;">
-  About
-</a>
 <div class="navbar">
   <div class="nav-left">
-    <img src="/images/logo.png" alt="AQI Logo" class="nav-logo">
+    <img src="/images/logo.png" alt="AQI Logo" class="nav-logo" onerror="this.style.display='none'">
     <span class="nav-title">Live AQI Monitor</span>
   </div>
 
   <div class="nav-links">
-    <a href="/">Home</a>
-    <a href="/about.html">About</a>
+    <a href="javascript:void(0)" onclick="scrollToTop()">Home</a>
+    <a href="javascript:void(0)" onclick="toggleAbout()">About</a>
   </div>
 </div>
 
@@ -588,6 +632,63 @@ function showError(error) {
             document.getElementById('lastUpdated').textContent = 
                 `Last updated: ${now.toLocaleTimeString()}`;
         }
+
+        // Scroll to top (Home button)
+function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Toggle About section
+function toggleAbout() {
+    let aboutSection = document.getElementById('aboutSection');
+    
+    if (!aboutSection) {
+        // Create About section if it doesn't exist
+        aboutSection = document.createElement('div');
+        aboutSection.id = 'aboutSection';
+        aboutSection.className = 'browse-section';
+        aboutSection.style.marginTop = '20px';
+        aboutSection.innerHTML = `
+            <h3>About AQI Monitor</h3>
+            <p style="margin-top: 12px; line-height: 1.6; color: #4a5568;">
+                <strong>AQI Monitor</strong> provides real-time air quality data worldwide using data from 
+                <a href="https://www.iqair.com" target="_blank" style="color: #667eea;">IQAir</a>.
+            </p>
+            <p style="margin-top: 12px; line-height: 1.6; color: #4a5568;">
+                The Air Quality Index (AQI) indicates pollution levels and health effects. Lower is better!
+            </p>
+            <ul style="list-style: none; padding: 0; margin-top: 12px;">
+                <li style="padding: 8px; margin: 4px 0; background: #c6f6d5; border-radius: 6px;">
+                    <strong>0-50 Good:</strong> Air quality is satisfactory
+                </li>
+                <li style="padding: 8px; margin: 4px 0; background: #fefcbf; border-radius: 6px;">
+                    <strong>51-100 Moderate:</strong> Acceptable for most people
+                </li>
+                <li style="padding: 8px; margin: 4px 0; background: #feebc8; border-radius: 6px;">
+                    <strong>101-150 Unhealthy for Sensitive:</strong> Limit outdoor activity
+                </li>
+                <li style="padding: 8px; margin: 4px 0; background: #fed7d7; border-radius: 6px;">
+                    <strong>151-200 Unhealthy:</strong> Everyone may experience effects
+                </li>
+                <li style="padding: 8px; margin: 4px 0; background: #e9d8fd; border-radius: 6px;">
+                    <strong>201-300 Very Unhealthy:</strong> Health alert
+                </li>
+                <li style="padding: 8px; margin: 4px 0; background: #fed7d7; border-radius: 6px;">
+                    <strong>301+ Hazardous:</strong> Emergency conditions
+                </li>
+            </ul>
+        `;
+        document.querySelector('.container').appendChild(aboutSection);
+    }
+    
+    // Toggle visibility
+    if (aboutSection.style.display === 'none') {
+        aboutSection.style.display = 'block';
+        aboutSection.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        aboutSection.style.display = 'none';
+    }
+}
     </script>
     <script>
   if ("serviceWorker" in navigator) {
