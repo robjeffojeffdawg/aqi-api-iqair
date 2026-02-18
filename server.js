@@ -94,6 +94,42 @@ app.get('/', (req, res) => {
   });
 });
 
+app.get("/api/countries", async (req, res) => {
+  try {
+    const response = await fetch(
+      `http://api.airvisual.com/v2/countries?key=${process.env.IQAIR_KEY}`
+    );
+
+    const data = await response.json();
+    res.json(data);
+
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch countries" });
+  }
+});
+
+app.get("/api/states", async (req, res) => {
+  const { country } = req.query;
+
+  const response = await fetch(
+    `http://api.airvisual.com/v2/states?country=${country}&key=${process.env.IQAIR_KEY}`
+  );
+
+  const data = await response.json();
+  res.json(data);
+});
+
+app.get("/api/cities", async (req, res) => {
+  const { country, state } = req.query;
+
+  const response = await fetch(
+    `http://api.airvisual.com/v2/cities?state=${state}&country=${country}&key=${process.env.IQAIR_KEY}`
+  );
+
+  const data = await response.json();
+  res.json(data);
+});
+
 // Health check
 app.get('/health', (req, res) => {
   // ... existing code

@@ -441,8 +441,8 @@ content.innerHTML = `
             const isHidden = section.style.display === 'none';
             section.style.display = isHidden ? 'block' : 'none';
             
-            if (isHidden && !document.getElementById('countrySelect').options.length) {
-                loadCountries();
+             if (isHidden && document.getElementById('countrySelect').options.length <= 1) {
+        loadCountries();
             }
         }
 
@@ -488,90 +488,71 @@ async function loadCountries() {
     }
 }
 
-        // Load states
-     
-async function loadStates() {
+     async function loadStates() {
+    const country = document.getElementById('countrySelect').value;
+    if (!country) return;
+
     const select = document.getElementById('stateSelect');
     select.disabled = true;
     select.innerHTML = '<option value="">Loading states...</option>';
 
     try {
-        console.log('Fetching states from:', `${API_URL}/api/aqi/states`);
+        const response = await fetch(
+            `${API_URL}/api/aqi/states?country=${encodeURIComponent(country)}`
+        );
 
-        
-        const response = await fetch(`${API_URL}/api/aqi/states`);
-        
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
         const data = await response.json();
-        console.log('States data:', data);
 
         select.innerHTML = '<option value="">Select State...</option>';
-        
-        if (data.success && data.data.states && data.data.states.length > 0) {
+
+        if (data.success && data.data.states.length > 0) {
             data.data.states.forEach(s => {
                 const option = document.createElement('option');
                 option.value = s.state;
                 option.textContent = s.state;
                 select.appendChild(option);
             });
+
             select.disabled = false;
-            console.log(`✅ Loaded ${data.data.states.length} states`);
-        } else {
-            throw new Error('No states returned from API');
         }
 
     } catch (error) {
-        console.error('❌ Error loading states:', error);
-        select.innerHTML = '<option value="">Error loading states</option>';
-        showError(`Failed to load states: ${error.message}`);
+        showError(error.message);
     }
 }
 
-        // Load cities
-       
-async function loadCities() {
+        async function loadCities() {
+    const country = document.getElementById('countrySelect').value;
+    const state = document.getElementById('stateSelect').value;
+
+    if (!country || !state) return;
+
     const select = document.getElementById('citySelect');
     select.disabled = true;
     select.innerHTML = '<option value="">Loading cities...</option>';
 
     try {
-        console.log('Fetching cities from:', `${API_URL}/api/aqi/cities`);
-        
-        const response = await fetch(`${API_URL}/api/aqi/cities`);
-        
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
+        const response = await fetch(
+            `${API_URL}/api/aqi/cities?country=${encodeURIComponent(country)}&state=${encodeURIComponent(state)}`
+        );
+
         const data = await response.json();
-        console.log('Cities data:', data);
 
         select.innerHTML = '<option value="">Select City...</option>';
-        
-        if (data.success && data.data.cities && data.data.cities.length > 0) {
+
+        if (data.success && data.data.cities.length > 0) {
             data.data.cities.forEach(c => {
                 const option = document.createElement('option');
                 option.value = c.city;
                 option.textContent = c.city;
                 select.appendChild(option);
             });
+
             select.disabled = false;
-            console.log(`✅ Loaded ${data.data.cities.length} cities`);
-        } else {
-            throw new Error('No cities returned from API');
         }
 
     } catch (error) {
-        console.error('❌ Error loading cities:', error);
-        select.innerHTML = '<option value="">Error loading cities</option>';
-        showError(`Failed to load cities: ${error.message}`);
+        showError(error.message);
     }
 }
 
@@ -689,6 +670,11 @@ function toggleAbout() {
         aboutSection.style.display = 'none';
     }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadCountries();
+});
+
     </script>
     <script>
   if ("serviceWorker" in navigator) {
