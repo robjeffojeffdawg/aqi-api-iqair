@@ -7,6 +7,7 @@ const cache = new NodeCache({ stdTTL: 300 });
 class IQAirService {
   constructor() {
     this.apiKey = process.env.IQAIR_API_KEY || 'demo';
+    console.log("IQAir Key Loaded:", this.apiKey);
     this.baseURL = 'http://api.airvisual.com/v2';
   }
 
@@ -194,7 +195,7 @@ class IQAirService {
       const response = await axios.get(url);
 
       if (response.data.status !== 'success') {
-        throw new Error('Failed to fetch countries');
+       throw new Error(response.data.data?.message || 'Failed to fetch countries');
       }
 
       const countries = response.data.data.map(c => ({
