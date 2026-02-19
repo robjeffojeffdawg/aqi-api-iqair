@@ -280,7 +280,8 @@
                 <span class="nav-title">🌍 Live AQI Monitor</span>
             </div>
             <div class="nav-links">
-                <a onclick="scrollToTop()">Home</a>
+                <a id="homeLink">Home</a>
+
                 <a href="about.html">About</a>
             </div>
         </div>
@@ -290,13 +291,16 @@
             <div class="subtitle">Powered by IQAir - Real-time air quality data worldwide</div>
             
             <div class="controls">
-                <button onclick="getCurrentLocation()" id="currentBtn">
+                <button id="currentBtn">
+
                     📍 Use My Location
                 </button>
-                <button onclick="toggleBrowse()">
+                <button id="browseBtn">
+
                     🗺️ Browse Cities
                 </button>
-                <button onclick="refreshData()" id="refreshBtn">
+        <button id="refreshBtn">
+
                     🔄 Refresh
                 </button>
             </div>
@@ -648,6 +652,12 @@
             document.getElementById('lastUpdated').textContent = 
                 `Last updated: ${now.toLocaleTimeString()} • ${now.toLocaleDateString()}`;
         }
+
+        // Add event listeners
+document.getElementById('currentBtn').addEventListener('click', getCurrentLocation);
+document.getElementById('browseBtn').addEventListener('click', toggleBrowse);
+document.getElementById('refreshBtn').addEventListener('click', refreshData);
+document.getElementById('homeLink').addEventListener('click', scrollToTop);
     </script>
 </body>
 </html>
