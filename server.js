@@ -23,19 +23,20 @@ connectDB().catch(err => {
 
 // Middleware
 app.use(helmet());
-app.use(cors());
-// CORS Configuration
+
+// CORS - Single configuration
 app.use(cors({
   origin: [
     'http://localhost:5500',
     'http://127.0.0.1:5500',
-    'https://aqi.jeff-o-blogs.com',
-    'https://aqi.jeff-o-blogs.com/aqi-api-iqair/'  
+    'https://robjeffojeffdawg.github.io',
+    'https://aqi.jeff-o-blogs.com'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json());
 app.use(morgan('combined'));
 
@@ -44,17 +45,33 @@ app.use(express.static(path.join(__dirname)));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 100,
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api/', limiter);
 
-// Routes
+// API Routes
 app.use('/api/aqi', aqiRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/alerts', alertsRoutes);
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    name: "AQI Monitor API",
+    version: "1.0.0",
+    status: "running",
+    endpoints: {
+      health: "/health",
+      nearbyAQI: "/api/aqi/nearby?lat=LAT&lon=LON",
+      countries: "/api/aqi/countries",
+      states: "/api/aqi/states?country=COUNTRY",
+      cities: "/api/aqi/cities?state=STATE&country=COUNTRY"
+    }
+  });
+});
 
 // Health check
 app.get('/health', (req, res) => {
@@ -65,7 +82,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Error handling middleware
+// Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
@@ -76,66 +93,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Root route - API info
-app.get('/', (req, res) => {
-  res.json({
-    name: "AQI Monitor API",
-    version: "1.0.0",
-    status: "running",
-    documentation: "/api-docs (coming soon)",
-    endpoints: {
-      health: "/health",
-      nearbyAQI: "/api/aqi/nearby?lat=LAT&lon=LON",
-      countries: "/api/aqi/countries",
-      states: "/api/aqi/states?country=COUNTRY",
-      cities: "/api/aqi/cities?state=STATE&country=COUNTRY"
-    },
-    note: "Use /api/aqi/nearby with coordinates for best results"
-  });
-});
-
-app.get("/api/countries", async (req, res) => {
-  try {
-    const response = await fetch(
-      `http://api.airvisual.com/v2/countries?key=${process.env.IQAIR_KEY}`
-    );
-
-    const data = await response.json();
-    res.json(data);
-
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch countries" });
-  }
-});
-
-app.get("/api/states", async (req, res) => {
-  const { country } = req.query;
-
-  const response = await fetch(
-    `http://api.airvisual.com/v2/states?country=${country}&key=${process.env.IQAIR_KEY}`
-  );
-
-  const data = await response.json();
-  res.json(data);
-});
-
-app.get("/api/cities", async (req, res) => {
-  const { country, state } = req.query;
-
-  const response = await fetch(
-    `http://api.airvisual.com/v2/cities?state=${state}&country=${country}&key=${process.env.IQAIR_KEY}`
-  );
-
-  const data = await response.json();
-  res.json(data);
-});
-
-// Health check
-app.get('/health', (req, res) => {
-  // ... existing code
-});
-
-// 404 handler
+// 404 handler (MUST BE LAST)
 app.use((req, res) => {
   res.status(404).json({
     error: {
@@ -146,14 +104,13 @@ app.use((req, res) => {
 });
 
 // Start server
-// Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 AQI API server running on port ${PORT}`);
-  console.log(`📊 Health check: https://aqi-api-iqair-production.up.railway.app:${PORT}/health`);
+  console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
-// Handle uncaught exceptions
+// Error handlers
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
   process.exit(1);
