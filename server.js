@@ -8,6 +8,11 @@ const aqiRoutes = require('./routes/aqi');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors({
+  origin: ["https://robjeffojeffdawg.github.io"],
+  credentials: true
+}));
+
 // Connect MongoDB
 connectDB();
 
