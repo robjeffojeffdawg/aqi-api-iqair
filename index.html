@@ -1,16 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-   
-    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-180x180.png">
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#667eea">
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live AQI Monitor - IQAir</title>
+    
+    <!-- Simple emoji favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🌍</text></svg>">
     
     <style>
         * {
@@ -29,6 +25,47 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-title {
+            font-weight: 700;
+            font-size: 18px;
+            color: #2d3748;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            color: #5568d3;
         }
 
         .header {
@@ -70,7 +107,7 @@
             transition: all 0.2s;
         }
 
-        button:hover {
+        button:hover:not(:disabled) {
             background: #5568d3;
             transform: translateY(-1px);
         }
@@ -79,6 +116,20 @@
             background: #cbd5e0;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .grid {
@@ -150,7 +201,7 @@
             margin-bottom: 4px;
         }
 
-        .loading {
+        .loading-container {
             text-align: center;
             padding: 40px;
             color: white;
@@ -163,6 +214,7 @@
             padding: 16px;
             border-radius: 8px;
             margin-bottom: 20px;
+            font-weight: 500;
         }
 
         .last-updated {
@@ -170,6 +222,7 @@
             color: white;
             font-size: 14px;
             margin-top: 20px;
+            opacity: 0.9;
         }
 
         .browse-section {
@@ -177,6 +230,7 @@
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
         }
 
         select {
@@ -185,105 +239,54 @@
             border: 2px solid #e2e8f0;
             font-size: 14px;
             margin-right: 8px;
+            margin-bottom: 8px;
         }
 
-        .pollutant-badge {
-            display: inline-block;
-            background: #edf2f7;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-right: 4px;
+        select:disabled {
+            background: #f7fafc;
+            color: #a0aec0;
         }
 
-        .spinner {
-  width: 48px;
-  height: 48px;
-  border: 5px solid #e2e8f0;
-  border-top: 5px solid #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 16px;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-container {
-  text-align: center;
-  padding: 40px;
-  color: white;
-}
-
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: white;
-    padding: 16px 24px;
-    border-radius: 16px;
-    margin-bottom: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.nav-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.nav-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-}
-
-.nav-title {
-    font-weight: 700;
-    color: #2d3748;
-    font-size: 18px;
-}
-
-.nav-links {
-    display: flex;
-    gap: 20px;
-}
-
-.nav-links a {
-    color: #667eea;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-
-.nav-links a:hover {
-    color: #5568d3;
-    transform: translateY(-1px);
-}
-
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .nav-links {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="navbar">
+            <div class="nav-left">
+                <span class="nav-title">🌍 Live AQI Monitor</span>
+            </div>
+            <div class="nav-links">
+                <a onclick="scrollToTop()">Home</a>
+                <a href="about.html">About</a>
+            </div>
+        </div>
 
-<div class="navbar">
-  <div class="nav-left">
-    <img src="/images/logo.png" alt="AQI Logo" class="nav-logo" onerror="this.style.display='none'">
-    <span class="nav-title">Live AQI Monitor</span>
-  </div>
-
-  <div class="nav-links">
-    <a href="javascript:void(0)" onclick="scrollToTop()">Home</a>
-    <a href="javascript:void(0)" onclick="toggleAbout()">About</a>
-  </div>
-</div>
-
-  <div class="header"></div>
-            <h1>🌍 Live AQI Monitor</h1>
+        <div class="header">
+            <h1>Live AQI Monitor</h1>
             <div class="subtitle">Powered by IQAir - Real-time air quality data worldwide</div>
             
             <div class="controls">
@@ -315,22 +318,30 @@
         </div>
 
         <div id="error"></div>
-       <div id="content" class="loading-container">
-  <div class="spinner"></div>
-  <div>Click "Use My Location" to get started</div>
-</div>
+        
+        <div id="content" class="loading-container">
+            <div>Click "Use My Location" to get started</div>
+        </div>
+        
         <div class="last-updated" id="lastUpdated"></div>
     </div>
 
     <script>
-    const API_URL = 'https://api.yourdomain.com/api/aqi/countries"';
-    let userLat, userLon;
+        // CORRECT API URL - Railway backend
+        const API_URL = 'https://aqi-api-iqair-production.up.railway.app';
+        let userLat, userLon;
+
+        // Scroll to top
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
         // Get current location
         async function getCurrentLocation() {
             const btn = document.getElementById('currentBtn');
+            const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.textContent = '📍 Getting location...';
+            btn.innerHTML = '<span class="spinner"></span> Getting location...';
 
             try {
                 const position = await new Promise((resolve, reject) => {
@@ -346,25 +357,23 @@
                 showError('Location access denied. Please use Browse Cities instead.');
             } finally {
                 btn.disabled = false;
-                btn.textContent = '📍 Use My Location';
+                btn.innerHTML = originalText;
             }
         }
 
         // Load nearest city
         async function loadNearestCity() {
             const content = document.getElementById('content');
-        content.className = 'loading-container';
-content.innerHTML = `
-  <div class="spinner"></div>
-  <div>Loading air quality data…</div>
-`;
+            content.className = 'loading-container';
+            content.innerHTML = '<div class="spinner" style="width:40px;height:40px;border-width:4px;margin:0 auto 16px;"></div><div>Loading air quality data...</div>';
+
             try {
                 const response = await fetch(
-    `${API_URL}/api/aqi/nearby?lat=${userLat}&lon=${userLon}`
+                    `${API_URL}/api/aqi/nearby?lat=${userLat}&lon=${userLon}`
                 );
                 const data = await response.json();
 
-                if (!response.ok) throw new Error(data.error);
+                if (!response.ok) throw new Error(data.error || 'Failed to fetch data');
 
                 displayStations(data.data.stations);
                 updateLastUpdated();
@@ -379,7 +388,7 @@ content.innerHTML = `
             const content = document.getElementById('content');
             
             if (stations.length === 0) {
-                content.innerHTML = '<div class="loading">No air quality data available for this location</div>';
+                content.innerHTML = '<div class="loading-container">No air quality data available for this location</div>';
                 return;
             }
 
@@ -397,7 +406,7 @@ content.innerHTML = `
                         </div>
                         <div class="aqi-display">
                             <div class="aqi-value" style="color: ${category.color}">
-                                ${aqi}
+                                ${Math.round(aqi)}
                             </div>
                             <div class="aqi-label">US AQI</div>
                         </div>
@@ -441,123 +450,143 @@ content.innerHTML = `
             const isHidden = section.style.display === 'none';
             section.style.display = isHidden ? 'block' : 'none';
             
-             if (isHidden && document.getElementById('countrySelect').options.length <= 1) {
-        loadCountries();
+            if (isHidden && document.getElementById('countrySelect').options.length <= 1) {
+                loadCountries();
             }
         }
 
         // Load countries
-async function loadCountries() {
-    const select = document.getElementById('countrySelect');
-    select.disabled = true;
-    select.innerHTML = '<option value="">Loading countries...</option>';
+        async function loadCountries() {
+            const select = document.getElementById('countrySelect');
+            select.disabled = true;
+            select.innerHTML = '<option value="">Loading countries...</option>';
 
-    try {
-        console.log('Fetching countries from:', `${API_URL}/api/aqi/countries`);
-        
-        const response = await fetch(`${API_URL}/api/aqi/countries`);
-        
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log('Countries data:', data);
+            try {
+                // FIXED: Removed extra quote
+                const response = await fetch(`${API_URL}/api/aqi/countries`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
 
-        select.innerHTML = '<option value="">Select Country...</option>';
-        
-        if (data.success && data.data.countries && data.data.countries.length > 0) {
-            data.data.countries.forEach(c => {
-                const option = document.createElement('option');
-                option.value = c.country;
-                option.textContent = c.country;
-                select.appendChild(option);
-            });
-            select.disabled = false;
-            console.log(`✅ Loaded ${data.data.countries.length} countries`);
-        } else {
-            throw new Error('No countries returned from API');
-        }
+                select.innerHTML = '<option value="">Select Country...</option>';
+                
+                if (data.success && data.data.countries && data.data.countries.length > 0) {
+                    data.data.countries.forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.country;
+                        option.textContent = c.country;
+                        select.appendChild(option);
+                    });
+                    select.disabled = false;
+                } else {
+                    throw new Error('No countries returned from API');
+                }
 
-    } catch (error) {
-        console.error('❌ Error loading countries:', error);
-        select.innerHTML = '<option value="">Error loading countries</option>';
-        showError(`Failed to load countries: ${error.message}`);
-    }
-}
-
-     async function loadStates() {
-    const country = document.getElementById('countrySelect').value;
-    if (!country) return;
-
-    const select = document.getElementById('stateSelect');
-    select.disabled = true;
-    select.innerHTML = '<option value="">Loading states...</option>';
-
-    try {
-        const country = document.getElementById('countrySelect').value;
-        const response = await fetch(
-            `${API_URL}/api/aqi/states?country=${encodeURIComponent(country)}`
-        );
-
-        const data = await response.json();
-
-        select.innerHTML = '<option value="">Select State...</option>';
-
-        if (data.success && data.data.states.length > 0) {
-            data.data.states.forEach(s => {
-                const option = document.createElement('option');
-                option.value = s.state;
-                option.textContent = s.state;
-                select.appendChild(option);
-            });
-
-            select.disabled = false;
+            } catch (error) {
+                console.error('Error loading countries:', error);
+                select.innerHTML = '<option value="">Error loading countries</option>';
+                showError(`Failed to load countries: ${error.message}`);
+            }
         }
 
-    } catch (error) {
-        showError(error.message);
-    }
-}
+        // Load states
+        async function loadStates() {
+            const country = document.getElementById('countrySelect').value;
+            const stateSelect = document.getElementById('stateSelect');
+            const citySelect = document.getElementById('citySelect');
+            
+            // Reset dependent selects
+            citySelect.innerHTML = '<option value="">Select City...</option>';
+            citySelect.disabled = true;
+            
+            if (!country) {
+                stateSelect.innerHTML = '<option value="">Select State...</option>';
+                stateSelect.disabled = true;
+                return;
+            }
+            
+            stateSelect.disabled = true;
+            stateSelect.innerHTML = '<option value="">Loading states...</option>';
 
+            try {
+                // FIXED: Added country parameter
+                const response = await fetch(`${API_URL}/api/aqi/states?country=${encodeURIComponent(country)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+
+                stateSelect.innerHTML = '<option value="">Select State...</option>';
+                
+                if (data.success && data.data.states && data.data.states.length > 0) {
+                    data.data.states.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s.state;
+                        option.textContent = s.state;
+                        stateSelect.appendChild(option);
+                    });
+                    stateSelect.disabled = false;
+                } else {
+                    throw new Error('No states returned from API');
+                }
+
+            } catch (error) {
+                console.error('Error loading states:', error);
+                stateSelect.innerHTML = '<option value="">Error loading states</option>';
+                showError(`Failed to load states: ${error.message}`);
+            }
+        }
+
+        // Load cities
         async function loadCities() {
-    const country = document.getElementById('countrySelect').value;
-    const state = document.getElementById('stateSelect').value;
+            const country = document.getElementById('countrySelect').value;
+            const state = document.getElementById('stateSelect').value;
+            const citySelect = document.getElementById('citySelect');
+            
+            if (!state) {
+                citySelect.innerHTML = '<option value="">Select City...</option>';
+                citySelect.disabled = true;
+                return;
+            }
+            
+            citySelect.disabled = true;
+            citySelect.innerHTML = '<option value="">Loading cities...</option>';
 
-    if (!country || !state) return;
+            try {
+                // FIXED: Added both state and country parameters
+                const response = await fetch(`${API_URL}/api/aqi/cities?state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
 
-    const select = document.getElementById('citySelect');
-    select.disabled = true;
-    select.innerHTML = '<option value="">Loading cities...</option>';
+                citySelect.innerHTML = '<option value="">Select City...</option>';
+                
+                if (data.success && data.data.cities && data.data.cities.length > 0) {
+                    data.data.cities.forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.city;
+                        option.textContent = c.city;
+                        citySelect.appendChild(option);
+                    });
+                    citySelect.disabled = false;
+                } else {
+                    throw new Error('No cities returned from API');
+                }
 
-    try {
-        const country = document.getElementById('countrySelect').value;
-
-        const response = await fetch(
-            `${API_URL}/api/aqi/cities?country=${encodeURIComponent(country)}&state=${encodeURIComponent(state)}`
-        );
-
-        const data = await response.json();
-
-        select.innerHTML = '<option value="">Select City...</option>';
-
-        if (data.success && data.data.cities.length > 0) {
-            data.data.cities.forEach(c => {
-                const option = document.createElement('option');
-                option.value = c.city;
-                option.textContent = c.city;
-                select.appendChild(option);
-            });
-
-            select.disabled = false;
+            } catch (error) {
+                console.error('Error loading cities:', error);
+                citySelect.innerHTML = '<option value="">Error loading cities</option>';
+                showError(`Failed to load cities: ${error.message}`);
+            }
         }
-
-    } catch (error) {
-        showError(error.message);
-    }
-}
 
         // Load city data
         async function loadCityData() {
@@ -568,18 +597,19 @@ async function loadCountries() {
             if (!city) return;
 
             const content = document.getElementById('content');
-     content.className = 'loading-container';
-content.innerHTML = `
-  <div class="spinner"></div>
-  <div>Loading air quality data…</div>
-`;
+            content.className = 'loading-container';
+            content.innerHTML = '<div class="spinner" style="width:40px;height:40px;border-width:4px;margin:0 auto 16px;"></div><div>Loading air quality data...</div>';
+
             try {
                 let url = `${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`;
+                if (state) {
+                    url += `&state=${encodeURIComponent(state)}`;
+                }
 
                 const response = await fetch(url);
                 const data = await response.json();
 
-                if (!response.ok) throw new Error(data.error);
+                if (!response.ok) throw new Error(data.error || 'Failed to fetch data');
 
                 displayStations([data.data]);
                 updateLastUpdated();
@@ -597,94 +627,27 @@ content.innerHTML = `
                 const city = document.getElementById('citySelect')?.value;
                 if (city) {
                     await loadCityData();
+                } else {
+                    showError('Please select a location first');
                 }
             }
         }
-// Show error
-function showError(error) {
-    const errorDiv = document.getElementById('error');
-    const message = typeof error === 'string' ? error : (error.message || JSON.stringify(error));
-    errorDiv.innerHTML = `<div class="error">❌ ${message}</div>`;
-    setTimeout(() => errorDiv.innerHTML = '', 5000);
-    
-    document.getElementById('content').innerHTML = '';
-}
+
+        // Show error
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.innerHTML = `<div class="error">❌ ${message}</div>`;
+            setTimeout(() => errorDiv.innerHTML = '', 5000);
+            
+            document.getElementById('content').innerHTML = '';
+        }
 
         // Update last updated time
         function updateLastUpdated() {
             const now = new Date();
             document.getElementById('lastUpdated').textContent = 
-                `Last updated: ${now.toLocaleTimeString()}`;
+                `Last updated: ${now.toLocaleTimeString()} • ${now.toLocaleDateString()}`;
         }
-
-        // Scroll to top (Home button)
-function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// Toggle About section
-function toggleAbout() {
-    let aboutSection = document.getElementById('aboutSection');
-    
-    if (!aboutSection) {
-        // Create About section if it doesn't exist
-        aboutSection = document.createElement('div');
-        aboutSection.id = 'aboutSection';
-        aboutSection.className = 'browse-section';
-        aboutSection.style.marginTop = '20px';
-        aboutSection.innerHTML = `
-            <h3>About AQI Monitor</h3>
-            <p style="margin-top: 12px; line-height: 1.6; color: #4a5568;">
-                <strong>AQI Monitor</strong> provides real-time air quality data worldwide using data from 
-                <a href="https://www.iqair.com" target="_blank" style="color: #667eea;">IQAir</a>.
-            </p>
-            <p style="margin-top: 12px; line-height: 1.6; color: #4a5568;">
-                The Air Quality Index (AQI) indicates pollution levels and health effects. Lower is better!
-            </p>
-            <ul style="list-style: none; padding: 0; margin-top: 12px;">
-                <li style="padding: 8px; margin: 4px 0; background: #c6f6d5; border-radius: 6px;">
-                    <strong>0-50 Good:</strong> Air quality is satisfactory
-                </li>
-                <li style="padding: 8px; margin: 4px 0; background: #fefcbf; border-radius: 6px;">
-                    <strong>51-100 Moderate:</strong> Acceptable for most people
-                </li>
-                <li style="padding: 8px; margin: 4px 0; background: #feebc8; border-radius: 6px;">
-                    <strong>101-150 Unhealthy for Sensitive:</strong> Limit outdoor activity
-                </li>
-                <li style="padding: 8px; margin: 4px 0; background: #fed7d7; border-radius: 6px;">
-                    <strong>151-200 Unhealthy:</strong> Everyone may experience effects
-                </li>
-                <li style="padding: 8px; margin: 4px 0; background: #e9d8fd; border-radius: 6px;">
-                    <strong>201-300 Very Unhealthy:</strong> Health alert
-                </li>
-                <li style="padding: 8px; margin: 4px 0; background: #fed7d7; border-radius: 6px;">
-                    <strong>301+ Hazardous:</strong> Emergency conditions
-                </li>
-            </ul>
-        `;
-        document.querySelector('.container').appendChild(aboutSection);
-    }
-    
-    // Toggle visibility
-    if (aboutSection.style.display === 'none') {
-        aboutSection.style.display = 'block';
-        aboutSection.scrollIntoView({ behavior: 'smooth' });
-    } else {
-        aboutSection.style.display = 'none';
-    }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    loadCountries();
-});
-
     </script>
-    <script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/sw.js")
-      .then(() => console.log("Service Worker registered"))
-      .catch(err => console.log("SW registration failed", err));
-  }
-</script>
 </body>
 </html>
