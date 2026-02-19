@@ -497,6 +497,7 @@ async function loadCountries() {
     select.innerHTML = '<option value="">Loading states...</option>';
 
     try {
+        const country = document.getElementById('countrySelect').value;
         const response = await fetch(
             `${API_URL}/api/aqi/states?country=${encodeURIComponent(country)}`
         );
@@ -532,6 +533,8 @@ async function loadCountries() {
     select.innerHTML = '<option value="">Loading cities...</option>';
 
     try {
+        const country = document.getElementById('countrySelect').value;
+
         const response = await fetch(
             `${API_URL}/api/aqi/cities?country=${encodeURIComponent(country)}&state=${encodeURIComponent(state)}`
         );
