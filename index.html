@@ -16,7 +16,7 @@
             padding: 20px;
         }
 
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
 
         .header {
             background: white;
@@ -25,6 +25,25 @@
             margin-bottom: 24px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .about-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .about-link:hover { background: #f7fafc; }
 
         h1 { color: #2d3748; margin-bottom: 8px; font-size: 28px; }
         
@@ -47,6 +66,112 @@
         button:hover:not(:disabled) { background: #5568d3; transform: translateY(-1px); }
         button:disabled { background: #cbd5e0; cursor: not-allowed; }
 
+        /* Source Toggle */
+        .source-toggle {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .source-toggle h3 {
+            color: #2d3748;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .toggle-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #4a5568;
+        }
+
+        .toggle-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .toggle-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-around;
+            gap: 20px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .stat-item {
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Grid */
+        .section-header {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .source-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-iqair {
+            background: #4299e1;
+            color: white;
+        }
+
+        .badge-purpleair {
+            background: #9f7aea;
+            color: white;
+        }
+
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -60,16 +185,61 @@
             padding: 20px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.1);
             transition: transform 0.2s;
+            position: relative;
         }
 
         .station-card:hover { transform: translateY(-4px); }
 
-        .station-name { font-size: 18px; font-weight: 600; color: #2d3748; margin-bottom: 8px; }
-        .station-distance { font-size: 13px; color: #718096; margin-bottom: 16px; }
+        .station-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 12px 12px 0 0;
+        }
 
-        .aqi-display { display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px; }
-        .aqi-value { font-size: 48px; font-weight: 700; line-height: 1; }
-        .aqi-label { font-size: 14px; color: #718096; }
+        .station-card.iqair::before { background: #4299e1; }
+        .station-card.purpleair::before { background: #9f7aea; }
+
+        .station-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 8px;
+        }
+
+        .station-name { 
+            font-size: 18px; 
+            font-weight: 600; 
+            color: #2d3748; 
+            flex: 1;
+        }
+
+        .station-distance { 
+            font-size: 13px; 
+            color: #718096; 
+            margin-bottom: 16px; 
+        }
+
+        .aqi-display { 
+            display: flex; 
+            align-items: baseline; 
+            gap: 8px; 
+            margin-bottom: 12px; 
+        }
+
+        .aqi-value { 
+            font-size: 48px; 
+            font-weight: 700; 
+            line-height: 1; 
+        }
+
+        .aqi-label { 
+            font-size: 14px; 
+            color: #718096; 
+        }
 
         .aqi-category {
             display: inline-block;
@@ -80,7 +250,12 @@
             margin-bottom: 12px;
         }
 
-        .station-details { font-size: 13px; color: #4a5568; line-height: 1.6; }
+        .station-details { 
+            font-size: 13px; 
+            color: #4a5568; 
+            line-height: 1.6; 
+        }
+
         .station-details div { margin-bottom: 4px; }
 
         .loading {
@@ -108,8 +283,10 @@
         }
 
         @media (max-width: 768px) {
+            .header-top { flex-direction: column; gap: 12px; }
             .controls { flex-direction: column; width: 100%; }
             button { width: 100%; }
+            .stats-bar { flex-direction: column; }
             .grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -117,14 +294,34 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🌍 Live AQI Monitor</h1>
-            <div class="subtitle">Real-time air quality data worldwide powered by IQAir</div>
+            <div class="header-top">
+                <h1>🌍 Live AQI Monitor</h1>
+                <a href="about.html" class="about-link">ℹ️ About</a>
+            </div>
+            <div class="subtitle">Multi-source air quality data comparison • IQAir + PurpleAir</div>
             
             <div class="controls">
                 <button id="locationBtn">📍 Use My Location</button>
                 <button id="refreshBtn">🔄 Refresh</button>
             </div>
         </div>
+
+        <div id="sourceToggle" class="source-toggle" style="display: none;">
+            <h3>Data Sources</h3>
+            <div class="toggle-buttons">
+                <div class="toggle-btn active" data-source="all" onclick="filterSource('all')">
+                    🌐 All Sources
+                </div>
+                <div class="toggle-btn" data-source="iqair" onclick="filterSource('iqair')">
+                    🏢 IQAir Only
+                </div>
+                <div class="toggle-btn" data-source="purpleair" onclick="filterSource('purpleair')">
+                    🟣 PurpleAir Only
+                </div>
+            </div>
+        </div>
+
+        <div id="statsBar" style="display: none;"></div>
 
         <div id="error"></div>
         <div id="content" class="loading">Click "Use My Location" to get started</div>
@@ -134,6 +331,8 @@
     <script>
         const API_URL = 'https://aqi-api-iqair-production.up.railway.app';
         let userLat, userLon;
+        let allStations = [];
+        let currentFilter = 'all';
 
         // Get location button
         document.getElementById('locationBtn').onclick = async function() {
@@ -167,11 +366,27 @@
             }
         };
 
+        // Filter by source
+        function filterSource(source) {
+            currentFilter = source;
+            
+            // Update toggle buttons
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.source === source) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Filter and display stations
+            displayStations(allStations);
+        }
+
         // Load AQI data
         async function loadData() {
             const content = document.getElementById('content');
             content.className = 'loading';
-            content.innerHTML = 'Loading air quality data...';
+            content.innerHTML = 'Loading air quality data from multiple sources...';
 
             try {
                 const response = await fetch(`${API_URL}/api/aqi/nearby?lat=${userLat}&lon=${userLon}`);
@@ -179,32 +394,78 @@
 
                 if (!response.ok) throw new Error(data.error || 'Failed to fetch');
 
-                displayStations(data.data.stations);
+                allStations = data.data.stations;
+                displayStations(allStations);
+                displayStats(data.data);
                 updateTime();
+
+                // Show source toggle
+                document.getElementById('sourceToggle').style.display = 'block';
 
             } catch (error) {
                 showError(error.message);
             }
         }
 
+        // Display statistics
+        function displayStats(data) {
+            const statsBar = document.getElementById('statsBar');
+            
+            const iqairCount = allStations.filter(s => s.source === 'IQAir').length;
+            const purpleairCount = allStations.filter(s => s.source === 'PurpleAir').length;
+            const avgAQI = Math.round(allStations.reduce((sum, s) => sum + s.aqi.us, 0) / allStations.length);
+            
+            statsBar.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${allStations.length}</div>
+                    <div class="stat-label">Total Sensors</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${iqairCount}</div>
+                    <div class="stat-label">IQAir Stations</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${purpleairCount}</div>
+                    <div class="stat-label">PurpleAir Sensors</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${avgAQI}</div>
+                    <div class="stat-label">Average AQI</div>
+                </div>
+            `;
+            statsBar.style.display = 'flex';
+        }
+
         // Display stations
         function displayStations(stations) {
             const content = document.getElementById('content');
             
-            if (!stations || stations.length === 0) {
-                content.innerHTML = '<div class="loading">No data available</div>';
+            // Filter based on current selection
+            let filteredStations = stations;
+            if (currentFilter === 'iqair') {
+                filteredStations = stations.filter(s => s.source === 'IQAir');
+            } else if (currentFilter === 'purpleair') {
+                filteredStations = stations.filter(s => s.source === 'PurpleAir');
+            }
+            
+            if (!filteredStations || filteredStations.length === 0) {
+                content.innerHTML = '<div class="loading">No data available for selected source</div>';
                 return;
             }
 
             let html = '<div class="grid">';
             
-            stations.forEach(station => {
+            filteredStations.forEach(station => {
                 const aqi = station.aqi.us;
                 const cat = station.category;
+                const sourceClass = station.source.toLowerCase().replace(/\s+/g, '');
                 
                 html += `
-                    <div class="station-card">
-                        <div class="station-name">${station.name}</div>
+                    <div class="station-card ${sourceClass}">
+                        <div class="station-header">
+                            <div class="station-name">${station.name}</div>
+                            <span class="source-badge badge-${sourceClass}">${station.source}</span>
+                        </div>
                         <div class="station-distance">📍 ${station.distance.toFixed(2)} km away</div>
                         <div class="aqi-display">
                             <div class="aqi-value" style="color: ${cat.color}">${Math.round(aqi)}</div>
@@ -215,6 +476,7 @@
                         </div>
                         <div class="station-details">
                             <div><strong>China AQI:</strong> ${station.aqi.cn}</div>
+                            ${station.pollutants.pm25 ? `<div><strong>PM2.5:</strong> ${station.pollutants.pm25.toFixed(1)} μg/m³</div>` : ''}
                             ${station.weather.temperature ? `<div>🌡️ ${station.weather.temperature}°C</div>` : ''}
                             ${station.weather.humidity ? `<div>💧 ${station.weather.humidity}% humidity</div>` : ''}
                             <div style="margin-top: 8px; font-size: 12px; color: #718096;">${cat.health}</div>
