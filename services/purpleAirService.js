@@ -140,7 +140,7 @@ class PurpleAirService {
 
         return {
           source: 'PurpleAir',
-          stationId: `purpleair-${sensor.name}`.replace(/\s+/g, '-').toLowerCase(),
+          stationId: `purpleair-${sensor.name || 'unknown'}`.replace(/\s+/g, '-').toLowerCase(),
           name: sensor.name || 'Unknown Sensor',
           coordinates: {
             lat: sensor.latitude,
