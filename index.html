@@ -143,16 +143,6 @@
         }
 
         /* Grid */
-        .section-header {
-            color: white;
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
         .source-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -298,7 +288,7 @@
                 <h1>🌍 Live AQI Monitor</h1>
                 <a href="about.html" class="about-link">ℹ️ About</a>
             </div>
-            <div class="subtitle">Multi-source air quality data comparison • IQAir + PurpleAir</div>
+            <div class="subtitle">Multi-source air quality data • IQAir + PurpleAir</div>
             
             <div class="controls">
                 <button id="locationBtn">📍 Use My Location</button>
@@ -307,7 +297,7 @@
         </div>
 
         <div id="sourceToggle" class="source-toggle" style="display: none;">
-            <h3>Data Sources</h3>
+            <h3>Filter by Data Source</h3>
             <div class="toggle-buttons">
                 <div class="toggle-btn active" data-source="all" onclick="filterSource('all')">
                     🌐 All Sources
@@ -378,8 +368,25 @@
                 }
             });
             
-            // Filter and display stations
-            displayStations(allStations);
+            // Filter stations
+            let filteredStations = allStations;
+            
+            if (source === 'iqair') {
+                filteredStations = allStations.filter(s => {
+                    const src = (s.source || '').toLowerCase();
+                    return src === 'iqair';
+                });
+            } else if (source === 'purpleair') {
+                filteredStations = allStations.filter(s => {
+                    const src = (s.source || '').toLowerCase();
+                    return src === 'purpleair';
+                });
+            }
+            
+            console.log(`Filter: ${source}, Total: ${allStations.length}, Filtered: ${filteredStations.length}`);
+            console.log('Sources:', allStations.map(s => s.source));
+            
+            displayStations(filteredStations);
         }
 
         // Load AQI data
@@ -395,6 +402,9 @@
                 if (!response.ok) throw new Error(data.error || 'Failed to fetch');
 
                 allStations = data.data.stations;
+                console.log('Loaded stations:', allStations);
+                console.log('Sources present:', allStations.map(s => s.source));
+                
                 displayStations(allStations);
                 displayStats(data.data);
                 updateTime();
@@ -411,9 +421,11 @@
         function displayStats(data) {
             const statsBar = document.getElementById('statsBar');
             
-            const iqairCount = allStations.filter(s => s.source === 'IQAir').length;
-            const purpleairCount = allStations.filter(s => s.source === 'PurpleAir').length;
-            const avgAQI = Math.round(allStations.reduce((sum, s) => sum + s.aqi.us, 0) / allStations.length);
+            const iqairCount = allStations.filter(s => (s.source || '').toLowerCase() === 'iqair').length;
+            const purpleairCount = allStations.filter(s => (s.source || '').toLowerCase() === 'purpleair').length;
+            const avgAQI = allStations.length > 0 
+                ? Math.round(allStations.reduce((sum, s) => sum + s.aqi.us, 0) / allStations.length)
+                : 0;
             
             statsBar.innerHTML = `
                 <div class="stat-item">
@@ -440,33 +452,26 @@
         function displayStations(stations) {
             const content = document.getElementById('content');
             
-            // Filter based on current selection
-            let filteredStations = stations;
-            if (currentFilter === 'iqair') {
-                filteredStations = stations.filter(s => s.source === 'IQAir');
-            } else if (currentFilter === 'purpleair') {
-                filteredStations = stations.filter(s => s.source === 'PurpleAir');
-            }
-            
-            if (!filteredStations || filteredStations.length === 0) {
+            if (!stations || stations.length === 0) {
                 content.innerHTML = '<div class="loading">No data available for selected source</div>';
                 return;
             }
 
             let html = '<div class="grid">';
             
-            filteredStations.forEach(station => {
+            stations.forEach(station => {
                 const aqi = station.aqi.us;
                 const cat = station.category;
-                const sourceClass = (station.source || 'iqair').toLowerCase().replace(/\s+/g, '');
+                const source = station.source || 'IQAir';
+                const sourceClass = source.toLowerCase().replace(/\s+/g, '');
                 
                 html += `
                     <div class="station-card ${sourceClass}">
                         <div class="station-header">
                             <div class="station-name">${station.name}</div>
-                            <span class="source-badge badge-${sourceClass}">${station.source}</span>
+                            <span class="source-badge badge-${sourceClass}">${source}</span>
                         </div>
-                        <div class="station-distance">📍 ${station.distance.toFixed(2)} km away</div>
+                        ${station.distance !== undefined ? `<div class="station-distance">📍 ${station.distance.toFixed(2)} km away</div>` : ''}
                         <div class="aqi-display">
                             <div class="aqi-value" style="color: ${cat.color}">${Math.round(aqi)}</div>
                             <div class="aqi-label">US AQI</div>
@@ -476,9 +481,9 @@
                         </div>
                         <div class="station-details">
                             <div><strong>China AQI:</strong> ${station.aqi.cn}</div>
-                            ${station.pollutants.pm25 ? `<div><strong>PM2.5:</strong> ${station.pollutants.pm25.toFixed(1)} μg/m³</div>` : ''}
-                            ${station.weather.temperature ? `<div>🌡️ ${station.weather.temperature}°C</div>` : ''}
-                            ${station.weather.humidity ? `<div>💧 ${station.weather.humidity}% humidity</div>` : ''}
+                            ${station.pollutants && station.pollutants.pm25 ? `<div><strong>PM2.5:</strong> ${station.pollutants.pm25.toFixed(1)} μg/m³</div>` : ''}
+                            ${station.weather && station.weather.temperature ? `<div>🌡️ ${station.weather.temperature}°C</div>` : ''}
+                            ${station.weather && station.weather.humidity ? `<div>💧 ${station.weather.humidity}% humidity</div>` : ''}
                             <div style="margin-top: 8px; font-size: 12px; color: #718096;">${cat.health}</div>
                         </div>
                     </div>

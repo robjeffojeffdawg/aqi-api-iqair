@@ -81,6 +81,7 @@ class IQAirService {
     const category = this.getAQICategory(pollution.aqius);
 
     return {
+      source: 'IQAir',  // ← ADD THIS LINE!
       stationId: `${city}-${state}-${country}`.replace(/\s+/g, '-').toLowerCase(),
       name: `${city}${state ? `, ${state}` : ''}, ${country}`,
       city: city,
