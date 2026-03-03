@@ -8,6 +8,11 @@ const aqiRoutes = require('./routes/aqi');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const historyRoutes = require('./routes/history');
+
+// Add this line with your other routes
+app.use('/api/history', historyRoutes);
+
 app.use(cors({
   origin: ["https://robjeffojeffdawg.github.io"],
   credentials: true
