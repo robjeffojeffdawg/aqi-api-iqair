@@ -458,7 +458,7 @@
             filteredStations.forEach(station => {
                 const aqi = station.aqi.us;
                 const cat = station.category;
-                const sourceClass = station.source.toLowerCase().replace(/\s+/g, '');
+                const sourceClass = (station.source || 'iqair').toLowerCase().replace(/\s+/g, '');
                 
                 html += `
                     <div class="station-card ${sourceClass}">
