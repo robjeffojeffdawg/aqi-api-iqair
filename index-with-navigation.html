@@ -33,7 +33,12 @@
             margin-bottom: 16px;
         }
 
-        .about-link {
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-link {
             color: #667eea;
             text-decoration: none;
             font-weight: 600;
@@ -43,7 +48,7 @@
             transition: all 0.2s;
         }
 
-        .about-link:hover { background: #f7fafc; }
+        .nav-link:hover { background: #f7fafc; }
 
         h1 { color: #2d3748; margin-bottom: 8px; font-size: 28px; }
         
@@ -65,6 +70,14 @@
 
         button:hover:not(:disabled) { background: #5568d3; transform: translateY(-1px); }
         button:disabled { background: #cbd5e0; cursor: not-allowed; }
+
+        .btn-history {
+            background: #48bb78;
+        }
+
+        .btn-history:hover:not(:disabled) {
+            background: #38a169;
+        }
 
         /* Source Toggle */
         .source-toggle {
@@ -274,6 +287,7 @@
 
         @media (max-width: 768px) {
             .header-top { flex-direction: column; gap: 12px; }
+            .nav-links { width: 100%; justify-content: center; }
             .controls { flex-direction: column; width: 100%; }
             button { width: 100%; }
             .stats-bar { flex-direction: column; }
@@ -286,16 +300,20 @@
         <div class="header">
             <div class="header-top">
                 <h1>🌍 Live AQI Monitor</h1>
-                <a href="about.html" class="about-link">ℹ️ About</a>
+                <div class="nav-links">
+                    <a href="history.html" class="nav-link">📈 History</a>
+                    <a href="about.html" class="nav-link">ℹ️ About</a>
+                </div>
             </div>
-            <div class="subtitle">Multi-source air quality data • IQAir + PurpleAir</div>
+            <div class="subtitle">Multi-source real-time air quality data • IQAir + PurpleAir</div>
             
-           <div class="controls">
-            
-    <button id="locationBtn">📍 Use My Location</button>
-    <button onclick="window.location.href='history.html'">📈 View History</button>
-    <button id="refreshBtn">🔄 Refresh</button>
-</div>
+            <div class="controls">
+                <button id="locationBtn">📍 Use My Location</button>
+                <button id="refreshBtn">🔄 Refresh</button>
+                <button class="btn-history" onclick="window.location.href='history.html'">
+                    📈 View Historical Data
+                </button>
+            </div>
         </div>
 
         <div id="sourceToggle" class="source-toggle" style="display: none;">
@@ -386,8 +404,6 @@
             }
             
             console.log(`Filter: ${source}, Total: ${allStations.length}, Filtered: ${filteredStations.length}`);
-            console.log('Sources:', allStations.map(s => s.source));
-            
             displayStations(filteredStations);
         }
 
@@ -404,9 +420,6 @@
                 if (!response.ok) throw new Error(data.error || 'Failed to fetch');
 
                 allStations = data.data.stations;
-                console.log('Loaded stations:', allStations);
-                console.log('Sources present:', allStations.map(s => s.source));
-                
                 displayStations(allStations);
                 displayStats(data.data);
                 updateTime();
