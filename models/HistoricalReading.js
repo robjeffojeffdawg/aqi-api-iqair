@@ -95,9 +95,10 @@ historicalReadingSchema.statics.getAveragesByPeriod = async function(lat, lon, p
     {
       $group: {
         _id: groupFormat,
-        avgAQI: { $avg: '$aqi.us' },
-        minAQI: { $min: '$aqi.us' },
-        maxAQI: { $max: '$aqi.us' },
+        // In getAveragesByPeriod method, change:
+avgAQI: { $avg: { $ifNull: ['$aqi.us', '$aqi'] } },  // Fallback to $aqi if $aqi.us missing
+minAQI: { $min: { $ifNull: ['$aqi.us', '$aqi'] } },
+maxAQI: { $max: { $ifNull: ['$aqi.us', '$aqi'] } },
         count: { $sum: 1 },
         sources: { $addToSet: '$source' }
       }
