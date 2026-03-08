@@ -14,8 +14,15 @@ const historyRoutes = require('./routes/history');
 app.use('/api/history', historyRoutes);
 
 app.use(cors({
-  origin: ["https://robjeffojeffdawg.github.io"],
-  credentials: true
+  origin: [
+    'http://localhost:5500',
+    'http://127.0.0.1:5500',
+    'https://robjeffojeffdawg.github.io',
+    'https://aqi.jeff-o-blogs.com'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Connect MongoDB
