@@ -1,6 +1,7 @@
 {
   "name": "aqi-api",
   "version": "1.0.0",
+   "type": "module",
   "description": "AQI PM2.5 API Backend",
   "main": "server.js",
   "scripts": {
