@@ -1,0 +1,1 @@
+mongodb+srv://admin:Jkk9ITJoQLm2WasJ@cluster0.6agawqu.mongodb.net/aqi-api?retryWrites=true&w=majority
