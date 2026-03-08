@@ -329,10 +329,13 @@
                             country: station.country
                         },
                         source: station.source,
-                        aqi: station.aqi,
-                        pollutants: station.pollutants,
-                        weather: station.weather
-                    })
+            aqi: {
+                us: station.aqi.us || station.aqi,  // Handle both formats
+                cn: station.aqi.cn || null
+            },
+            pollutants: station.pollutants,
+            weather: station.weather
+        })
                 });
             } catch (error) {
                 console.error('Failed to record reading:', error);
