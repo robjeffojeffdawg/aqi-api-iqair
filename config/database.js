@@ -2,25 +2,42 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/aqi-api';
-    
-    await mongoose.connect(mongoURI);
+    // Get MongoDB URI from environment variable
+    const mongoURI = process.env.MONGODB_URI;
+
+    if (!mongoURI) {
+      console.warn('⚠️  MONGODB_URI not found in environment variables');
+      console.warn('⚠️  Database features will be disabled');
+      return;
+    }
+
+    // Connect to MongoDB
+    await mongoose.connect(mongoURI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
 
     console.log('✅ MongoDB connected successfully');
-    console.log(`📦 Database: ${mongoose.connection.name}`);
+    console.log(`📊 Database: ${mongoose.connection.name}`);
 
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
-    process.exit(1);
+    console.error('❌ Database features will be disabled');
+    // Don't exit - allow API to run without database
   }
 };
 
-mongoose.connection.on('disconnected', () => {
-  console.log('MongoDB disconnected');
+// Handle connection events
+mongoose.connection.on('connected', () => {
+  console.log('📡 Mongoose connected to MongoDB');
 });
 
 mongoose.connection.on('error', (err) => {
-  console.error('MongoDB error:', err);
+  console.error('❌ Mongoose connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('📴 Mongoose disconnected from MongoDB');
 });
 
 module.exports = connectDB;
