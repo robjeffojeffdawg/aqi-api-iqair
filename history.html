@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live AQI Monitor - Historical Data</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🌍</text></svg>">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .about-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .about-link:hover { background: #f7fafc; }
+
+        h1 { color: #2d3748; margin-bottom: 8px; font-size: 28px; }
+        .subtitle { color: #718096; font-size: 14px; margin-bottom: 16px; }
+
+        .controls { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        button:hover:not(:disabled) { background: #5568d3; transform: translateY(-1px); }
+        button:disabled { background: #cbd5e0; cursor: not-allowed; }
+
+        /* Chart Section */
+        .chart-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .time-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .time-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #4a5568;
+            transition: all 0.2s;
+        }
+
+        .time-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .time-btn:hover { transform: translateY(-1px); }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-trend {
+            font-size: 12px;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        .trend-up { color: #f56565; }
+        .trend-down { color: #48bb78; }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 18px;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .header-top { flex-direction: column; gap: 12px; }
+            .controls { flex-direction: column; width: 100%; }
+            button { width: 100%; }
+            .chart-header { flex-direction: column; align-items: start; gap: 12px; }
+            .chart-container { height: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-top">
+                <h1>📈 Live AQI Monitor - Historical Data</h1>
+                <a href="about.html" class="about-link">ℹ️ About</a>
+            </div>
+            <div class="subtitle">Track air quality trends over time</div>
+            
+            <div class="controls">
+                <button id="locationBtn">📍 Use My Location</button>
+                <button id="refreshBtn">🔄 Refresh Data</button>
+            </div>
+        </div>
+
+        <div id="statsGrid" class="stats-grid" style="display: none;"></div>
+
+        <div id="chartSection" class="chart-section" style="display: none;">
+            <div class="chart-header">
+                <div class="chart-title">AQI Trend</div>
+                <div class="time-buttons">
+                    <button class="time-btn active" data-period="24h" onclick="changePeriod('24h')">24 Hours</button>
+                    <button class="time-btn" data-period="7d" onclick="changePeriod('7d')">7 Days</button>
+                    <button class="time-btn" data-period="30d" onclick="changePeriod('30d')">30 Days</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="aqiChart"></canvas>
+            </div>
+        </div>
+
+        <div id="error"></div>
+        <div id="content" class="loading">Click "Use My Location" to view historical air quality data</div>
+    </div>
+
+    <script>
+        const API_URL = 'https://aqi-api-iqair-production.up.railway.app';
+        let userLat, userLon;
+        let currentChart = null;
+        let currentPeriod = '24h';
+        let historicalData = [];
+
+        // Get location
+        document.getElementById('locationBtn').onclick = async function() {
+            const btn = this;
+            btn.disabled = true;
+            btn.textContent = '📍 Getting location...';
+
+            try {
+                const pos = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+
+                userLat = pos.coords.latitude;
+                userLon = pos.coords.longitude;
+                await loadHistoricalData();
+
+            } catch (error) {
+                showError('Location access denied');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📍 Use My Location';
+            }
+        };
+
+        // Refresh data
+        document.getElementById('refreshBtn').onclick = async function() {
+            if (userLat && userLon) {
+                await loadHistoricalData();
+            } else {
+                showError('Please use your location first');
+            }
+        };
+
+        // Change time period
+        function changePeriod(period) {
+            currentPeriod = period;
+            
+            // Update button states
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.period === period) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Reload data
+            if (userLat && userLon) {
+                loadHistoricalData();
+            }
+        }
+
+        // Load historical data
+        async function loadHistoricalData() {
+            document.getElementById('content').className = 'loading';
+            document.getElementById('content').innerHTML = 'Loading historical data...';
+
+            try {
+                // First, get current data and record it
+                const currentResponse = await fetch(`${API_URL}/api/aqi/nearby?lat=${userLat}&lon=${userLon}`);
+                const currentData = await currentResponse.json();
+
+                if (currentData.success && currentData.data.stations.length > 0) {
+                    // Record current reading
+                    const station = currentData.data.stations[0];
+                    await recordReading(station);
+                }
+
+                // Get historical averages
+                const days = currentPeriod === '24h' ? 1 : currentPeriod === '7d' ? 7 : 30;
+                const period = currentPeriod === '24h' ? 'hour' : 'day';
+                
+                const historyResponse = await fetch(
+                    `${API_URL}/api/history/averages?lat=${userLat}&lon=${userLon}&period=${period}&days=${days}`
+                );
+                const historyData = await historyResponse.json();
+
+                if (historyData.success) {
+                    historicalData = historyData.data.averages;
+                    displayChart(historicalData);
+                    await loadStats();
+                    document.getElementById('content').innerHTML = '';
+                } else {
+                    showError('No historical data available yet. Data will accumulate over time.');
+                }
+
+            } catch (error) {
+                showError(error.message || 'Failed to load historical data');
+            }
+        }
+
+        // Record a reading
+        async function recordReading(station) {
+            try {
+                await fetch(`${API_URL}/api/history/record`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        location: {
+                            name: station.name,
+                            coordinates: station.coordinates,
+                            city: station.city,
+                            state: station.state,
+                            country: station.country
+                        },
+                        source: station.source,
+                        aqi: station.aqi,
+                        pollutants: station.pollutants,
+                        weather: station.weather
+                    })
+                });
+            } catch (error) {
+                console.error('Failed to record reading:', error);
+            }
+        }
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const days = currentPeriod === '24h' ? 1 : currentPeriod === '7d' ? 7 : 30;
+                const response = await fetch(`${API_URL}/api/history/stats?lat=${userLat}&lon=${userLon}&days=${days}`);
+                const data = await response.json();
+
+                if (data.success && data.data.stats) {
+                    displayStats(data.data.stats);
+                }
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        // Display statistics
+        function displayStats(stats) {
+            const statsGrid = document.getElementById('statsGrid');
+            
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${Math.round(stats.avgAQI)}</div>
+                    <div class="stat-label">Average AQI</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.round(stats.minAQI)}</div>
+                    <div class="stat-label">Minimum AQI</div>
+                    <div class="stat-trend trend-down">↓ Best</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.round(stats.maxAQI)}</div>
+                    <div class="stat-label">Maximum AQI</div>
+                    <div class="stat-trend trend-up">↑ Worst</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${stats.totalReadings}</div>
+                    <div class="stat-label">Data Points</div>
+                </div>
+            `;
+            
+            statsGrid.style.display = 'grid';
+        }
+
+        // Display chart
+        function displayChart(data) {
+            const section = document.getElementById('chartSection');
+            section.style.display = 'block';
+
+            // Prepare data
+            const labels = data.map(d => {
+                const date = new Date(d._id.year, d._id.month - 1, d._id.day, d._id.hour || 0);
+                return currentPeriod === '24h' 
+                    ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            });
+
+            const aqiValues = data.map(d => Math.round(d.avgAQI));
+            const minValues = data.map(d => Math.round(d.minAQI));
+            const maxValues = data.map(d => Math.round(d.maxAQI));
+
+            // Destroy existing chart
+            if (currentChart) {
+                currentChart.destroy();
+            }
+
+            // Create new chart
+            const ctx = document.getElementById('aqiChart').getContext('2d');
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Average AQI',
+                            data: aqiValues,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        },
+                        {
+                            label: 'Min AQI',
+                            data: minValues,
+                            borderColor: '#48bb78',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Max AQI',
+                            data: maxValues,
+                            borderColor: '#f56565',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.4,
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'AQI Level'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: currentPeriod === '24h' ? 'Time' : 'Date'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Show error
+        function showError(msg) {
+            document.getElementById('error').innerHTML = `<div class="error">❌ ${msg}</div>`;
+            setTimeout(() => document.getElementById('error').innerHTML = '', 5000);
+        }
+    </script>
+</body>
+</html>
