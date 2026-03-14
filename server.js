@@ -48,7 +48,6 @@ app.use('/api/', limiter);
 // API Routes
 app.use('/api/aqi', aqiRoutes);
 app.use('/api/history', historyRoutes);
-app.use('/api/analytics', analyticsRoutes);
 
 // Root route - API info
 app.get('/', (req, res) => {
