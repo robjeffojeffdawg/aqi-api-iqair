@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live AQI Monitor - Historical Data</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🌍</text></svg>">
+    <title>AQI History - Customizable Charts</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📈</text></svg>">
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -36,7 +36,12 @@
             margin-bottom: 16px;
         }
 
-        .about-link {
+        .nav-links {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-link {
             color: #667eea;
             text-decoration: none;
             font-weight: 600;
@@ -46,7 +51,7 @@
             transition: all 0.2s;
         }
 
-        .about-link:hover { background: #f7fafc; }
+        .nav-link:hover { background: #f7fafc; }
 
         h1 { color: #2d3748; margin-bottom: 8px; font-size: 28px; }
         .subtitle { color: #718096; font-size: 14px; margin-bottom: 16px; }
@@ -67,6 +72,46 @@
 
         button:hover:not(:disabled) { background: #5568d3; transform: translateY(-1px); }
         button:disabled { background: #cbd5e0; cursor: not-allowed; }
+
+        /* Chart Customization Panel */
+        .customization-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        .customization-panel h3 {
+            color: #2d3748;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .customization-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        select, input[type="color"] {
+            padding: 8px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
 
         /* Chart Section */
         .chart-section {
@@ -149,15 +194,6 @@
             letter-spacing: 0.5px;
         }
 
-        .stat-trend {
-            font-size: 12px;
-            margin-top: 8px;
-            font-weight: 600;
-        }
-
-        .trend-up { color: #f56565; }
-        .trend-down { color: #48bb78; }
-
         .loading {
             text-align: center;
             padding: 40px;
@@ -176,9 +212,10 @@
 
         @media (max-width: 768px) {
             .header-top { flex-direction: column; gap: 12px; }
+            .nav-links { width: 100%; justify-content: center; }
             .controls { flex-direction: column; width: 100%; }
             button { width: 100%; }
-            .chart-header { flex-direction: column; align-items: start; gap: 12px; }
+            .customization-grid { grid-template-columns: 1fr; }
             .chart-container { height: 300px; }
         }
     </style>
@@ -187,14 +224,67 @@
     <div class="container">
         <div class="header">
             <div class="header-top">
-                <h1>📈 Live AQI Monitor - Historical Data</h1>
-                <a href="about.html" class="about-link">ℹ️ About</a>
+                <h1>📈 AQI Historical Data</h1>
+                <div class="nav-links">
+                    <a href="index.html" class="nav-link">🏠 Home</a>
+                    <a href="about.html" class="nav-link">ℹ️ About</a>
+                </div>
             </div>
             <div class="subtitle">Track air quality trends over time</div>
             
             <div class="controls">
                 <button id="locationBtn">📍 Use My Location</button>
                 <button id="refreshBtn">🔄 Refresh Data</button>
+            </div>
+        </div>
+
+        <!-- Chart Customization Panel -->
+        <div id="customPanel" class="customization-panel" style="display: none;">
+            <h3>🎨 Customize Your Chart</h3>
+            <div class="customization-grid">
+                <div class="control-group">
+                    <label>Chart Type</label>
+                    <select id="chartType" onchange="updateChart()">
+                        <option value="line">Line Chart</option>
+                        <option value="bar">Bar Chart</option>
+                        <option value="area">Area Chart</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Line Color</label>
+                    <input type="color" id="lineColor" value="#667eea" onchange="updateChart()">
+                </div>
+                <div class="control-group">
+                    <label>Fill Opacity</label>
+                    <select id="fillOpacity" onchange="updateChart()">
+                        <option value="0">None</option>
+                        <option value="0.1" selected>10%</option>
+                        <option value="0.3">30%</option>
+                        <option value="0.5">50%</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Grid Lines</label>
+                    <select id="gridLines" onchange="updateChart()">
+                        <option value="true" selected>Show</option>
+                        <option value="false">Hide</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Animation</label>
+                    <select id="animation" onchange="updateChart()">
+                        <option value="true" selected>Enabled</option>
+                        <option value="false">Disabled</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Curve Style</label>
+                    <select id="tension" onchange="updateChart()">
+                        <option value="0">Sharp</option>
+                        <option value="0.2">Slight</option>
+                        <option value="0.4" selected>Smooth</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -215,7 +305,7 @@
         </div>
 
         <div id="error"></div>
-        <div id="content" class="loading">Click "Use My Location" to view historical air quality data</div>
+        <div id="content" class="loading">Click "Use My Location" to view historical data</div>
     </div>
 
     <script>
@@ -225,7 +315,17 @@
         let currentPeriod = '24h';
         let historicalData = [];
 
-        // Get location
+        // Chart customization settings
+        let chartSettings = {
+            type: 'line',
+            lineColor: '#667eea',
+            fillOpacity: 0.1,
+            gridLines: true,
+            animation: true,
+            tension: 0.4
+        };
+
+        // Get location button
         document.getElementById('locationBtn').onclick = async function() {
             const btn = this;
             btn.disabled = true;
@@ -248,7 +348,7 @@
             }
         };
 
-        // Refresh data
+        // Refresh button
         document.getElementById('refreshBtn').onclick = async function() {
             if (userLat && userLon) {
                 await loadHistoricalData();
@@ -261,7 +361,6 @@
         function changePeriod(period) {
             currentPeriod = period;
             
-            // Update button states
             document.querySelectorAll('.time-btn').forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.period === period) {
@@ -269,7 +368,6 @@
                 }
             });
             
-            // Reload data
             if (userLat && userLon) {
                 loadHistoricalData();
             }
@@ -281,14 +379,12 @@
             document.getElementById('content').innerHTML = 'Loading historical data...';
 
             try {
-                // First, get current data and record it
+                // Get current data and record it
                 const currentResponse = await fetch(`${API_URL}/api/aqi/nearby?lat=${userLat}&lon=${userLon}`);
                 const currentData = await currentResponse.json();
 
                 if (currentData.success && currentData.data.stations.length > 0) {
-                    // Record current reading
-                    const station = currentData.data.stations[0];
-                    await recordReading(station);
+                    await recordReading(currentData.data.stations[0]);
                 }
 
                 // Get historical averages
@@ -305,6 +401,7 @@
                     displayChart(historicalData);
                     await loadStats();
                     document.getElementById('content').innerHTML = '';
+                    document.getElementById('customPanel').style.display = 'block';
                 } else {
                     showError('No historical data available yet. Data will accumulate over time.');
                 }
@@ -365,13 +462,11 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">${Math.round(stats.minAQI)}</div>
-                    <div class="stat-label">Minimum AQI</div>
-                    <div class="stat-trend trend-down">↓ Best</div>
+                    <div class="stat-label">Best AQI</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">${Math.round(stats.maxAQI)}</div>
-                    <div class="stat-label">Maximum AQI</div>
-                    <div class="stat-trend trend-up">↑ Worst</div>
+                    <div class="stat-label">Worst AQI</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-value">${stats.totalReadings}</div>
@@ -380,6 +475,20 @@
             `;
             
             statsGrid.style.display = 'grid';
+        }
+
+        // Update chart with new settings
+        function updateChart() {
+            chartSettings.type = document.getElementById('chartType').value;
+            chartSettings.lineColor = document.getElementById('lineColor').value;
+            chartSettings.fillOpacity = parseFloat(document.getElementById('fillOpacity').value);
+            chartSettings.gridLines = document.getElementById('gridLines').value === 'true';
+            chartSettings.animation = document.getElementById('animation').value === 'true';
+            chartSettings.tension = parseFloat(document.getElementById('tension').value);
+
+            if (historicalData.length > 0) {
+                displayChart(historicalData);
+            }
         }
 
         // Display chart
@@ -396,65 +505,58 @@
             });
 
             const aqiValues = data.map(d => Math.round(d.avgAQI));
-            const minValues = data.map(d => Math.round(d.minAQI));
-            const maxValues = data.map(d => Math.round(d.maxAQI));
 
             // Destroy existing chart
             if (currentChart) {
                 currentChart.destroy();
             }
 
+            // Determine chart type
+            const chartType = chartSettings.type === 'area' ? 'line' : chartSettings.type;
+            const fill = chartSettings.type === 'area' || chartSettings.fillOpacity > 0;
+
             // Create new chart
             const ctx = document.getElementById('aqiChart').getContext('2d');
             currentChart = new Chart(ctx, {
-                type: 'line',
+                type: chartType,
                 data: {
                     labels: labels,
-                    datasets: [
-                        {
-                            label: 'Average AQI',
-                            data: aqiValues,
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
-                        },
-                        {
-                            label: 'Min AQI',
-                            data: minValues,
-                            borderColor: '#48bb78',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            tension: 0.4,
-                            fill: false,
-                            pointRadius: 0
-                        },
-                        {
-                            label: 'Max AQI',
-                            data: maxValues,
-                            borderColor: '#f56565',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            tension: 0.4,
-                            fill: false,
-                            pointRadius: 0
-                        }
-                    ]
+                    datasets: [{
+                        label: 'Average AQI',
+                        data: aqiValues,
+                        borderColor: chartSettings.lineColor,
+                        backgroundColor: `${chartSettings.lineColor}${Math.round(chartSettings.fillOpacity * 255).toString(16).padStart(2, '0')}`,
+                        borderWidth: 3,
+                        tension: chartSettings.tension,
+                        fill: fill,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: chartSettings.lineColor,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: chartSettings.animation,
                     plugins: {
                         legend: {
                             display: true,
-                            position: 'top'
+                            position: 'top',
+                            labels: {
+                                font: { size: 14, weight: 'bold' },
+                                color: '#2d3748'
+                            }
                         },
                         tooltip: {
                             mode: 'index',
-                            intersect: false
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            padding: 12,
+                            cornerRadius: 8
                         }
                     },
                     scales: {
@@ -462,19 +564,32 @@
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: 'AQI Level'
+                                text: 'AQI Level',
+                                font: { size: 14, weight: 'bold' },
+                                color: '#4a5568'
                             },
                             grid: {
+                                display: chartSettings.gridLines,
                                 color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: { size: 12 },
+                                color: '#718096'
                             }
                         },
                         x: {
                             title: {
                                 display: true,
-                                text: currentPeriod === '24h' ? 'Time' : 'Date'
+                                text: currentPeriod === '24h' ? 'Time' : 'Date',
+                                font: { size: 14, weight: 'bold' },
+                                color: '#4a5568'
                             },
                             grid: {
                                 display: false
+                            },
+                            ticks: {
+                                font: { size: 12 },
+                                color: '#718096'
                             }
                         }
                     }
