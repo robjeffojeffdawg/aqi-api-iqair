@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQI Analytics Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📊</text></svg>">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f7fafc;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container { max-width: 1600px; margin: 0 auto; }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: #1a202c;
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid;
+        }
+
+        .kpi-card.blue { border-color: #4299e1; }
+        .kpi-card.green { border-color: #48bb78; }
+        .kpi-card.purple { border-color: #9f7aea; }
+        .kpi-card.orange { border-color: #ed8936; }
+
+        .kpi-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+
+        .kpi-label {
+            font-size: 14px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .kpi-change {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .kpi-change.up { color: #48bb78; }
+        .kpi-change.down { color: #f56565; }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 16px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Data Table */
+        .table-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f7fafc;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #2d3748;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.good { background: #c6f6d5; color: #22543d; }
+        .badge.moderate { background: #feebc8; color: #7c2d12; }
+        .badge.unhealthy { background: #fed7d7; color: #742a2a; }
+
+        button {
+            background: #4299e1;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #3182ce;
+            transform: translateY(-1px);
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 AQI Analytics Dashboard</h1>
+            <div class="subtitle">Real-time monitoring station statistics and insights</div>
+        </div>
+
+        <div class="controls">
+            <button onclick="loadDashboard()">🔄 Refresh Data</button>
+            <button onclick="exportData()">📥 Export CSV</button>
+            <button onclick="generateReport()">📄 Generate Report</button>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card blue">
+                <div class="kpi-label">Total Data Points</div>
+                <div class="kpi-value" id="totalPoints">-</div>
+                <div class="kpi-change up" id="pointsChange">↑ Loading...</div>
+            </div>
+            <div class="kpi-card green">
+                <div class="kpi-label">Cities Tracked</div>
+                <div class="kpi-value" id="totalCities">-</div>
+                <div class="kpi-change" id="citiesChange">Loading...</div>
+            </div>
+            <div class="kpi-card purple">
+                <div class="kpi-label">Data Sources</div>
+                <div class="kpi-value" id="totalSources">-</div>
+                <div class="kpi-change" id="sourcesChange">Loading...</div>
+            </div>
+            <div class="kpi-card orange">
+                <div class="kpi-label">Avg AQI (30d)</div>
+                <div class="kpi-value" id="avgAQI">-</div>
+                <div class="kpi-change" id="aqiChange">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-title">Data Collection Over Time</div>
+                <div class="chart-container">
+                    <canvas id="collectionChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Coverage by City</div>
+                <div class="chart-container">
+                    <canvas id="coverageChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">Data Sources Distribution</div>
+                <div class="chart-container">
+                    <canvas id="sourcesChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">AQI Distribution</div>
+                <div class="chart-container">
+                    <canvas id="aqiDistChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Locations Table -->
+        <div class="table-card">
+            <div class="chart-title" style="margin-bottom: 16px;">Top Monitored Locations</div>
+            <table id="locationsTable">
+                <thead>
+                    <tr>
+                        <th>City</th>
+                        <th>Country</th>
+                        <th>Data Points</th>
+                        <th>Avg AQI</th>
+                        <th>Status</th>
+                        <th>Last Updated</th>
+                    </tr>
+                </thead>
+                <tbody id="locationsBody">
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #718096;">
+                            Click "Refresh Data" to load analytics
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://aqi-api-iqair-production.up.railway.app';
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                // This would call your analytics endpoints
+                // For now, showing mock data structure
+                
+                // Example: Get total data points
+                const statsResponse = await fetch(`${API_URL}/api/analytics/overview`);
+                
+                // Update KPIs
+                updateKPIs({
+                    totalPoints: 1247,
+                    pointsChange: '+12% vs last month',
+                    totalCities: 23,
+                    citiesChange: '+3 new cities',
+                    totalSources: 2,
+                    sourcesChange: 'IQAir + PurpleAir',
+                    avgAQI: 52,
+                    aqiChange: '↓ 8% improvement'
+                });
+
+                // Load charts
+                loadCollectionChart();
+                loadCoverageChart();
+                loadSourcesChart();
+                loadAQIDistChart();
+                loadLocationsTable();
+
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                alert('Analytics endpoints not yet deployed. Deploy backend analytics routes first!');
+            }
+        }
+
+        // Update KPI cards
+        function updateKPIs(data) {
+            document.getElementById('totalPoints').textContent = data.totalPoints.toLocaleString();
+            document.getElementById('pointsChange').textContent = data.pointsChange;
+            
+            document.getElementById('totalCities').textContent = data.totalCities;
+            document.getElementById('citiesChange').textContent = data.citiesChange;
+            
+            document.getElementById('totalSources').textContent = data.totalSources;
+            document.getElementById('sourcesChange').textContent = data.sourcesChange;
+            
+            document.getElementById('avgAQI').textContent = data.avgAQI;
+            document.getElementById('aqiChange').textContent = data.aqiChange;
+        }
+
+        // Collection over time chart
+        function loadCollectionChart() {
+            const ctx = document.getElementById('collectionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Data Points Collected',
+                        data: [45, 52, 48, 67, 89, 102, 95],
+                        borderColor: '#4299e1',
+                        backgroundColor: 'rgba(66, 153, 225, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Coverage by city chart
+        function loadCoverageChart() {
+            const ctx = document.getElementById('coverageChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Bangkok', 'New York', 'London', 'Tokyo', 'Sydney'],
+                    datasets: [{
+                        label: 'Data Points',
+                        data: [342, 234, 189, 156, 98],
+                        backgroundColor: '#48bb78'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Data sources chart
+        function loadSourcesChart() {
+            const ctx = document.getElementById('sourcesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['IQAir', 'PurpleAir'],
+                    datasets: [{
+                        data: [45, 55],
+                        backgroundColor: ['#4299e1', '#9f7aea']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // AQI distribution chart
+        function loadAQIDistChart() {
+            const ctx = document.getElementById('aqiDistChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Good', 'Moderate', 'Unhealthy (Sensitive)', 'Unhealthy', 'Very Unhealthy'],
+                    datasets: [{
+                        label: 'Readings',
+                        data: [450, 380, 120, 45, 12],
+                        backgroundColor: ['#48bb78', '#ecc94b', '#ed8936', '#f56565', '#9f7aea']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        // Load locations table
+        function loadLocationsTable() {
+            const tbody = document.getElementById('locationsBody');
+            
+            const locations = [
+                { city: 'Bangkok', country: 'Thailand', points: 342, aqi: 52, status: 'moderate', updated: '2 min ago' },
+                { city: 'New York', country: 'USA', points: 234, aqi: 45, status: 'good', updated: '5 min ago' },
+                { city: 'London', country: 'UK', points: 189, aqi: 38, status: 'good', updated: '12 min ago' },
+                { city: 'Tokyo', country: 'Japan', points: 156, aqi: 62, status: 'moderate', updated: '18 min ago' },
+                { city: 'Sydney', country: 'Australia', points: 98, aqi: 28, status: 'good', updated: '25 min ago' }
+            ];
+
+            tbody.innerHTML = locations.map(loc => `
+                <tr>
+                    <td><strong>${loc.city}</strong></td>
+                    <td>${loc.country}</td>
+                    <td>${loc.points.toLocaleString()}</td>
+                    <td><strong>${loc.aqi}</strong></td>
+                    <td><span class="badge ${loc.status}">${loc.status.toUpperCase()}</span></td>
+                    <td>${loc.updated}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Export data as CSV
+        function exportData() {
+            alert('CSV export feature - would download all data points as CSV file');
+        }
+
+        // Generate PDF report
+        function generateReport() {
+            alert('Report generation feature - would create PDF summary of analytics');
+        }
+
+        // Auto-load on page load
+        window.onload = () => loadDashboard();
+    </script>
+</body>
+</html>
