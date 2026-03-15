@@ -13,6 +13,9 @@ const analyticsRoutes = require('./routes/analytics');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust Railway proxy - REQUIRED for rate limiting to work
+app.set('trust proxy', 1);
+
 // Connect to MongoDB
 connectDB().catch(err => {
   console.error('Failed to connect to MongoDB:', err);
