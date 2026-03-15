@@ -8,6 +8,7 @@ require('dotenv').config();
 const connectDB = require('./config/database');
 const aqiRoutes = require('./routes/aqi');
 const historyRoutes = require('./routes/history');
+const analyticsRoutes = require('./routes/analytics');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,6 +49,7 @@ app.use('/api/', limiter);
 // API Routes
 app.use('/api/aqi', aqiRoutes);
 app.use('/api/history', historyRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Root route - API info
 app.get('/', (req, res) => {
