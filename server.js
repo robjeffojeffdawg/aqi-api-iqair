@@ -104,21 +104,39 @@ app.use('/api/analytics', analyticsRoutes);
 
 // Metrics endpoint (for monitoring)
 app.get('/api/metrics', (req, res) => {
-  const iqairService = require('./services/iqairService');
-  const purpleAirService = require('./services/purpleAirService');
-  
-  res.json({
-    success: true,
-    data: {
-      iqair: iqairService.getMetrics(),
-      purpleair: purpleAirService.isAvailable() ? purpleAirService.getMetrics() : null,
-      server: {
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        nodeVersion: process.version
+  try {
+    const iqairService = require('./services/iqairService');
+    
+    let purpleairMetrics = null;
+    try {
+      const purpleAirService = require('./services/purpleAirService');
+      if (purpleAirService.isAvailable && purpleAirService.isAvailable()) {
+        purpleairMetrics = purpleAirService.getMetrics();
       }
+    } catch (err) {
+      console.log('PurpleAir service not available');
     }
-  });
+    
+    res.json({
+      success: true,
+      data: {
+        iqair: iqairService.getMetrics(),
+        purpleair: purpleairMetrics,
+        server: {
+          uptime: process.uptime(),
+          memory: process.memoryUsage(),
+          nodeVersion: process.version
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Metrics error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve metrics',
+      message: error.message
+    });
+  }
 });
 
 // Root route - API info
