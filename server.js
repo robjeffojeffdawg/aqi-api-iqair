@@ -9,6 +9,7 @@ const connectDB = require('./config/database');
 const aqiRoutes = require('./routes/aqi');
 const historyRoutes = require('./routes/history');
 const analyticsRoutes = require('./routes/analytics');
+const cityPagesRoutes = require('./routes/city-pages');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -104,6 +105,7 @@ app.use(generalLimiter);
 app.use('/api/aqi', aqiRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/', cityPagesRoutes); 
 
 // Metrics endpoint (for monitoring)
 app.get('/api/metrics', (req, res) => {
