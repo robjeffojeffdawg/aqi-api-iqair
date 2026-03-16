@@ -105,7 +105,6 @@ app.use(generalLimiter);
 app.use('/api/aqi', aqiRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/', cityPagesRoutes); 
 
 // Metrics endpoint (for monitoring)
 app.get('/api/metrics', (req, res) => {
@@ -191,6 +190,8 @@ app.get('/health', (req, res) => {
     }
   });
 });
+
+app.use('/', cityPagesRoutes); 
 
 // Error handling middleware
 app.use((err, req, res, next) => {
