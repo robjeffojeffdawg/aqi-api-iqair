@@ -14,7 +14,7 @@ const cityPagesRoutes = require('./routes/city-pages');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Trust Railway proxy - REQUIRED for rate limiting to work
+// CRITICAL: Trust Railway proxy (required for rate limiting)
 app.set('trust proxy', 1);
 
 // Connect to MongoDB
@@ -41,28 +41,22 @@ app.use(cors({
 // Body Parser
 app.use(express.json());
 
-// Logging - Different formats for dev vs production
+// Logging
 if (process.env.NODE_ENV === 'production') {
-  // Production: Log to console in combined format
   app.use(morgan('combined'));
 } else {
-  // Development: Detailed logging
   app.use(morgan('dev'));
 }
 
-// Custom logging middleware for API performance
+// Custom logging middleware
 app.use((req, res, next) => {
   const start = Date.now();
   
   res.on('finish', () => {
     const duration = Date.now() - start;
-    
-    // Log slow requests (> 2 seconds)
     if (duration > 2000) {
       console.warn(`⚠️  Slow request: ${req.method} ${req.path} took ${duration}ms`);
     }
-    
-    // Log errors
     if (res.statusCode >= 400) {
       console.error(`❌ Error ${res.statusCode}: ${req.method} ${req.path}`);
     }
@@ -71,24 +65,22 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rate Limiting - Protect against abuse
+// Rate Limiting
 const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requests per 15 minutes
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: {
     error: 'Too many requests from this IP, please try again later.',
     retryAfter: '15 minutes'
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Skip rate limiting for health checks
   skip: (req) => req.path === '/health'
 });
 
-// Stricter rate limit for API endpoints
 const apiLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 20, // 20 requests per minute
+  windowMs: 60 * 1000,
+  max: 20,
   message: {
     error: 'API rate limit exceeded. Please slow down.',
     retryAfter: '1 minute'
@@ -97,16 +89,19 @@ const apiLimiter = rateLimit({
   legacyHeaders: false
 });
 
-// Apply rate limiters
 app.use('/api/', apiLimiter);
 app.use(generalLimiter);
 
-// API Routes
+// ==============================================
+// ROUTES - ORDER MATTERS!
+// ==============================================
+
+// 1. API Routes (with /api prefix)
 app.use('/api/aqi', aqiRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
-// Metrics endpoint (for monitoring)
+// 2. Metrics endpoint
 app.get('/api/metrics', (req, res) => {
   try {
     const iqairService = require('./services/iqairService');
@@ -143,7 +138,32 @@ app.get('/api/metrics', (req, res) => {
   }
 });
 
-// Root route - API info
+// 3. Health check - No rate limiting
+app.get('/health', (req, res) => {
+  const iqairService = require('./services/iqairService');
+  
+  let purpleairAvailable = false;
+  try {
+    const purpleAirService = require('./services/purpleAirService');
+    purpleairAvailable = purpleAirService.isAvailable();
+  } catch (err) {
+    // PurpleAir not available
+  }
+  
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor(process.uptime()),
+    environment: process.env.NODE_ENV || 'development',
+    services: {
+      iqair: iqairService.isAvailable(),
+      purpleair: purpleairAvailable,
+      mongodb: require('mongoose').connection.readyState === 1
+    }
+  });
+});
+
+// 4. Root route
 app.get('/', (req, res) => {
   res.json({
     name: "AQI Monitor API",
@@ -159,7 +179,8 @@ app.get('/', (req, res) => {
       sources: "/api/aqi/sources",
       history: "/api/history/location?lat=LAT&lon=LON&days=7",
       stats: "/api/history/stats?lat=LAT&lon=LON&days=30",
-      analytics: "/api/analytics/overview"
+      analytics: "/api/analytics/overview",
+      cityPages: "/{city}-aqi (e.g., /bangkok-aqi)"
     },
     dataSources: {
       iqair: "Professional monitoring stations",
@@ -168,40 +189,24 @@ app.get('/', (req, res) => {
     rateLimit: {
       general: "100 requests per 15 minutes",
       api: "20 requests per minute"
-    },
-    note: "Use /api/aqi/nearby with coordinates for best results"
-  });
-});
-
-// Health check - No rate limiting
-app.get('/health', (req, res) => {
-  const iqairService = require('./services/iqairService');
-  const purpleAirService = require('./services/purpleAirService');
-  
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    uptime: Math.floor(process.uptime()),
-    environment: process.env.NODE_ENV || 'development',
-    services: {
-      iqair: iqairService.isAvailable(),
-      purpleair: purpleAirService.isAvailable(),
-      mongodb: require('mongoose').connection.readyState === 1
     }
   });
 });
 
-app.use('/', cityPagesRoutes); 
+// 5. City Pages - MUST come after specific routes but before error handlers
+app.use('/', cityPagesRoutes);
+
+// ==============================================
+// ERROR HANDLERS - MUST BE LAST
+// ==============================================
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  // Log error details
   console.error('❌ Error occurred:');
   console.error(`   Path: ${req.method} ${req.path}`);
   console.error(`   Error: ${err.message}`);
   console.error(`   Stack: ${err.stack}`);
   
-  // Don't expose error details in production
   const isProduction = process.env.NODE_ENV === 'production';
   
   res.status(err.status || 500).json({
@@ -213,7 +218,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler - MUST BE LAST
+// 404 handler - MUST BE ABSOLUTE LAST
 app.use((req, res) => {
   console.warn(`⚠️  404 Not Found: ${req.method} ${req.path}`);
   
@@ -237,13 +242,19 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`   Metrics: http://localhost:${PORT}/api/metrics`);
   console.log('═══════════════════════════════════════════════════\n');
   
-  // Log service status
   const iqairService = require('./services/iqairService');
-  const purpleAirService = require('./services/purpleAirService');
+  
+  let purpleairAvailable = false;
+  try {
+    const purpleAirService = require('./services/purpleAirService');
+    purpleairAvailable = purpleAirService.isAvailable();
+  } catch (err) {
+    // PurpleAir not available
+  }
   
   console.log('📡 Services:');
   console.log(`   IQAir: ${iqairService.isAvailable() ? '✅ Active' : '❌ Disabled (no API key)'}`);
-  console.log(`   PurpleAir: ${purpleAirService.isAvailable() ? '✅ Active' : '❌ Disabled (no API key)'}`);
+  console.log(`   PurpleAir: ${purpleairAvailable ? '✅ Active' : '❌ Disabled (no API key)'}`);
   console.log(`   MongoDB: ${require('mongoose').connection.readyState === 1 ? '✅ Connected' : '⚠️  Connecting...'}`);
   console.log('\n');
 });
@@ -255,14 +266,12 @@ const gracefulShutdown = (signal) => {
   server.close(() => {
     console.log('✅ HTTP server closed');
     
-    // Close MongoDB connection
     require('mongoose').connection.close(false, () => {
       console.log('✅ MongoDB connection closed');
       process.exit(0);
     });
   });
   
-  // Force shutdown after 10 seconds
   setTimeout(() => {
     console.error('⚠️  Forced shutdown after timeout');
     process.exit(1);
@@ -272,7 +281,6 @@ const gracefulShutdown = (signal) => {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
   console.error('💥 Uncaught Exception:', err);
   process.exit(1);
