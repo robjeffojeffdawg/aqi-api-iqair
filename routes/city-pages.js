@@ -768,14 +768,14 @@ router.get('/:city-aqi', async (req, res) => {
     <div class="cta-section">
         <div class="cta-title">Monitor More Cities</div>
         <p class="cta-sub">Use your location or browse 100+ countries for live air quality data worldwide.</p>
-        <a href="https://aqi.jeff-o-blogs.com" class="cta-btn">Open Live AQI Monitor →</a>
+        <a href="https://aqi.jeff-o-blogs.com" class="cta-btn">Open Live Jeffo Blogs' AQI Monitor →</a>
     </div>
 
     <!-- ── Footer ── -->
     <footer>
         <p>
             Data sourced from <strong>IQAir</strong> · 
-            <a href="https://aqi.jeff-o-blogs.com">AQI Monitor</a> · 
+            <a href="https://aqi.jeff-o-blogs.com">Jeffo Blogs' AQI Monitor</a> · 
             Page generated ${updatedReadable}
         </p>
     </footer>
@@ -798,7 +798,7 @@ function build404Page(citySlug) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>City Not Found | AQI Monitor</title>
+    <title>City Not Found | Jeffo Blogs' AQI Monitor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
     <style>
