@@ -3,605 +3,995 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AQI History - Customizable Charts</title>
+    <title>AQI History – Jeffo Blogs' AQI Monitor</title>
+    <meta name="description" content="Historical air quality trends and AQI data over time. Track pollution levels hourly, daily and monthly.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📈</text></svg>">
-    
-    <!-- Chart.js -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
+
     <style>
+        :root {
+            --bg:      #080c14;
+            --surface: #0e1420;
+            --surface2:#141c2e;
+            --surface3:#1a2440;
+            --border:  rgba(255,255,255,0.06);
+            --border2: rgba(255,255,255,0.12);
+            --text:    #e2e8f8;
+            --muted:   #6b7a99;
+            --dim:     #3d4a66;
+            --accent:  #4f8ef7;
+            --accent2: #7eb3ff;
+            --good:    #22c55e;
+            --mono:    'DM Mono', monospace;
+            --sans:    'Syne', sans-serif;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            padding: 20px;
+            overflow-x: hidden;
         }
 
-        .container { max-width: 1400px; margin: 0 auto; }
-
-        .header {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(79,142,247,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(79,142,247,0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 500px;
+            background: radial-gradient(ellipse, rgba(79,142,247,0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .nav-links {
-            display: flex;
-            gap: 12px;
-        }
-
-        .nav-link {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
-
-        .nav-link:hover { background: #f7fafc; }
-
-        h1 { color: #2d3748; margin-bottom: 8px; font-size: 28px; }
-        .subtitle { color: #718096; font-size: 14px; margin-bottom: 16px; }
-
-        .controls { display: flex; gap: 12px; flex-wrap: wrap; }
-
-        button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        button:hover:not(:disabled) { background: #5568d3; transform: translateY(-1px); }
-        button:disabled { background: #cbd5e0; cursor: not-allowed; }
-
-        /* Chart Customization Panel */
-        .customization-panel {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-        }
-
-        .customization-panel h3 {
-            color: #2d3748;
-            font-size: 16px;
-            margin-bottom: 16px;
-        }
-
-        .customization-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .control-group label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #4a5568;
-        }
-
-        select, input[type="color"] {
-            padding: 8px;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        /* Chart Section */
-        .chart-section {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .chart-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #2d3748;
-        }
-
-        .time-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .time-btn {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            border: 2px solid #e2e8f0;
-            background: white;
-            color: #4a5568;
-            transition: all 0.2s;
-        }
-
-        .time-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .time-btn:hover { transform: translateY(-1px); }
-
-        .chart-container {
+        .wrap {
             position: relative;
-            height: 400px;
+            z-index: 1;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px 80px;
         }
 
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
+        /* ── NAV ── */
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 48px;
         }
 
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
         }
 
-        .stat-value {
-            font-size: 32px;
+        .nav-logo {
+            width: 32px;
+            height: 32px;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .nav-name {
+            font-size: 15px;
             font-weight: 700;
-            color: #2d3748;
-            margin-bottom: 4px;
+            color: var(--text);
+            letter-spacing: -0.3px;
         }
 
-        .stat-label {
-            font-size: 13px;
-            color: #718096;
-            text-transform: uppercase;
+        .nav-name span { color: var(--accent2); }
+
+        .nav-right { display: flex; gap: 8px; align-items: center; }
+
+        .nav-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: none;
+            transition: all 0.2s;
+            background: transparent;
+            cursor: pointer;
+            font-family: var(--sans);
+        }
+
+        .nav-pill:hover {
+            border-color: var(--border2);
+            color: var(--text);
+            background: var(--surface);
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--good);
+            animation: livepulse 2s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        /* ── PAGE HEADER ── */
+        .page-header {
+            margin-bottom: 40px;
+        }
+
+        .page-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border: 1px solid rgba(79,142,247,0.2);
+            border-radius: 999px;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent2);
+            background: rgba(79,142,247,0.06);
+            margin-bottom: 20px;
             letter-spacing: 0.5px;
         }
 
-        .loading {
-            text-align: center;
-            padding: 40px;
+        .page-header h1 {
+            font-size: clamp(28px, 5vw, 48px);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #e2e8f8 30%, #6b8fd4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            font-size: 15px;
+            color: var(--muted);
+            font-family: var(--mono);
+            margin-bottom: 28px;
+        }
+
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-family: var(--sans);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .btn-primary {
+            background: var(--accent);
             color: white;
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #3a7de8;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(79,142,247,0.3);
+        }
+
+        .btn-secondary {
+            background: var(--surface2);
+            color: var(--text);
+            border-color: var(--border2);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--surface3);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+        .controls { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.7s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── STATS ROW ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(16px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            transition: border-color 0.2s;
+        }
+
+        .stat-card:hover { border-color: var(--border2); }
+
+        .stat-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--dim);
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-family: var(--sans);
+            font-size: 36px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -1px;
+            margin-bottom: 6px;
+        }
+
+        .stat-sub {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* ── CHART PANEL ── */
+        .chart-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 24px;
+            animation: fadeUp 0.4s 0.1s ease both;
+        }
+
+        .chart-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .chart-title-group {}
+
+        .chart-title {
             font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            margin-bottom: 4px;
         }
 
-        .error {
-            background: #fed7d7;
-            color: #c53030;
-            padding: 16px;
-            border-radius: 8px;
+        .chart-subtitle {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* Period toggle pills */
+        .period-toggle {
+            display: flex;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 4px;
+            gap: 2px;
+        }
+
+        .period-btn {
+            padding: 7px 18px;
+            border-radius: 7px;
+            font-family: var(--sans);
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .period-btn:hover { color: var(--text); }
+
+        .period-btn.active {
+            background: var(--surface3);
+            color: var(--text);
+            border: 1px solid var(--border2);
+        }
+
+        /* AQI zone legend */
+        .zone-legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
-            font-weight: 500;
+            padding: 14px 16px;
+            background: var(--surface2);
+            border-radius: 10px;
+            border: 1px solid var(--border);
         }
 
+        .zone-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .zone-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        /* Chart canvas wrapper */
+        .chart-wrap {
+            position: relative;
+            height: 380px;
+        }
+
+        /* ── EMPTY / LOADING / ERROR ── */
+        .state-box {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .state-box .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: block;
+            opacity: 0.4;
+        }
+
+        .state-box h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .state-box p {
+            font-size: 14px;
+            font-family: var(--mono);
+            max-width: 360px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        .big-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--surface3);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        .error-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 14px;
+            color: #fca5a5;
+            margin-bottom: 24px;
+        }
+
+        /* ── READINGS TABLE ── */
+        .readings-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            animation: fadeUp 0.4s 0.2s ease both;
+        }
+
+        .readings-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .readings-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .readings-table th {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--dim);
+            padding: 0 16px 12px 0;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .readings-table td {
+            padding: 12px 16px 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--mono);
+            color: var(--muted);
+        }
+
+        .readings-table tr:last-child td { border-bottom: none; }
+        .readings-table tr:hover td { color: var(--text); }
+
+        .aqi-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: var(--sans);
+        }
+
+        /* ── FOOTER ── */
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 40px;
+        }
+
+        .footer-brand { font-size: 13px; color: var(--muted); }
+        .footer-brand strong { color: var(--text); }
+
+        .last-updated {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--dim);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ── RESPONSIVE ── */
         @media (max-width: 768px) {
-            .header-top { flex-direction: column; gap: 12px; }
-            .nav-links { width: 100%; justify-content: center; }
-            .controls { flex-direction: column; width: 100%; }
-            button { width: 100%; }
-            .customization-grid { grid-template-columns: 1fr; }
-            .chart-container { height: 300px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .chart-wrap { height: 280px; }
+            .zone-legend { gap: 10px; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .chart-top { flex-direction: column; align-items: flex-start; }
+            .controls { flex-direction: column; }
+            .btn { justify-content: center; width: 100%; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="header-top">
-                <h1>📈 AQI Historical Data</h1>
-                <div class="nav-links">
-                    <a href="index.html" class="nav-link">🏠 Home</a>
-                    <a href="about.html" class="nav-link">ℹ️ About</a>
-                </div>
-            </div>
-            <div class="subtitle">Track air quality trends over time</div>
-            
-            <div class="controls">
-                <button id="locationBtn">📍 Use My Location</button>
-                <button id="refreshBtn">🔄 Refresh Data</button>
-            </div>
+<div class="wrap">
+
+    <!-- ── NAV ── -->
+    <nav>
+        <a href="index.html" class="nav-brand">
+            <div class="nav-logo">🌍</div>
+            <span class="nav-name">Jeffo Blogs' <span>AQI</span> Monitor</span>
+        </a>
+        <div class="nav-right">
+            <div class="nav-pill"><div class="live-dot"></div>Live</div>
+            <a href="index.html" class="nav-pill">← Home</a>
+            <a href="about.html" class="nav-pill">About</a>
         </div>
+    </nav>
 
-        <!-- Chart Customization Panel -->
-        <div id="customPanel" class="customization-panel" style="display: none;">
-            <h3>🎨 Customize Your Chart</h3>
-            <div class="customization-grid">
-                <div class="control-group">
-                    <label>Chart Type</label>
-                    <select id="chartType" onchange="updateChart()">
-                        <option value="line">Line Chart</option>
-                        <option value="bar">Bar Chart</option>
-                        <option value="area">Area Chart</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label>Line Color</label>
-                    <input type="color" id="lineColor" value="#667eea" onchange="updateChart()">
-                </div>
-                <div class="control-group">
-                    <label>Fill Opacity</label>
-                    <select id="fillOpacity" onchange="updateChart()">
-                        <option value="0">None</option>
-                        <option value="0.1" selected>10%</option>
-                        <option value="0.3">30%</option>
-                        <option value="0.5">50%</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label>Grid Lines</label>
-                    <select id="gridLines" onchange="updateChart()">
-                        <option value="true" selected>Show</option>
-                        <option value="false">Hide</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label>Animation</label>
-                    <select id="animation" onchange="updateChart()">
-                        <option value="true" selected>Enabled</option>
-                        <option value="false">Disabled</option>
-                    </select>
-                </div>
-                <div class="control-group">
-                    <label>Curve Style</label>
-                    <select id="tension" onchange="updateChart()">
-                        <option value="0">Sharp</option>
-                        <option value="0.2">Slight</option>
-                        <option value="0.4" selected>Smooth</option>
-                    </select>
-                </div>
-            </div>
+    <!-- ── PAGE HEADER ── -->
+    <div class="page-header">
+        <div class="page-badge">
+            <div class="live-dot"></div>
+            Historical AQI Data · MongoDB
         </div>
+        <h1>Air Quality<br>Over Time</h1>
+        <p>// Track pollution trends · 24h · 7d · 30d</p>
 
-        <div id="statsGrid" class="stats-grid" style="display: none;"></div>
-
-        <div id="chartSection" class="chart-section" style="display: none;">
-            <div class="chart-header">
-                <div class="chart-title">AQI Trend</div>
-                <div class="time-buttons">
-                    <button class="time-btn active" data-period="24h" onclick="changePeriod('24h')">24 Hours</button>
-                    <button class="time-btn" data-period="7d" onclick="changePeriod('7d')">7 Days</button>
-                    <button class="time-btn" data-period="30d" onclick="changePeriod('30d')">30 Days</button>
-                </div>
-            </div>
-            <div class="chart-container">
-                <canvas id="aqiChart"></canvas>
-            </div>
+        <div class="controls">
+            <button class="btn btn-primary" id="locationBtn">
+                📍 Use My Location
+            </button>
+            <button class="btn btn-secondary" id="refreshBtn" disabled>
+                🔄 Refresh
+            </button>
         </div>
-
-        <div id="error"></div>
-        <div id="content" class="loading">Click "Use My Location" to view historical data</div>
     </div>
 
-    <script>
-        const API_URL = 'https://aqi-api-iqair-production.up.railway.app';
-        let userLat, userLon;
-        let currentChart = null;
-        let currentPeriod = '24h';
-        let historicalData = [];
+    <!-- ── ERROR ── -->
+    <div id="errorBox"></div>
 
-        // Chart customization settings
-        let chartSettings = {
-            type: 'line',
-            lineColor: '#667eea',
-            fillOpacity: 0.1,
-            gridLines: true,
-            animation: true,
-            tension: 0.4
-        };
+    <!-- ── STATS ROW ── -->
+    <div id="statsRow" class="stats-row" style="display:none;">
+        <div class="stat-card">
+            <div class="stat-label">Average AQI</div>
+            <div class="stat-value" id="statAvg" style="color: var(--accent2)">—</div>
+            <div class="stat-sub">over selected period</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Best AQI</div>
+            <div class="stat-value" id="statMin" style="color: #22c55e">—</div>
+            <div class="stat-sub">lowest recorded</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Worst AQI</div>
+            <div class="stat-value" id="statMax" style="color: #ef4444">—</div>
+            <div class="stat-sub">highest recorded</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Data Points</div>
+            <div class="stat-value" id="statCount" style="color: var(--muted)">—</div>
+            <div class="stat-sub">readings stored</div>
+        </div>
+    </div>
 
-        // Get location button
-        document.getElementById('locationBtn').onclick = async function() {
-            const btn = this;
-            btn.disabled = true;
-            btn.textContent = '📍 Getting location...';
+    <!-- ── CHART PANEL ── -->
+    <div class="chart-panel">
+        <div class="chart-top">
+            <div class="chart-title-group">
+                <div class="chart-title">AQI Trend</div>
+                <div class="chart-subtitle" id="chartSubtitle">Select a location to begin</div>
+            </div>
+            <div class="period-toggle">
+                <button class="period-btn active" data-period="24h" onclick="changePeriod('24h')">24h</button>
+                <button class="period-btn" data-period="7d"  onclick="changePeriod('7d')">7 days</button>
+                <button class="period-btn" data-period="30d" onclick="changePeriod('30d')">30 days</button>
+            </div>
+        </div>
 
-            try {
-                const pos = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject);
-                });
+        <!-- AQI zone colour legend -->
+        <div class="zone-legend">
+            <div class="zone-item"><div class="zone-dot" style="background:#22c55e"></div>0–50 Good</div>
+            <div class="zone-item"><div class="zone-dot" style="background:#eab308"></div>51–100 Moderate</div>
+            <div class="zone-item"><div class="zone-dot" style="background:#f97316"></div>101–150 Sensitive</div>
+            <div class="zone-item"><div class="zone-dot" style="background:#ef4444"></div>151–200 Unhealthy</div>
+            <div class="zone-item"><div class="zone-dot" style="background:#a855f7"></div>201–300 Very Unhealthy</div>
+            <div class="zone-item"><div class="zone-dot" style="background:#7f1d1d"></div>301+ Hazardous</div>
+        </div>
 
-                userLat = pos.coords.latitude;
-                userLon = pos.coords.longitude;
-                await loadHistoricalData();
+        <div class="chart-wrap">
+            <canvas id="aqiChart"></canvas>
+        </div>
 
-            } catch (error) {
-                showError('Location access denied');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '📍 Use My Location';
-            }
-        };
+        <!-- Empty/loading state inside chart panel -->
+        <div id="chartState" class="state-box">
+            <span class="icon">📈</span>
+            <h3>No Data Yet</h3>
+            <p>Use your location to load historical AQI readings from your area.</p>
+        </div>
+    </div>
 
-        // Refresh button
-        document.getElementById('refreshBtn').onclick = async function() {
-            if (userLat && userLon) {
-                await loadHistoricalData();
+    <!-- ── RECENT READINGS TABLE ── -->
+    <div id="readingsPanel" class="readings-panel" style="display:none;">
+        <div class="readings-title">Recent Readings</div>
+        <table class="readings-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>AQI</th>
+                    <th>Category</th>
+                    <th>Source</th>
+                </tr>
+            </thead>
+            <tbody id="readingsBody"></tbody>
+        </table>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <div class="page-footer">
+        <div class="footer-brand">
+            <strong>Jeffo Blogs' AQI Monitor</strong> · Historical Data
+        </div>
+        <div class="last-updated" id="lastUpdated"></div>
+    </div>
+
+</div>
+
+<script>
+    const API_URL = 'https://aqi-api-iqair-production.up.railway.app';
+    let userLat, userLon;
+    let currentPeriod = '24h';
+    let currentChart = null;
+    let locationName = 'Your Location';
+
+    // ── AQI helpers ──────────────────────────────────────────
+    function getCategory(aqi) {
+        if (aqi <= 50)  return { level: 'Good',           color: '#22c55e', emoji: '😊' };
+        if (aqi <= 100) return { level: 'Moderate',       color: '#eab308', emoji: '😐' };
+        if (aqi <= 150) return { level: 'Sensitive',      color: '#f97316', emoji: '😷' };
+        if (aqi <= 200) return { level: 'Unhealthy',      color: '#ef4444', emoji: '🤧' };
+        if (aqi <= 300) return { level: 'Very Unhealthy', color: '#a855f7', emoji: '😨' };
+        return                 { level: 'Hazardous',      color: '#7f1d1d', emoji: '☠️' };
+    }
+
+    // Colour each point on the line by its AQI value
+    function pointColors(values) {
+        return values.map(v => getCategory(v).color);
+    }
+
+    // ── Location ─────────────────────────────────────────────
+    document.getElementById('locationBtn').onclick = async function() {
+        const btn = this;
+        const orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span> Locating...';
+        try {
+            const pos = await new Promise((res, rej) =>
+                navigator.geolocation.getCurrentPosition(res, rej)
+            );
+            userLat = pos.coords.latitude;
+            userLon = pos.coords.longitude;
+            document.getElementById('refreshBtn').disabled = false;
+            await loadAll();
+        } catch {
+            showError('Location access denied. Please enable location permissions and try again.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+        }
+    };
+
+    document.getElementById('refreshBtn').onclick = () => loadAll();
+
+    // ── Period toggle ─────────────────────────────────────────
+    function changePeriod(period) {
+        currentPeriod = period;
+        document.querySelectorAll('.period-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.period === period);
+        });
+        if (userLat && userLon) loadAll();
+    }
+
+    // ── Load everything ───────────────────────────────────────
+    async function loadAll() {
+        showChartLoading();
+        try {
+            // 1. Record a fresh reading
+            await recordCurrentReading();
+            // 2. Load chart data + stats in parallel
+            const days   = currentPeriod === '24h' ? 1  : currentPeriod === '7d' ? 7  : 30;
+            const period = currentPeriod === '24h' ? 'hour' : 'day';
+
+            const [avgRes, statsRes, recentRes] = await Promise.all([
+                fetch(`${API_URL}/api/history/averages?lat=${userLat}&lon=${userLon}&period=${period}&days=${days}`),
+                fetch(`${API_URL}/api/history/stats?lat=${userLat}&lon=${userLon}&days=${days}`),
+                fetch(`${API_URL}/api/history/location?lat=${userLat}&lon=${userLon}&days=1`)
+            ]);
+
+            const [avgData, statsData, recentData] = await Promise.all([
+                avgRes.json(), statsRes.json(), recentRes.json()
+            ]);
+
+            hideChartState();
+
+            if (avgData.success && avgData.data.averages.length > 0) {
+                renderChart(avgData.data.averages);
             } else {
-                showError('Please use your location first');
+                showChartEmpty();
+            }
+
+            if (statsData.success && statsData.data.stats) {
+                renderStats(statsData.data.stats);
+            }
+
+            if (recentData.success && recentData.data.readings.length > 0) {
+                renderReadings(recentData.data.readings.slice(0, 10));
+            }
+
+            updateLastUpdated();
+        } catch (e) {
+            showError('Failed to load data: ' + e.message);
+            showChartEmpty();
+        }
+    }
+
+    // ── Record current reading ────────────────────────────────
+    async function recordCurrentReading() {
+        try {
+            const res  = await fetch(`${API_URL}/api/aqi/nearby?lat=${userLat}&lon=${userLon}`);
+            const data = await res.json();
+            if (!data.success || !data.data.stations.length) return;
+
+            const s = data.data.stations[0];
+            locationName = s.city || s.name || 'Your Location';
+
+            await fetch(`${API_URL}/api/history/record`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    location: {
+                        name: s.name,
+                        coordinates: s.coordinates,
+                        city: s.city,
+                        state: s.state,
+                        country: s.country
+                    },
+                    source: s.source || 'IQAir',
+                    aqi: s.aqi,
+                    pollutants: s.pollutants || {},
+                    weather: s.weather || {}
+                })
+            });
+        } catch { /* silent — don't block chart load */ }
+    }
+
+    // ── Render chart ──────────────────────────────────────────
+    function renderChart(averages) {
+        const labels = averages.map(d => {
+            const dt = new Date(d._id.year, d._id.month - 1, d._id.day, d._id.hour || 0);
+            return currentPeriod === '24h'
+                ? dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : dt.toLocaleDateString([], { month: 'short', day: 'numeric' });
+        });
+
+        const values = averages.map(d => Math.round(d.avgAQI));
+        const colors = pointColors(values);
+
+        // Update subtitle
+        document.getElementById('chartSubtitle').textContent =
+            `${locationName} · ${currentPeriod === '24h' ? 'Last 24 hours (hourly)' : currentPeriod === '7d' ? 'Last 7 days (daily avg)' : 'Last 30 days (daily avg)'}`;
+
+        if (currentChart) currentChart.destroy();
+
+        // AQI background zone plugin
+        const zonePlugin = {
+            id: 'aqiZones',
+            beforeDraw(chart) {
+                const { ctx, chartArea: { left, right, top, bottom }, scales: { y } } = chart;
+                if (!y) return;
+
+                const zones = [
+                    { min: 0,   max: 50,  color: 'rgba(34,197,94,0.05)'  },
+                    { min: 50,  max: 100, color: 'rgba(234,179,8,0.05)'  },
+                    { min: 100, max: 150, color: 'rgba(249,115,22,0.06)' },
+                    { min: 150, max: 200, color: 'rgba(239,68,68,0.07)'  },
+                    { min: 200, max: 300, color: 'rgba(168,85,247,0.07)' },
+                    { min: 300, max: 500, color: 'rgba(127,29,29,0.08)'  },
+                ];
+
+                zones.forEach(z => {
+                    const yTop = y.getPixelForValue(Math.min(z.max, y.max));
+                    const yBot = y.getPixelForValue(Math.max(z.min, y.min));
+                    if (yTop >= bottom || yBot <= top) return;
+                    ctx.fillStyle = z.color;
+                    ctx.fillRect(left, Math.max(yTop, top), right - left, Math.min(yBot, bottom) - Math.max(yTop, top));
+                });
             }
         };
 
-        // Change time period
-        function changePeriod(period) {
-            currentPeriod = period;
-            
-            document.querySelectorAll('.time-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.period === period) {
-                    btn.classList.add('active');
-                }
-            });
-            
-            if (userLat && userLon) {
-                loadHistoricalData();
-            }
-        }
+        const ctx = document.getElementById('aqiChart').getContext('2d');
 
-        // Load historical data
-        async function loadHistoricalData() {
-            document.getElementById('content').className = 'loading';
-            document.getElementById('content').innerHTML = 'Loading historical data...';
+        // Gradient fill under line
+        const grad = ctx.createLinearGradient(0, 0, 0, 380);
+        grad.addColorStop(0,   'rgba(79,142,247,0.18)');
+        grad.addColorStop(1,   'rgba(79,142,247,0)');
 
-            try {
-                // Get current data and record it
-                const currentResponse = await fetch(`${API_URL}/api/aqi/nearby?lat=${userLat}&lon=${userLon}`);
-                const currentData = await currentResponse.json();
-
-                if (currentData.success && currentData.data.stations.length > 0) {
-                    await recordReading(currentData.data.stations[0]);
-                }
-
-                // Get historical averages
-                const days = currentPeriod === '24h' ? 1 : currentPeriod === '7d' ? 7 : 30;
-                const period = currentPeriod === '24h' ? 'hour' : 'day';
-                
-                const historyResponse = await fetch(
-                    `${API_URL}/api/history/averages?lat=${userLat}&lon=${userLon}&period=${period}&days=${days}`
-                );
-                const historyData = await historyResponse.json();
-
-                if (historyData.success) {
-                    historicalData = historyData.data.averages;
-                    displayChart(historicalData);
-                    await loadStats();
-                    document.getElementById('content').innerHTML = '';
-                    document.getElementById('customPanel').style.display = 'block';
-                } else {
-                    showError('No historical data available yet. Data will accumulate over time.');
-                }
-
-            } catch (error) {
-                showError(error.message || 'Failed to load historical data');
-            }
-        }
-
-        // Record a reading
-        async function recordReading(station) {
-            try {
-                await fetch(`${API_URL}/api/history/record`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        location: {
-                            name: station.name,
-                            coordinates: station.coordinates,
-                            city: station.city,
-                            state: station.state,
-                            country: station.country
-                        },
-                        source: station.source,
-                        aqi: station.aqi,
-                        pollutants: station.pollutants,
-                        weather: station.weather
-                    })
-                });
-            } catch (error) {
-                console.error('Failed to record reading:', error);
-            }
-        }
-
-        // Load statistics
-        async function loadStats() {
-            try {
-                const days = currentPeriod === '24h' ? 1 : currentPeriod === '7d' ? 7 : 30;
-                const response = await fetch(`${API_URL}/api/history/stats?lat=${userLat}&lon=${userLon}&days=${days}`);
-                const data = await response.json();
-
-                if (data.success && data.data.stats) {
-                    displayStats(data.data.stats);
-                }
-            } catch (error) {
-                console.error('Failed to load stats:', error);
-            }
-        }
-
-        // Display statistics
-        function displayStats(stats) {
-            const statsGrid = document.getElementById('statsGrid');
-            
-            statsGrid.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-value">${Math.round(stats.avgAQI)}</div>
-                    <div class="stat-label">Average AQI</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${Math.round(stats.minAQI)}</div>
-                    <div class="stat-label">Best AQI</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${Math.round(stats.maxAQI)}</div>
-                    <div class="stat-label">Worst AQI</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${stats.totalReadings}</div>
-                    <div class="stat-label">Data Points</div>
-                </div>
-            `;
-            
-            statsGrid.style.display = 'grid';
-        }
-
-        // Update chart with new settings
-        function updateChart() {
-            chartSettings.type = document.getElementById('chartType').value;
-            chartSettings.lineColor = document.getElementById('lineColor').value;
-            chartSettings.fillOpacity = parseFloat(document.getElementById('fillOpacity').value);
-            chartSettings.gridLines = document.getElementById('gridLines').value === 'true';
-            chartSettings.animation = document.getElementById('animation').value === 'true';
-            chartSettings.tension = parseFloat(document.getElementById('tension').value);
-
-            if (historicalData.length > 0) {
-                displayChart(historicalData);
-            }
-        }
-
-        // Display chart
-        function displayChart(data) {
-            const section = document.getElementById('chartSection');
-            section.style.display = 'block';
-
-            // Prepare data
-            const labels = data.map(d => {
-                const date = new Date(d._id.year, d._id.month - 1, d._id.day, d._id.hour || 0);
-                return currentPeriod === '24h' 
-                    ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    : date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-            });
-
-            const aqiValues = data.map(d => Math.round(d.avgAQI));
-
-            // Destroy existing chart
-            if (currentChart) {
-                currentChart.destroy();
-            }
-
-            // Determine chart type
-            const chartType = chartSettings.type === 'area' ? 'line' : chartSettings.type;
-            const fill = chartSettings.type === 'area' || chartSettings.fillOpacity > 0;
-
-            // Create new chart
-            const ctx = document.getElementById('aqiChart').getContext('2d');
-            currentChart = new Chart(ctx, {
-                type: chartType,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Average AQI',
-                        data: aqiValues,
-                        borderColor: chartSettings.lineColor,
-                        backgroundColor: `${chartSettings.lineColor}${Math.round(chartSettings.fillOpacity * 255).toString(16).padStart(2, '0')}`,
-                        borderWidth: 3,
-                        tension: chartSettings.tension,
-                        fill: fill,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        pointBackgroundColor: chartSettings.lineColor,
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: chartSettings.animation,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top',
-                            labels: {
-                                font: { size: 14, weight: 'bold' },
-                                color: '#2d3748'
-                            }
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleFont: { size: 14, weight: 'bold' },
-                            bodyFont: { size: 13 },
-                            padding: 12,
-                            cornerRadius: 8
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'AQI Level',
-                                font: { size: 14, weight: 'bold' },
-                                color: '#4a5568'
-                            },
-                            grid: {
-                                display: chartSettings.gridLines,
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            },
-                            ticks: {
-                                font: { size: 12 },
-                                color: '#718096'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: currentPeriod === '24h' ? 'Time' : 'Date',
-                                font: { size: 14, weight: 'bold' },
-                                color: '#4a5568'
-                            },
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: { size: 12 },
-                                color: '#718096'
+        currentChart = new Chart(ctx, {
+            type: 'line',
+            plugins: [zonePlugin],
+            data: {
+                labels,
+                datasets: [{
+                    label: 'AQI',
+                    data: values,
+                    borderColor: '#4f8ef7',
+                    backgroundColor: grad,
+                    borderWidth: 2.5,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: values.length > 30 ? 0 : 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: colors,
+                    pointBorderColor: '#080c14',
+                    pointBorderWidth: 2,
+                    pointHoverBackgroundColor: colors,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0e1420',
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        titleColor: '#e2e8f8',
+                        bodyColor: '#6b7a99',
+                        titleFont: { family: "'Syne', sans-serif", size: 13, weight: '700' },
+                        bodyFont: { family: "'DM Mono', monospace", size: 12 },
+                        padding: 12,
+                        cornerRadius: 10,
+                        callbacks: {
+                            label(ctx) {
+                                const v = ctx.parsed.y;
+                                const cat = getCategory(v);
+                                return `  AQI ${v} — ${cat.emoji} ${cat.level}`;
                             }
                         }
                     }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+                        ticks: {
+                            color: '#3d4a66',
+                            font: { family: "'DM Mono', monospace", size: 11 },
+                            maxTicksLimit: 8,
+                            maxRotation: 0,
+                        },
+                        border: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+                        ticks: {
+                            color: '#3d4a66',
+                            font: { family: "'DM Mono', monospace", size: 11 },
+                            stepSize: 50,
+                        },
+                        border: { display: false },
+                        title: {
+                            display: true,
+                            text: 'US AQI',
+                            color: '#3d4a66',
+                            font: { family: "'DM Mono', monospace", size: 11 }
+                        }
+                    }
                 }
-            });
-        }
+            }
+        });
+    }
 
-        // Show error
-        function showError(msg) {
-            document.getElementById('error').innerHTML = `<div class="error">❌ ${msg}</div>`;
-            setTimeout(() => document.getElementById('error').innerHTML = '', 5000);
-        }
-    </script>
+    // ── Render stats ──────────────────────────────────────────
+    function renderStats(stats) {
+        const avg = Math.round(stats.avgAQI);
+        const min = Math.round(stats.minAQI);
+        const max = Math.round(stats.maxAQI);
+
+        document.getElementById('statAvg').textContent   = avg;
+        document.getElementById('statMin').textContent   = min;
+        document.getElementById('statMax').textContent   = max;
+        document.getElementById('statCount').textContent = stats.totalReadings;
+
+        // Colour avg by its AQI level
+        document.getElementById('statAvg').style.color = getCategory(avg).color;
+
+        document.getElementById('statsRow').style.display = 'grid';
+    }
+
+    // ── Render recent readings table ──────────────────────────
+    function renderReadings(readings) {
+        const tbody = document.getElementById('readingsBody');
+        tbody.innerHTML = readings.map(r => {
+            const aqi = Math.round(r.aqi?.us ?? 0);
+            const cat = getCategory(aqi);
+            const time = new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const date = new Date(r.timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
+            return `
+            <tr>
+                <td>${date} ${time}</td>
+                <td style="color:${cat.color}; font-weight:600">${aqi}</td>
+                <td>
+                    <span class="aqi-chip" style="background:${cat.color}18; color:${cat.color}; border: 1px solid ${cat.color}30">
+                        ${cat.emoji} ${cat.level}
+                    </span>
+                </td>
+                <td>${r.source || 'IQAir'}</td>
+            </tr>`;
+        }).join('');
+        document.getElementById('readingsPanel').style.display = 'block';
+    }
+
+    // ── Chart state helpers ───────────────────────────────────
+    function showChartLoading() {
+        document.getElementById('chartState').innerHTML = `
+            <div class="big-spinner"></div>
+            <p style="font-family:var(--mono);color:var(--muted);font-size:14px">Loading historical data...</p>`;
+        document.getElementById('chartState').style.display = 'block';
+        document.getElementById('aqiChart').style.display   = 'none';
+    }
+
+    function hideChartState() {
+        document.getElementById('chartState').style.display = 'none';
+        document.getElementById('aqiChart').style.display   = 'block';
+    }
+
+    function showChartEmpty() {
+        document.getElementById('chartState').innerHTML = `
+            <span class="icon">📭</span>
+            <h3>No Historical Data Yet</h3>
+            <p>Data accumulates each time you visit. Check back after a few hours to see trends appear.</p>`;
+        document.getElementById('chartState').style.display = 'block';
+        document.getElementById('aqiChart').style.display   = 'none';
+    }
+
+    // ── Error / timestamp ─────────────────────────────────────
+    function showError(msg) {
+        const box = document.getElementById('errorBox');
+        box.innerHTML = `<div class="error-bar">⚠️ ${msg}</div>`;
+        setTimeout(() => box.innerHTML = '', 7000);
+    }
+
+    function updateLastUpdated() {
+        const now = new Date();
+        document.getElementById('lastUpdated').innerHTML =
+            `<div class="live-dot"></div> Updated ${now.toLocaleTimeString()} · ${now.toLocaleDateString()}`;
+    }
+</script>
 </body>
 </html>
