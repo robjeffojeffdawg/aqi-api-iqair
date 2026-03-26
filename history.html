@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <style>
@@ -18,11 +19,11 @@
             --surface: #0e1420;
             --surface2:#141c2e;
             --surface3:#1a2440;
-            --border:  rgba(255,255,255,0.06);
+            --border:  rgba(255,255,255,0.10);
             --border2: rgba(255,255,255,0.12);
             --text:    #e2e8f8;
-            --muted:   #6b7a99;
-            --dim:     #3d4a66;
+            --muted:   #9aaac4;
+            --dim:     #5a6a8a;
             --accent:  #4f8ef7;
             --accent2: #7eb3ff;
             --good:    #22c55e;
@@ -523,12 +524,16 @@
 
         /* ── RESPONSIVE ── */
         @media (max-width: 768px) {
+            .btn { min-height: 48px; font-size: 15px; }
+            select { min-height: 48px; font-size: 15px; }
+            .nav-pill { padding: 8px 14px; font-size: 13px; }
             .stats-row { grid-template-columns: repeat(2, 1fr); }
             .chart-wrap { height: 280px; }
             .zone-legend { gap: 10px; }
         }
 
         @media (max-width: 480px) {
+            .wrap { padding: 0 16px 60px; }
             .stats-row { grid-template-columns: 1fr 1fr; }
             .chart-top { flex-direction: column; align-items: flex-start; }
             .controls { flex-direction: column; }
@@ -871,7 +876,7 @@
                         borderColor: 'rgba(255,255,255,0.1)',
                         borderWidth: 1,
                         titleColor: '#e2e8f8',
-                        bodyColor: '#6b7a99',
+                        bodyColor: '#9aaac4',
                         titleFont: { family: "'Syne', sans-serif", size: 13, weight: '700' },
                         bodyFont: { family: "'DM Mono', monospace", size: 12 },
                         padding: 12,
@@ -889,7 +894,7 @@
                     x: {
                         grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
                         ticks: {
-                            color: '#3d4a66',
+                            color: '#5a6a8a',
                             font: { family: "'DM Mono', monospace", size: 11 },
                             maxTicksLimit: 8,
                             maxRotation: 0,
@@ -900,7 +905,7 @@
                         beginAtZero: true,
                         grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
                         ticks: {
-                            color: '#3d4a66',
+                            color: '#5a6a8a',
                             font: { family: "'DM Mono', monospace", size: 11 },
                             stepSize: 50,
                         },
@@ -908,7 +913,7 @@
                         title: {
                             display: true,
                             text: 'US AQI',
-                            color: '#3d4a66',
+                            color: '#5a6a8a',
                             font: { family: "'DM Mono', monospace", size: 11 }
                         }
                     }
@@ -981,7 +986,7 @@
     }
 
     // ── Error / timestamp ─────────────────────────────────────
-    function showError(msg) {
+    function showError(msg) { window.showError('errorBox', msg); } function _oldShowError(msg) {
         const box = document.getElementById('errorBox');
         box.innerHTML = `<div class="error-bar">⚠️ ${msg}</div>`;
         setTimeout(() => box.innerHTML = '', 7000);
