@@ -11,7 +11,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-    <script src="utils.js"></script>
 
     <style>
         :root {
@@ -696,6 +695,7 @@
 
 </div>
 
+<script src="utils.js"></script>
 <script>
     const API_URL = 'https://aqi-api-iqair-production.up.railway.app';
     let userLat, userLon;
@@ -1119,7 +1119,7 @@
     }
 
     // Init favourites on load
-    renderFavourites();
+    document.addEventListener('DOMContentLoaded', () => renderFavourites());
 </script>
 </body>
 </html>
