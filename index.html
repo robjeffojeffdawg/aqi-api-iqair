@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="utils.js"></script>
 
     <style>
         :root {
@@ -18,11 +19,11 @@
             --surface:  #0e1420;
             --surface2: #141c2e;
             --surface3: #1a2440;
-            --border:   rgba(255,255,255,0.06);
+            --border:   rgba(255,255,255,0.10);
             --border2:  rgba(255,255,255,0.12);
             --text:     #e2e8f8;
-            --muted:    #6b7a99;
-            --dim:      #3d4a66;
+            --muted:    #9aaac4;
+            --dim:      #5a6a8a;
             --accent:   #4f8ef7;
             --accent2:  #7eb3ff;
             --good:     #22c55e;
@@ -585,13 +586,28 @@
 
         /* ══ RESPONSIVE ══ */
         @media (max-width: 640px) {
-            nav { margin-bottom: 32px; }
+            nav { margin-bottom: 32px; flex-wrap: wrap; gap: 12px; }
+            .nav-right { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+            .nav-pill { font-size: 13px; padding: 8px 14px; }
+            .hero { padding: 16px 0 36px; }
             .hero h1 { letter-spacing: -1px; }
+            .hero-sub { font-size: 13px; }
             .controls { flex-direction: column; align-items: stretch; }
-            .btn { justify-content: center; }
+            .btn { justify-content: center; padding: 14px 24px; font-size: 15px; min-height: 48px; }
             .station-grid { grid-template-columns: 1fr; }
             .select-row { flex-direction: column; }
+            select { width: 100%; min-height: 48px; font-size: 15px; }
+            .aqi-number { font-size: 56px; }
+            .card-details { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .detail-value { font-size: 14px; }
             .page-footer { flex-direction: column; text-align: center; }
+            .browse-panel { padding: 18px; }
+        }
+
+        @media (max-width: 400px) {
+            .wrap { padding: 0 16px 60px; }
+            .hero h1 { font-size: 32px; }
+            .nav-name { font-size: 13px; }
         }
     </style>
 </head>
@@ -609,6 +625,8 @@
                 <div class="live-dot"></div>
                 Live
             </div>
+            <a href="health.html" class="nav-pill">🫁 Health</a>
+            <a href="history.html" class="nav-pill">📈 History</a>
             <a href="about.html" class="nav-pill">About</a>
         </div>
     </nav>
@@ -634,6 +652,9 @@
             </button>
         </div>
     </div>
+
+    <!-- ══ FAVOURITES ══ -->
+    <div id="favSection"></div>
 
     <!-- ══ BROWSE PANEL ══ -->
     <div id="browseSection" style="display:none;">
@@ -707,13 +728,66 @@
 
         try {
             const pos = await new Promise((res, rej) =>
-                navigator.geolocation.getCurrentPosition(res, rej)
+                navigator.geolocation.getCurrentPosition(res, rej, {
+                    timeout: 10000,
+                    maximumAge: 60000
+                })
             );
             userLat = pos.coords.latitude;
             userLon = pos.coords.longitude;
             await loadNearestCity();
-        } catch {
-            showError('Location access denied. Please use Browse Cities instead.');
+        } catch (err) {
+            // Don't show "something went wrong" — location denial is a normal user action
+            const denied = err.code === 1 || (err.message && err.message.toLowerCase().includes('denied'));
+            const timed  = err.code === 3;
+
+            // Show a soft info bar instead of the full error state
+            const errorDiv = document.getElementById('error');
+            if (denied) {
+                errorDiv.innerHTML = `
+                    <div class="aq-error-bar" style="background:rgba(79,142,247,0.08); border-color:rgba(79,142,247,0.2);">
+                        <span class="aq-error-icon">📍</span>
+                        <div class="aq-error-text">
+                            <div class="aq-error-title" style="color:#7eb3ff">Location access not granted</div>
+                            <div class="aq-error-msg" style="color:#9aaac4">No problem — use Browse Cities below to search manually.</div>
+                        </div>
+                        <button class="aq-error-close" style="color:#7eb3ff" onclick="this.closest('.aq-error-bar').remove()">✕</button>
+                    </div>`;
+            } else if (timed) {
+                errorDiv.innerHTML = `
+                    <div class="aq-error-bar" style="background:rgba(234,179,8,0.08); border-color:rgba(234,179,8,0.2);">
+                        <span class="aq-error-icon">⏱️</span>
+                        <div class="aq-error-text">
+                            <div class="aq-error-title" style="color:#eab308">Location timed out</div>
+                            <div class="aq-error-msg" style="color:#9aaac4">Your device took too long to get a fix. Try again or use Browse Cities.</div>
+                        </div>
+                        <button class="aq-error-close" style="color:#eab308" onclick="this.closest('.aq-error-bar').remove()">✕</button>
+                    </div>`;
+            } else {
+                showError(err.message || 'Could not get location.');
+            }
+
+            // Auto-open Browse Cities so user doesn't have to figure out what to do
+            const browseSection = document.getElementById('browseSection');
+            if (browseSection.style.display === 'none') {
+                browseSection.style.display = 'block';
+                if (document.getElementById('countrySelect').options.length <= 1) {
+                    loadCountries();
+                }
+                // Smooth scroll to browse panel
+                setTimeout(() => browseSection.scrollIntoView({ behavior: 'smooth', block: 'start' }), 150);
+            }
+
+            // Leave content as empty state, not error state
+            const content = document.getElementById('content');
+            if (!content.querySelector('.station-grid')) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <span class="globe">🗺️</span>
+                        <h2>Select a City</h2>
+                        <p>Choose a country, region, and city from the panel above to view live air quality data.</p>
+                    </div>`;
+            }
         } finally {
             btn.disabled = false;
             btn.innerHTML = orig;
@@ -758,7 +832,10 @@
             const wind     = station.weather?.wind;
 
             html += `
-            <div class="station-card" style="--card-color: ${cat.color}">
+            <div class="station-card" style="--card-color: ${cat.color}"
+                data-city="${station.name || ''}"
+                data-state="${station.state || ''}"
+                data-country="${station.country || ''}">
                 <div class="card-top">
                     <div>
                         <div class="station-name">${station.name}</div>
@@ -808,6 +885,7 @@
         });
         html += '</div>';
         content.innerHTML = html;
+        addFavButtons();
     }
 
     // ── Browse toggle ────────────────────────────────────────
@@ -938,23 +1016,13 @@
 
     // ── Helpers ──────────────────────────────────────────────
     function showLoading(msg) {
-        document.getElementById('content').innerHTML = `
-            <div class="loading-state">
-                <div class="big-spinner"></div>
-                <p>${msg}</p>
-            </div>`;
+        showLoadingSpinner('content', msg);
     }
 
     function showError(msg) {
-        const err = document.getElementById('error');
-        err.innerHTML = `<div class="error-bar">⚠️ ${msg}</div>`;
-        setTimeout(() => err.innerHTML = '', 6000);
-        document.getElementById('content').innerHTML = `
-            <div class="empty-state">
-                <span class="globe">📡</span>
-                <h2>Something went wrong</h2>
-                <p>${msg}</p>
-            </div>`;
+        window.showError('error', msg);
+        showEmptyState('content', '📡', 'Something went wrong',
+            getFriendlyError(msg).msg);
     }
 
     function updateLastUpdated() {
@@ -962,6 +1030,96 @@
         document.getElementById('lastUpdated').innerHTML =
             `<div class="live-dot"></div> Updated ${now.toLocaleTimeString()} · ${now.toLocaleDateString()}`;
     }
+
+    // ── Favourites ────────────────────────────────────────────
+    function renderFavourites() {
+        const favs = getFavourites();
+        const sec  = document.getElementById('favSection');
+        if (!favs.length) { sec.innerHTML = ''; return; }
+
+        const pills = favs.map(f => `
+            <div class="fav-pill" onclick="loadFavCity('${f.city}','${f.state}','${f.country}')">
+                ${f.city}
+                <button class="fav-pill-remove" onclick="event.stopPropagation(); removeFav('${f.city}','${f.country}')">✕</button>
+            </div>`).join('');
+
+        sec.innerHTML = `
+            <div class="fav-section">
+                <div class="fav-header">
+                    <span class="fav-title">⭐ Favourite Cities</span>
+                    <button class="fav-clear" onclick="clearAllFavs()">Clear all</button>
+                </div>
+                <div class="fav-pills">${pills}</div>
+            </div>`;
+    }
+
+    async function loadFavCity(city, state, country) {
+        showLoading(`Loading ${city}…`);
+        try {
+            let url = `${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`;
+            if (state) url += `&state=${encodeURIComponent(state)}`;
+            const res  = await fetch(url);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to fetch');
+            displayStations([data.data]);
+            updateLastUpdated();
+        } catch (e) {
+            showError(e.message);
+        }
+    }
+
+    function removeFav(city, country) {
+        removeFavourite(city, country);
+        renderFavourites();
+    }
+
+    function clearAllFavs() {
+        localStorage.removeItem('jeffo_aqi_favourites');
+        renderFavourites();
+    }
+
+    // Add star button to station cards after rendering
+    function addFavButtons() {
+        document.querySelectorAll('.station-card').forEach(card => {
+            const nameEl = card.querySelector('.station-name');
+            if (!nameEl || card.querySelector('.fav-star')) return;
+            const city    = nameEl.textContent.trim();
+            const country = card.dataset.country || '';
+            const state   = card.dataset.state   || '';
+            const starred = isFavourite(city, country);
+            const btn = document.createElement('button');
+            btn.className   = 'fav-star';
+            btn.title       = starred ? 'Remove from favourites' : 'Add to favourites';
+            btn.textContent = starred ? '⭐' : '☆';
+            btn.style.cssText = `
+                background:none; border:none; cursor:pointer;
+                font-size:18px; color:#9aaac4; padding:0;
+                transition:transform 0.15s, color 0.15s; line-height:1;`;
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                if (isFavourite(city, country)) {
+                    removeFavourite(city, country);
+                    btn.textContent = '☆';
+                    btn.title = 'Add to favourites';
+                } else {
+                    addFavourite(city, state, country);
+                    btn.textContent = '⭐';
+                    btn.title = 'Remove from favourites';
+                    btn.style.transform = 'scale(1.3)';
+                    setTimeout(() => btn.style.transform = '', 200);
+                }
+                renderFavourites();
+            };
+            // Insert star next to station name
+            nameEl.parentElement.style.display = 'flex';
+            nameEl.parentElement.style.alignItems = 'flex-start';
+            nameEl.parentElement.style.justifyContent = 'space-between';
+            nameEl.parentElement.appendChild(btn);
+        });
+    }
+
+    // Init favourites on load
+    renderFavourites();
 </script>
 </body>
 </html>
