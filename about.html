@@ -3,191 +3,495 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About - Jeffo Blogs' AQI Monitor</title>
+    <title>About – Jeffo Blogs' AQI Monitor</title>
+    <meta name="description" content="About Jeffo Blogs' AQI Monitor — real-time air quality tracking powered by IQAir.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🌍</text></svg>">
-    
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="utils.js"></script>
+
     <style>
+        :root {
+            --bg:      #080c14;
+            --surface: #0e1420;
+            --surface2:#141c2e;
+            --surface3:#1a2440;
+            --border:  rgba(255,255,255,0.10);
+            --border2: rgba(255,255,255,0.16);
+            --text:    #e2e8f8;
+            --muted:   #9aaac4;
+            --dim:     #5a6a8a;
+            --accent:  #4f8ef7;
+            --accent2: #7eb3ff;
+            --good:    #22c55e;
+            --mono:    'DM Mono', monospace;
+            --sans:    'Syne', sans-serif;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            padding: 20px;
+            overflow-x: hidden;
         }
 
-        .container {
-            max-width: 800px;
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(79,142,247,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(79,142,247,0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px; height: 500px;
+            background: radial-gradient(ellipse, rgba(79,142,247,0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrap {
+            position: relative;
+            z-index: 1;
+            max-width: 860px;
             margin: 0 auto;
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            padding: 0 24px 80px;
         }
 
-        .back-link {
-            display: inline-block;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            margin-bottom: 24px;
-            font-size: 14px;
-        }
-
-        .back-link:hover { text-decoration: underline; }
-
-        h1 {
-            color: #2d3748;
-            font-size: 32px;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        h2 {
-            color: #2d3748;
-            font-size: 22px;
-            margin-top: 32px;
-            margin-bottom: 16px;
-        }
-
-        p {
-            color: #4a5568;
-            line-height: 1.8;
-            margin-bottom: 16px;
-            font-size: 16px;
-        }
-
-        .aqi-scale {
-            margin: 24px 0;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .aqi-item {
-            padding: 12px 16px;
+        /* ── NAV ── */
+        nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-weight: 600;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 48px;
         }
 
-        .links {
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 2px solid #e2e8f0;
-        }
-
-        .links a {
-            color: #667eea;
+        .nav-brand {
+            display: flex; align-items: center; gap: 10px;
             text-decoration: none;
-            font-weight: 600;
         }
 
-        .links a:hover { text-decoration: underline; }
+        .nav-logo {
+            width: 32px; height: 32px;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+        }
 
-        .footer {
-            margin-top: 32px;
+        .nav-name { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+        .nav-name span { color: var(--accent2); }
+        .nav-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+        .nav-pill {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 12px; font-weight: 500;
+            color: var(--muted); text-decoration: none;
+            transition: all 0.2s; background: transparent;
+            font-family: var(--sans);
+        }
+
+        .nav-pill:hover { border-color: var(--border2); color: var(--text); background: var(--surface); }
+
+        .live-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--good);
+            animation: livepulse 2s ease-in-out infinite;
+        }
+
+        @keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        /* ── PAGE HEADER ── */
+        .page-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 16px;
+            border: 1px solid rgba(79,142,247,0.2);
+            border-radius: 999px;
+            font-family: var(--mono); font-size: 11px;
+            color: var(--accent2);
+            background: rgba(79,142,247,0.06);
+            margin-bottom: 20px; letter-spacing: 0.5px;
+        }
+
+        .page-header h1 {
+            font-size: clamp(28px, 5vw, 52px);
+            font-weight: 800; letter-spacing: -1.5px; line-height: 1.1;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #e2e8f8 30%, #6b8fd4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-header p {
+            font-size: 15px; color: var(--muted);
+            font-family: var(--mono); margin-bottom: 40px;
+        }
+
+        /* ── CONTENT SECTIONS ── */
+        .content-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 20px;
+            animation: fadeUp 0.4s ease both;
+        }
+
+        .content-card:nth-child(2) { animation-delay: 0.05s; }
+        .content-card:nth-child(3) { animation-delay: 0.10s; }
+        .content-card:nth-child(4) { animation-delay: 0.15s; }
+        .content-card:nth-child(5) { animation-delay: 0.20s; }
+
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(16px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        .card-section-label {
+            font-size: 10px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--dim); margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 20px; font-weight: 700;
+            letter-spacing: -0.3px; margin-bottom: 14px;
+            color: var(--text);
+        }
+
+        .card-body {
+            font-size: 15px; color: var(--muted);
+            line-height: 1.8;
+        }
+
+        .card-body strong { color: var(--text); font-weight: 600; }
+
+        .card-body p { margin-bottom: 12px; }
+        .card-body p:last-child { margin-bottom: 0; }
+
+        /* ── AQI SCALE ── */
+        .aqi-scale { display: grid; gap: 6px; margin-top: 4px; }
+
+        .aqi-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            transition: border-color 0.2s;
+        }
+
+        .aqi-row:hover { border-color: var(--border2); }
+
+        .aqi-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%; flex-shrink: 0;
+        }
+
+        .aqi-range {
+            font-family: var(--mono); font-size: 12px;
+            color: var(--dim); min-width: 64px; flex-shrink: 0;
+        }
+
+        .aqi-level {
+            font-size: 13px; font-weight: 700; flex: 1;
+        }
+
+        .aqi-desc {
+            font-size: 12px; color: var(--muted);
+            font-family: var(--mono); text-align: right;
+        }
+
+        /* ── TECH STACK ── */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .tech-item {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            transition: border-color 0.2s;
+        }
+
+        .tech-item:hover { border-color: var(--border2); }
+
+        .tech-label {
+            font-size: 10px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1px;
+            color: var(--dim); margin-bottom: 6px;
+        }
+
+        .tech-value {
+            font-size: 13px; font-weight: 600;
+            color: var(--text);
+        }
+
+        /* ── LINKS ── */
+        .link-grid { display: grid; gap: 10px; margin-top: 4px; }
+
+        .link-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: border-color 0.2s;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .link-row:hover { border-color: var(--border2); }
+
+        .link-label {
+            font-size: 13px; color: var(--muted);
+            font-family: var(--mono);
+        }
+
+        .link-anchor {
+            font-size: 13px; font-weight: 600;
+            color: var(--accent2); text-decoration: none;
+            transition: color 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .link-anchor:hover { color: white; }
+
+        /* ── FOOTER ── */
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding-top: 24px;
-            border-top: 1px solid #e2e8f0;
-            text-align: center;
-            color: #718096;
-            font-size: 14px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap; gap: 12px;
+            margin-top: 40px;
+        }
+
+        .footer-brand { font-size: 13px; color: var(--muted); }
+        .footer-brand strong { color: var(--text); }
+        .footer-heart { color: var(--good); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 640px) {
+            nav { flex-wrap: wrap; gap: 12px; margin-bottom: 32px; }
+            .nav-right { width: 100%; flex-wrap: wrap; }
+            .nav-pill { padding: 8px 14px; font-size: 13px; min-height: 40px; }
+            .content-card { padding: 22px 18px; }
+            .aqi-desc { display: none; }
+            .tech-grid { grid-template-columns: 1fr 1fr; }
+            .page-footer { flex-direction: column; text-align: center; }
+        }
+
+        @media (max-width: 400px) {
+            .wrap { padding: 0 16px 60px; }
+            .tech-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html" class="back-link">← Back to Monitor</a>
-        
-        <h1>🌍 About Jeffo Blogs' AQI Monitor</h1>
+<div class="wrap">
 
-        <p>
-            Jeffo Blogs' AQI Monitor is a real-time air quality tracking application that helps you 
-            understand the air you breathe, wherever you are in the world.
-        </p>
-
-        <h2>What is AQI?</h2>
-        <p>
-            The Air Quality Index (AQI) is a standardized indicator of air pollution levels. 
-            It tells you how clean or polluted your air is, and what health effects might be 
-            a concern. Higher numbers mean greater health risk.
-        </p>
-
-        <div class="aqi-scale">
-            <div class="aqi-item" style="background: #c6f6d5; color: #22543d;">
-                <span>0-50: Good</span>
-                <span>✓ Safe for everyone</span>
-            </div>
-            <div class="aqi-item" style="background: #fefcbf; color: #744210;">
-                <span>51-100: Moderate</span>
-                <span>⚠️ Acceptable for most</span>
-            </div>
-            <div class="aqi-item" style="background: #feebc8; color: #7c2d12;">
-                <span>101-150: Unhealthy for Sensitive</span>
-                <span>⚠️ Limit outdoor activity</span>
-            </div>
-            <div class="aqi-item" style="background: #fed7d7; color: #742a2a;">
-                <span>151-200: Unhealthy</span>
-                <span>🚨 Everyone affected</span>
-            </div>
-            <div class="aqi-item" style="background: #e9d8fd; color: #44337a;">
-                <span>201-300: Very Unhealthy</span>
-                <span>🚨 Health alert</span>
-            </div>
-            <div class="aqi-item" style="background: #fed7d7; color: #742a2a;">
-                <span>301+: Hazardous</span>
-                <span>☠️ Emergency conditions</span>
-            </div>
+    <!-- ── NAV ── -->
+    <nav>
+        <a href="index.html" class="nav-brand">
+            <div class="nav-logo">🌍</div>
+            <span class="nav-name">Jeffo Blogs' <span>AQI</span> Monitor</span>
+        </a>
+        <div class="nav-right">
+            <div class="nav-pill"><div class="live-dot"></div>Live</div>
+            <a href="index.html"  class="nav-pill">← Home</a>
+            <a href="health.html" class="nav-pill">🫁 Health</a>
+            <a href="history.html" class="nav-pill">📈 History</a>
         </div>
+    </nav>
 
-        <h2>How It Works</h2>
-        <p>
-            This app uses your device's location to find the nearest air quality monitoring 
-            station and displays real-time pollution data including PM2.5, PM10, ozone, and 
-            other pollutants. Data is provided by <strong>IQAir</strong>, one of the world's 
-            leading air quality information platforms.
-        </p>
-
-        <h2>Privacy</h2>
-        <p>
-            Your location is only used to fetch nearby air quality data. No personal information 
-            is stored or transmitted to any third parties. Location access is requested only when 
-            you click "Use My Location" and is never saved.
-        </p>
-
-        <h2>Technology</h2>
-        <p>
-            <strong>Frontend:</strong> Pure HTML, CSS, and JavaScript<br>
-            <strong>Backend API:</strong> Node.js + Express + MongoDB<br>
-            <strong>Data Source:</strong> IQAir Air Visual API<br>
-            <strong>Hosting:</strong> GitHub Pages (Frontend) + Railway (API)
-        </p>
-
-        <div class="links">
-            <p>
-                <strong>Data Provider:</strong> 
-                <a href="https://www.iqair.com" target="_blank">IQAir</a>
-            </p>
-            <p>
-                <strong>API Backend:</strong> 
-                <a href="https://aqi-api-iqair-production.up.railway.app/health" target="_blank">
-                    Health Check
-                </a>
-            </p>
-            <p>
-                <strong>Source Code:</strong> 
-                
-                 href="https://github.com/robjeffojeffdawg/aqi-api-iqair" target="_blank">
-                    GitHub Repository
-                </a>
-            </p>
+    <!-- ── HEADER ── -->
+    <div class="page-header">
+        <div class="page-badge">
+            <div class="live-dot"></div>
+            About this project
         </div>
+        <h1>Jeffo Blogs'<br>AQI Monitor</h1>
+        <p>// Real-time air quality tracking · Powered by IQAir</p>
+    </div>
 
-        <div class="footer">
-            Built with 💚 for cleaner air · © 2026 Jeffo Blogs' AQI Monitor
+    <!-- ── WHAT IS IT ── -->
+    <div class="content-card">
+        <div class="card-section-label">Overview</div>
+        <div class="card-title">What is this?</div>
+        <div class="card-body">
+            <p>Jeffo Blogs' AQI Monitor is a real-time air quality tracking application that helps you understand the air you breathe, wherever you are in the world.</p>
+            <p>Using live sensor data from IQAir's global monitoring network, it gives you instant AQI readings, health advisories, historical trends, and outdoor safety guidance — all in one place.</p>
         </div>
     </div>
+
+    <!-- ── WHAT IS AQI ── -->
+    <div class="content-card">
+        <div class="card-section-label">Understanding the data</div>
+        <div class="card-title">What is AQI?</div>
+        <div class="card-body" style="margin-bottom: 20px;">
+            <p>The Air Quality Index (AQI) is a standardised indicator of air pollution levels. It tells you how clean or polluted your air is, and what associated health effects might be a concern. Higher numbers mean greater risk.</p>
+        </div>
+        <div class="aqi-scale">
+            <div class="aqi-row">
+                <div class="aqi-dot" style="background:#22c55e"></div>
+                <span class="aqi-range">0 – 50</span>
+                <span class="aqi-level" style="color:#22c55e">Good</span>
+                <span class="aqi-desc">Safe for everyone</span>
+            </div>
+            <div class="aqi-row">
+                <div class="aqi-dot" style="background:#eab308"></div>
+                <span class="aqi-range">51 – 100</span>
+                <span class="aqi-level" style="color:#eab308">Moderate</span>
+                <span class="aqi-desc">Acceptable for most</span>
+            </div>
+            <div class="aqi-row">
+                <div class="aqi-dot" style="background:#f97316"></div>
+                <span class="aqi-range">101 – 150</span>
+                <span class="aqi-level" style="color:#f97316">Unhealthy for Sensitive Groups</span>
+                <span class="aqi-desc">Limit outdoor activity</span>
+            </div>
+            <div class="aqi-row">
+                <div class="aqi-dot" style="background:#ef4444"></div>
+                <span class="aqi-range">151 – 200</span>
+                <span class="aqi-level" style="color:#ef4444">Unhealthy</span>
+                <span class="aqi-desc">Everyone affected</span>
+            </div>
+            <div class="aqi-row">
+                <div class="aqi-dot" style="background:#a855f7"></div>
+                <span class="aqi-range">201 – 300</span>
+                <span class="aqi-level" style="color:#a855f7">Very Unhealthy</span>
+                <span class="aqi-desc">Health alert</span>
+            </div>
+            <div class="aqi-row">
+                <div class="aqi-dot" style="background:#dc2626"></div>
+                <span class="aqi-range">301+</span>
+                <span class="aqi-level" style="color:#dc2626">Hazardous</span>
+                <span class="aqi-desc">Emergency conditions</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── HOW IT WORKS ── -->
+    <div class="content-card">
+        <div class="card-section-label">Under the hood</div>
+        <div class="card-title">How it works</div>
+        <div class="card-body">
+            <p>The app uses your device's location to find the nearest air quality monitoring stations and displays real-time pollution data including <strong>PM2.5</strong>, <strong>PM10</strong>, <strong>ozone</strong>, <strong>NO₂</strong>, and other pollutants.</p>
+            <p>Data is provided by <strong>IQAir</strong>, one of the world's leading air quality platforms. Historical readings are stored in <strong>MongoDB</strong> and used to build trend charts over 24 hours, 7 days, and 30 days.</p>
+            <p>City pages are <strong>server-side rendered</strong> so that Google can index them — making it easier for people searching for air quality in specific cities to find the data they need.</p>
+        </div>
+    </div>
+
+    <!-- ── PRIVACY ── -->
+    <div class="content-card">
+        <div class="card-section-label">Privacy</div>
+        <div class="card-title">Your data</div>
+        <div class="card-body">
+            <p>Your location is only used to fetch nearby air quality data. No personal information is stored or transmitted to any third parties.</p>
+            <p>Location access is requested only when you click <strong>"Use My Location"</strong> and is never saved to a database. Favourite cities are stored locally in your browser only using <strong>localStorage</strong>.</p>
+        </div>
+    </div>
+
+    <!-- ── TECH STACK ── -->
+    <div class="content-card">
+        <div class="card-section-label">Technology</div>
+        <div class="card-title">Built with</div>
+        <div class="tech-grid">
+            <div class="tech-item">
+                <div class="tech-label">Frontend</div>
+                <div class="tech-value">HTML · CSS · JS</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-label">Backend</div>
+                <div class="tech-value">Node.js · Express</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-label">Database</div>
+                <div class="tech-value">MongoDB Atlas</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-label">Data Source</div>
+                <div class="tech-value">IQAir AirVisual API</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-label">Frontend Host</div>
+                <div class="tech-value">GitHub Pages</div>
+            </div>
+            <div class="tech-item">
+                <div class="tech-label">API Host</div>
+                <div class="tech-value">Railway</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── LINKS ── -->
+    <div class="content-card">
+        <div class="card-section-label">Resources</div>
+        <div class="card-title">Links</div>
+        <div class="link-grid">
+            <div class="link-row">
+                <span class="link-label">Data provider</span>
+                <a href="https://www.iqair.com" target="_blank" class="link-anchor">
+                    IQAir ↗
+                </a>
+            </div>
+            <div class="link-row">
+                <span class="link-label">API health check</span>
+                <a href="https://aqi-api-iqair-production.up.railway.app/health" target="_blank" class="link-anchor">
+                    api.aqi.jeff-o-blogs.com/health ↗
+                </a>
+            </div>
+            <div class="link-row">
+                <span class="link-label">Source code</span>
+                <a href="https://github.com/robjeffojeffdawg/aqi-api-iqair" target="_blank" class="link-anchor">
+                    GitHub Repository ↗
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <div class="page-footer">
+        <div class="footer-brand">
+            <strong>Jeffo Blogs' AQI Monitor</strong> · © 2026
+        </div>
+        <div class="footer-brand">
+            Built with <span class="footer-heart">♥</span> for cleaner air
+        </div>
+    </div>
+
+</div>
 </body>
 </html>
