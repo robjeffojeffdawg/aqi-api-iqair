@@ -247,7 +247,7 @@
         /* ── STATS ROW ── */
         .stats-row {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 16px;
             margin-bottom: 24px;
             animation: fadeUp 0.4s ease both;
@@ -291,6 +291,10 @@
             font-size: 11px;
             color: var(--muted);
         }
+
+        .trend-up   { color: #ef4444; }
+        .trend-down { color: #22c55e; }
+        .trend-flat { color: var(--muted); }
 
         /* ── CHART PANEL ── */
         .chart-panel {
@@ -525,7 +529,7 @@
             .btn { min-height: 48px; font-size: 15px; }
             select { min-height: 48px; font-size: 15px; }
             .nav-pill { padding: 8px 14px; font-size: 13px; }
-            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .stats-row { grid-template-columns: repeat(3, 1fr); }
             .chart-wrap { height: 280px; }
             .zone-legend { gap: 10px; }
         }
@@ -585,19 +589,25 @@
             <div class="stat-sub">over selected period</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Best AQI</div>
+            <div class="stat-label">Today's Best</div>
             <div class="stat-value" id="statMin" style="color: #22c55e">—</div>
-            <div class="stat-sub">lowest recorded</div>
+            <div class="stat-sub" id="statMinTime">lowest recorded today</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">Worst AQI</div>
+            <div class="stat-label">Today's Worst</div>
             <div class="stat-value" id="statMax" style="color: #ef4444">—</div>
-            <div class="stat-sub">highest recorded</div>
+            <div class="stat-sub" id="statMaxTime">highest recorded today</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">Data Points</div>
             <div class="stat-value" id="statCount" style="color: var(--muted)">—</div>
             <div class="stat-sub">readings stored</div>
+        </div>
+        <!-- Trend indicator card -->
+        <div class="stat-card">
+            <div class="stat-label">24h Trend</div>
+            <div class="stat-value" id="statTrend" style="font-size:28px">—</div>
+            <div class="stat-sub" id="statTrendLabel">vs 12 hours ago</div>
         </div>
     </div>
 
@@ -722,20 +732,19 @@
     async function loadAll() {
         showChartLoading();
         try {
-            // 1. Record a fresh reading
             await recordCurrentReading();
-            // 2. Load chart data + stats in parallel
             const days   = currentPeriod === '24h' ? 1  : currentPeriod === '7d' ? 7  : 30;
             const period = currentPeriod === '24h' ? 'hour' : 'day';
 
-            const [avgRes, statsRes, recentRes] = await Promise.all([
+            const [avgRes, statsRes, recentRes, todayRes] = await Promise.all([
                 fetch(`${API_URL}/api/history/averages?lat=${userLat}&lon=${userLon}&period=${period}&days=${days}`),
                 fetch(`${API_URL}/api/history/stats?lat=${userLat}&lon=${userLon}&days=${days}`),
-                fetch(`${API_URL}/api/history/location?lat=${userLat}&lon=${userLon}&days=1`)
+                fetch(`${API_URL}/api/history/location?lat=${userLat}&lon=${userLon}&days=1`),
+                fetch(`${API_URL}/api/history/averages?lat=${userLat}&lon=${userLon}&period=hour&days=1`)
             ]);
 
-            const [avgData, statsData, recentData] = await Promise.all([
-                avgRes.json(), statsRes.json(), recentRes.json()
+            const [avgData, statsData, recentData, todayData] = await Promise.all([
+                avgRes.json(), statsRes.json(), recentRes.json(), todayRes.json()
             ]);
 
             hideChartState();
@@ -747,7 +756,8 @@
             }
 
             if (statsData.success && statsData.data.stats) {
-                renderStats(statsData.data.stats);
+                const todayHourly = (todayData.success && todayData.data.averages) ? todayData.data.averages : [];
+                renderStats(statsData.data.stats, todayHourly);
             }
 
             if (recentData.success && recentData.data.readings.length > 0) {
@@ -803,7 +813,15 @@
         const values = averages.map(d => Math.round(d.avgAQI));
         const colors = pointColors(values);
 
-        // Update subtitle
+        // Compute trend direction for 24h
+        let trendColor = '#4f8ef7';
+        if (currentPeriod === '24h' && values.length >= 4) {
+            const mid    = Math.floor(values.length / 2);
+            const early  = values.slice(0, mid).reduce((a, b) => a + b, 0) / mid;
+            const recent = values.slice(mid).reduce((a, b) => a + b, 0) / (values.length - mid);
+            trendColor = recent > early + 5 ? '#ef4444' : recent < early - 5 ? '#22c55e' : '#4f8ef7';
+        }
+
         document.getElementById('chartSubtitle').textContent =
             `${locationName} · ${currentPeriod === '24h' ? 'Last 24 hours (hourly)' : currentPeriod === '7d' ? 'Last 7 days (daily avg)' : 'Last 30 days (daily avg)'}`;
 
@@ -850,7 +868,7 @@
                 datasets: [{
                     label: 'AQI',
                     data: values,
-                    borderColor: '#4f8ef7',
+                    borderColor: trendColor,
                     backgroundColor: grad,
                     borderWidth: 2.5,
                     tension: 0.4,
@@ -921,7 +939,7 @@
     }
 
     // ── Render stats ──────────────────────────────────────────
-    function renderStats(stats) {
+    function renderStats(stats, todayHourly) {
         const avg = Math.round(stats.avgAQI);
         const min = Math.round(stats.minAQI);
         const max = Math.round(stats.maxAQI);
@@ -930,9 +948,54 @@
         document.getElementById('statMin').textContent   = min;
         document.getElementById('statMax').textContent   = max;
         document.getElementById('statCount').textContent = stats.totalReadings;
+        document.getElementById('statAvg').style.color   = getCategory(avg).color;
 
-        // Colour avg by its AQI level
-        document.getElementById('statAvg').style.color = getCategory(avg).color;
+        // Daily high/low times from today's hourly data
+        if (todayHourly && todayHourly.length > 0) {
+            const values = todayHourly.map(d => Math.round(d.avgAQI));
+            const minIdx = values.indexOf(Math.min(...values));
+            const maxIdx = values.indexOf(Math.max(...values));
+
+            const toTime = (d) => {
+                const dt = new Date(d._id.year, d._id.month - 1, d._id.day, d._id.hour || 0);
+                return dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            };
+
+            if (todayHourly[minIdx]) {
+                document.getElementById('statMinTime').textContent = `lowest at ${toTime(todayHourly[minIdx])}`;
+            }
+            if (todayHourly[maxIdx]) {
+                document.getElementById('statMaxTime').textContent = `highest at ${toTime(todayHourly[maxIdx])}`;
+            }
+
+            // Trend: compare first half vs second half of today
+            if (values.length >= 4) {
+                const mid    = Math.floor(values.length / 2);
+                const early  = values.slice(0, mid).reduce((a, b) => a + b, 0) / mid;
+                const recent = values.slice(mid).reduce((a, b) => a + b, 0) / (values.length - mid);
+                const diff   = Math.round(recent - early);
+                const trendEl = document.getElementById('statTrend');
+                const labelEl = document.getElementById('statTrendLabel');
+
+                if (diff > 5) {
+                    trendEl.textContent = '↑ ' + diff;
+                    trendEl.className = 'stat-value trend-up';
+                    labelEl.textContent = 'rising vs earlier today';
+                } else if (diff < -5) {
+                    trendEl.textContent = '↓ ' + Math.abs(diff);
+                    trendEl.className = 'stat-value trend-down';
+                    labelEl.textContent = 'improving vs earlier today';
+                } else {
+                    trendEl.textContent = '→ stable';
+                    trendEl.className = 'stat-value trend-flat';
+                    trendEl.style.fontSize = '20px';
+                    labelEl.textContent = 'no significant change';
+                }
+            } else {
+                document.getElementById('statTrend').textContent = '—';
+                document.getElementById('statTrendLabel').textContent = 'need more data';
+            }
+        }
 
         document.getElementById('statsRow').style.display = 'grid';
     }
@@ -984,11 +1047,7 @@
     }
 
     // ── Error / timestamp ─────────────────────────────────────
-    function showError(msg) { window.showError('errorBox', msg); } function _oldShowError(msg) {
-        const box = document.getElementById('errorBox');
-        box.innerHTML = `<div class="error-bar">⚠️ ${msg}</div>`;
-        setTimeout(() => box.innerHTML = '', 7000);
-    }
+    function showError(msg) { window.showError('errorBox', msg); }
 
     function updateLastUpdated() {
         const now = new Date();
