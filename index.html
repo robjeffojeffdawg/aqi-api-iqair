@@ -742,6 +742,115 @@
             .hero h1 { font-size: 32px; }
             .nav-name { font-size: 13px; }
         }
+
+        /* ── Compare mode ── */
+        .compare-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 20px;
+            animation: slideDown 0.25s ease;
+        }
+
+        .compare-label {
+            font-size: 10px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 1.2px;
+            color: var(--dim); margin-bottom: 16px;
+        }
+
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .compare-col { display: flex; flex-direction: column; gap: 10px; }
+
+        .compare-col-label {
+            font-size: 12px; font-weight: 700;
+            color: var(--muted); text-align: center; padding: 4px 0;
+        }
+
+        .compare-search-wrap {
+            display: flex; align-items: center;
+            background: var(--surface2);
+            border: 1px solid var(--border2);
+            border-radius: 10px;
+            padding: 4px 4px 4px 12px;
+            gap: 8px;
+            transition: border-color 0.2s;
+        }
+
+        .compare-search-wrap:focus-within { border-color: var(--accent); }
+
+        .compare-input {
+            flex: 1; background: none; border: none; outline: none;
+            font-family: var(--sans); font-size: 13px;
+            color: var(--text); padding: 7px 0; min-width: 0;
+        }
+
+        .compare-input::placeholder { color: var(--dim); }
+
+        .compare-go {
+            background: var(--accent); color: white; border: none;
+            padding: 8px 14px; border-radius: 7px;
+            font-size: 12px; font-weight: 600;
+            cursor: pointer; font-family: var(--sans);
+            transition: background 0.2s; flex-shrink: 0;
+        }
+
+        .compare-go:hover { background: #3a7de8; }
+
+        .compare-vs {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 8px; padding-top: 32px;
+        }
+
+        .vs-badge {
+            font-size: 13px; font-weight: 800;
+            color: var(--dim); background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px; padding: 6px 10px; letter-spacing: 1px;
+        }
+
+        .vs-diff {
+            font-family: var(--mono); font-size: 11px;
+            color: var(--muted); text-align: center;
+            max-width: 80px; line-height: 1.5;
+        }
+
+        .compare-result {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 14px; padding: 18px;
+            min-height: 160px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; transition: border-color 0.3s;
+        }
+
+        .compare-result.has-data { border-color: var(--border2); }
+        .compare-city-name { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+
+        .compare-aqi-num {
+            font-size: 52px; font-weight: 800;
+            letter-spacing: -2px; line-height: 1; margin-bottom: 6px;
+        }
+
+        .compare-badge {
+            font-size: 11px; font-weight: 600;
+            padding: 3px 10px; border-radius: 5px; margin-bottom: 4px;
+        }
+
+        .compare-placeholder { font-size: 13px; color: var(--dim); font-family: var(--mono); }
+
+        @media (max-width: 640px) {
+            .compare-grid { grid-template-columns: 1fr; }
+            .compare-vs { flex-direction: row; padding-top: 0; }
+        }
     </style>
 </head>
 <body>
@@ -780,6 +889,9 @@
             <button class="btn btn-secondary" onclick="toggleBrowse()">
                 🗺️ Browse Cities
             </button>
+            <button class="btn btn-secondary" onclick="toggleCompare()" id="compareBtn">
+                ⚖️ Compare Cities
+            </button>
             <button class="btn btn-secondary" onclick="refreshData()" id="refreshBtn">
                 🔄 Refresh
             </button>
@@ -805,6 +917,50 @@
 
     <!-- ══ FAVOURITES ══ -->
     <div id="favSection"></div>
+
+    <!-- ══ COMPARE PANEL ══ -->
+    <div id="compareSection" style="display:none;">
+        <div class="compare-panel">
+            <div class="compare-label">⚖️ Compare Two Cities</div>
+            <div class="compare-grid">
+                <!-- City A -->
+                <div class="compare-col">
+                    <div class="compare-col-label">City A</div>
+                    <div class="compare-search-wrap">
+                        <input type="text" id="compareInputA" class="compare-input"
+                            placeholder="e.g. Bangkok"
+                            autocomplete="off"
+                            onkeydown="if(event.key==='Enter') runCompare()"/>
+                        <button class="compare-go" onclick="runCompare()">Go</button>
+                    </div>
+                    <div class="compare-result" id="compareResultA">
+                        <span class="compare-placeholder">Enter a city above</span>
+                    </div>
+                </div>
+
+                <!-- VS divider -->
+                <div class="compare-vs">
+                    <div class="vs-badge">VS</div>
+                    <div class="vs-diff" id="vsDiff">—</div>
+                </div>
+
+                <!-- City B -->
+                <div class="compare-col">
+                    <div class="compare-col-label">City B</div>
+                    <div class="compare-search-wrap">
+                        <input type="text" id="compareInputB" class="compare-input"
+                            placeholder="e.g. Chiang Mai"
+                            autocomplete="off"
+                            onkeydown="if(event.key==='Enter') runCompare()"/>
+                        <button class="compare-go" onclick="runCompare()">Go</button>
+                    </div>
+                    <div class="compare-result" id="compareResultB">
+                        <span class="compare-placeholder">Enter a city above</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- ══ BROWSE PANEL ══ -->
     <div id="browseSection" style="display:none;">
@@ -851,6 +1007,25 @@
     const API_URL = 'https://aqi-api-iqair-production.up.railway.app';
     let userLat, userLon;
 
+    // ── Guard: ensure utils.js functions exist ───────────────
+    // If utils.js failed to load, provide safe no-op fallbacks
+    // so the rest of the page still works
+    if (typeof getFavourites === 'undefined') {
+        window.getFavourites    = () => [];
+        window.saveFavourites   = () => {};
+        window.addFavourite     = () => false;
+        window.removeFavourite  = () => {};
+        window.isFavourite      = () => false;
+        window.getFriendlyError = (msg) => ({ title: 'Error', msg: msg || 'Something went wrong', icon: '⚠️' });
+        window.showError        = (id, msg) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = `<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:12px 18px;font-size:14px;color:#fca5a5;margin-bottom:20px;">⚠️ ${msg}</div>`;
+            setTimeout(() => { if (el) el.innerHTML = ''; }, 8000);
+        };
+        window.showEmptyState   = () => {};
+        console.warn('utils.js did not load — using fallback functions');
+    }
+
     function scrollToTop() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -880,8 +1055,9 @@
         try {
             const pos = await new Promise((res, rej) =>
                 navigator.geolocation.getCurrentPosition(res, rej, {
-                    timeout: 10000,
-                    maximumAge: 60000
+                    timeout: 30000,
+                    maximumAge: 300000,
+                    enableHighAccuracy: false
                 })
             );
             userLat = pos.coords.latitude;
@@ -1422,8 +1598,117 @@
         }
     }
 
+    // ── Compare Cities ────────────────────────────────────────
+    let compareMode = false;
+
+    function toggleCompare() {
+        compareMode = !compareMode;
+        const sec = document.getElementById('compareSection');
+        const btn = document.getElementById('compareBtn');
+        sec.style.display = compareMode ? 'block' : 'none';
+        btn.style.background = compareMode ? 'var(--accent)' : '';
+        btn.style.color      = compareMode ? 'white' : '';
+        btn.style.borderColor= compareMode ? 'var(--accent)' : '';
+        if (compareMode) {
+            sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setTimeout(() => document.getElementById('compareInputA').focus(), 300);
+        }
+    }
+
+    async function fetchCityAQI(cityInput) {
+        // Check quick lookup first
+        const lower = cityInput.toLowerCase().trim();
+        const match = CITY_QUICK.find(c => c.city.toLowerCase() === lower);
+        const city    = match ? match.city    : cityInput.trim();
+        const state   = match ? match.state   : cityInput.trim();
+        const country = match ? match.country : '';
+
+        let url = `${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}`;
+        if (country) url += `&country=${encodeURIComponent(country)}`;
+        if (state)   url += `&state=${encodeURIComponent(state)}`;
+
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || 'City not found');
+        return data.data;
+    }
+
+    function renderCompareCard(containerId, station) {
+        const aqi = Math.round(station.aqi?.us ?? 0);
+        const cat = getCategory(aqi);
+        const el  = document.getElementById(containerId);
+        el.classList.add('has-data');
+        el.style.setProperty('--ccard-color', cat.color);
+        el.innerHTML = `
+            <div class="compare-city-name">${station.name || station.city || '—'}</div>
+            <div class="compare-aqi-num" style="color:${cat.color}">${aqi}</div>
+            <div class="compare-badge" style="background:${cat.color}18; color:${cat.color}; border:1px solid ${cat.color}30">
+                ${cat.emoji} ${cat.level}
+            </div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--dim)">${[station.city, station.country].filter(Boolean).join(', ')}</div>`;
+        return aqi;
+    }
+
+    function setCompareLoading(id) {
+        const el = document.getElementById(id);
+        el.classList.remove('has-data');
+        el.innerHTML = `<span style="font-family:var(--mono);font-size:13px;color:var(--muted)">Loading…</span>`;
+    }
+
+    async function runCompare() {
+        const qA = document.getElementById('compareInputA').value.trim();
+        const qB = document.getElementById('compareInputB').value.trim();
+        if (!qA && !qB) return;
+
+        const diffEl = document.getElementById('vsDiff');
+        diffEl.textContent = '…';
+
+        let aqiA = null, aqiB = null;
+
+        if (qA) {
+            setCompareLoading('compareResultA');
+            try {
+                const s = await fetchCityAQI(qA);
+                aqiA = renderCompareCard('compareResultA', s);
+            } catch (e) {
+                document.getElementById('compareResultA').innerHTML =
+                    `<span style="font-family:var(--mono);font-size:12px;color:#fca5a5">❌ ${getFriendlyError(e.message).title}</span>`;
+            }
+        }
+
+        if (qB) {
+            setCompareLoading('compareResultB');
+            try {
+                const s = await fetchCityAQI(qB);
+                aqiB = renderCompareCard('compareResultB', s);
+            } catch (e) {
+                document.getElementById('compareResultB').innerHTML =
+                    `<span style="font-family:var(--mono);font-size:12px;color:#fca5a5">❌ ${getFriendlyError(e.message).title}</span>`;
+            }
+        }
+
+        // AQI difference indicator
+        if (aqiA !== null && aqiB !== null) {
+            const diff = aqiA - aqiB;
+            const absDiff = Math.abs(diff);
+            if (absDiff === 0) {
+                diffEl.innerHTML = '= equal';
+                diffEl.style.color = 'var(--muted)';
+            } else {
+                const worse = diff > 0 ? 'A' : 'B';
+                const color = absDiff > 50 ? '#ef4444' : absDiff > 20 ? '#f97316' : '#eab308';
+                diffEl.innerHTML = `${absDiff} AQI<br>worse in ${worse}`;
+                diffEl.style.color = color;
+            }
+        } else {
+            diffEl.textContent = '—';
+        }
+    }
+
     // Init favourites on load
-    document.addEventListener('DOMContentLoaded', () => renderFavourites());
+    document.addEventListener('DOMContentLoaded', () => {
+        try { renderFavourites(); } catch(e) { console.warn('renderFavourites failed:', e); }
+    });
 </script>
 </body>
 </html>
