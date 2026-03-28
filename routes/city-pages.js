@@ -9,14 +9,50 @@ const iqairService = require('../services/iqairService');
 // =============================================================
 const CITY_LOOKUP = {
   // ── THAILAND ──────────────────────────────────────────────
-  'bangkok':        { country: 'Thailand', state: 'Bangkok',            displayName: 'Bangkok',         lat: 13.7563, lon: 100.5018 },
-  'chiang-mai':     { country: 'Thailand', state: 'Chiang Mai',         displayName: 'Chiang Mai',      lat: 18.7883, lon: 98.9853  },
-  'pattaya':        { country: 'Thailand', state: 'Chonburi',           displayName: 'Pattaya',         lat: 12.9236, lon: 100.8825 },
-  'phuket':         { country: 'Thailand', state: 'Phuket',             displayName: 'Phuket',          lat: 7.8804,  lon: 98.3923  },
-  'hat-yai':        { country: 'Thailand', state: 'Songkhla',           displayName: 'Hat Yai',         lat: 7.0086,  lon: 100.4747 },
-  'nakhon-ratchasima': { country: 'Thailand', state: 'Nakhon Ratchasima', displayName: 'Nakhon Ratchasima', lat: 14.9799, lon: 102.0978 },
-  'khon-kaen':      { country: 'Thailand', state: 'Khon Kaen',          displayName: 'Khon Kaen',       lat: 16.4419, lon: 102.8360 },
-  'udon-thani':     { country: 'Thailand', state: 'Udon Thani',         displayName: 'Udon Thani',      lat: 17.4138, lon: 102.7872 },
+  'bangkok':           { country: 'Thailand', state: 'Bangkok',            displayName: 'Bangkok',              lat: 13.7563, lon: 100.5018 },
+  'chiang-mai':        { country: 'Thailand', state: 'Chiang Mai',         displayName: 'Chiang Mai',           lat: 18.7883, lon: 98.9853  },
+  'pattaya':           { country: 'Thailand', state: 'Chonburi',           displayName: 'Pattaya',              lat: 12.9236, lon: 100.8825 },
+  'phuket':            { country: 'Thailand', state: 'Phuket',             displayName: 'Phuket',               lat: 7.8804,  lon: 98.3923  },
+  'hat-yai':           { country: 'Thailand', state: 'Songkhla',           displayName: 'Hat Yai',              lat: 7.0086,  lon: 100.4747 },
+  'nakhon-ratchasima': { country: 'Thailand', state: 'Nakhon Ratchasima',  displayName: 'Nakhon Ratchasima',    lat: 14.9799, lon: 102.0978 },
+  'khon-kaen':         { country: 'Thailand', state: 'Khon Kaen',          displayName: 'Khon Kaen',            lat: 16.4419, lon: 102.8360 },
+  'udon-thani':        { country: 'Thailand', state: 'Udon Thani',         displayName: 'Udon Thani',           lat: 17.4138, lon: 102.7872 },
+
+  // ── MAE HONG SON PROVINCE — all 7 districts ───────────────
+  // Uses nearest-station fallback via coords since IQAir
+  // coverage is limited in this remote mountain province
+  'mae-hong-son':      { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Mae Hong Son',         lat: 19.3020, lon: 97.9654  },
+  'pai':               { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Pai',                  lat: 19.3583, lon: 98.4417  },
+  'pang-mapha':        { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Pang Mapha',           lat: 19.5316, lon: 98.1833  },
+  'soppong':           { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Soppong',              lat: 19.5200, lon: 98.2900  },
+  'khun-yuam':         { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Khun Yuam',            lat: 18.8284, lon: 97.9347  },
+  'mae-la-noi':        { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Mae La Noi',           lat: 18.3667, lon: 97.9667  },
+  'mae-sariang':       { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Mae Sariang',          lat: 18.1669, lon: 97.9380  },
+  'sop-moei':          { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Sop Moei',             lat: 17.9167, lon: 97.9833  },
+
+  // ── OTHER THAI CITIES ─────────────────────────────────────
+  'chiang-rai':        { country: 'Thailand', state: 'Chiang Rai',         displayName: 'Chiang Rai',           lat: 19.9105, lon: 99.8406  },
+  'lampang':           { country: 'Thailand', state: 'Lampang',            displayName: 'Lampang',              lat: 18.2888, lon: 99.4878  },
+  'lamphun':           { country: 'Thailand', state: 'Lamphun',            displayName: 'Lamphun',              lat: 18.5744, lon: 99.0087  },
+  'phrae':             { country: 'Thailand', state: 'Phrae',              displayName: 'Phrae',                lat: 18.1445, lon: 100.1400 },
+  'nan':               { country: 'Thailand', state: 'Nan',                displayName: 'Nan',                  lat: 18.7756, lon: 100.7730 },
+  'phayao':            { country: 'Thailand', state: 'Phayao',             displayName: 'Phayao',               lat: 19.2105, lon: 99.8865  },
+  'rayong':            { country: 'Thailand', state: 'Rayong',             displayName: 'Rayong',               lat: 12.6814, lon: 101.2816 },
+  'chonburi':          { country: 'Thailand', state: 'Chonburi',           displayName: 'Chonburi',             lat: 13.3611, lon: 100.9847 },
+  'nonthaburi':        { country: 'Thailand', state: 'Nonthaburi',         displayName: 'Nonthaburi',           lat: 13.8591, lon: 100.5209 },
+  'samut-prakan':      { country: 'Thailand', state: 'Samut Prakan',       displayName: 'Samut Prakan',         lat: 13.5990, lon: 100.5998 },
+  'nakhon-pathom':     { country: 'Thailand', state: 'Nakhon Pathom',      displayName: 'Nakhon Pathom',        lat: 13.8199, lon: 100.0440 },
+  'ayutthaya':         { country: 'Thailand', state: 'Phra Nakhon Si Ayutthaya', displayName: 'Ayutthaya',      lat: 14.3532, lon: 100.5677 },
+  'kanchanaburi':      { country: 'Thailand', state: 'Kanchanaburi',       displayName: 'Kanchanaburi',         lat: 14.0227, lon: 99.5328  },
+  'prachuap-khiri-khan': { country: 'Thailand', state: 'Prachuap Khiri Khan', displayName: 'Prachuap Khiri Khan', lat: 11.8126, lon: 99.7957 },
+  'hua-hin':           { country: 'Thailand', state: 'Prachuap Khiri Khan', displayName: 'Hua Hin',             lat: 12.5665, lon: 99.9580  },
+  'koh-samui':         { country: 'Thailand', state: 'Surat Thani',        displayName: 'Koh Samui',            lat: 9.5120,  lon: 100.0136 },
+  'surat-thani':       { country: 'Thailand', state: 'Surat Thani',        displayName: 'Surat Thani',          lat: 9.1341,  lon: 99.3308  },
+  'krabi':             { country: 'Thailand', state: 'Krabi',              displayName: 'Krabi',                lat: 8.0863,  lon: 98.9063  },
+  'trang':             { country: 'Thailand', state: 'Trang',              displayName: 'Trang',                lat: 7.5563,  lon: 99.6111  },
+  'ubon-ratchathani':  { country: 'Thailand', state: 'Ubon Ratchathani',   displayName: 'Ubon Ratchathani',     lat: 15.2448, lon: 104.8472 },
+  'nakhon-sawan':      { country: 'Thailand', state: 'Nakhon Sawan',       displayName: 'Nakhon Sawan',         lat: 15.6987, lon: 100.1199 },
+  'phitsanulok':       { country: 'Thailand', state: 'Phitsanulok',        displayName: 'Phitsanulok',          lat: 16.8211, lon: 100.2659 },
 
   // ── INDIA ─────────────────────────────────────────────────
   'delhi':          { country: 'India',   state: 'Delhi',               displayName: 'Delhi',           lat: 28.7041, lon: 77.1025  },
@@ -768,14 +804,14 @@ router.get('/:city-aqi', async (req, res) => {
     <div class="cta-section">
         <div class="cta-title">Monitor More Cities</div>
         <p class="cta-sub">Use your location or browse 100+ countries for live air quality data worldwide.</p>
-        <a href="https://aqi.jeff-o-blogs.com" class="cta-btn">Open Live Jeffo Blogs' AQI Monitor →</a>
+        <a href="https://aqi.jeff-o-blogs.com" class="cta-btn">Open Live AQI Monitor →</a>
     </div>
 
     <!-- ── Footer ── -->
     <footer>
         <p>
             Data sourced from <strong>IQAir</strong> · 
-            <a href="https://aqi.jeff-o-blogs.com">Jeffo Blogs' AQI Monitor</a> · 
+            <a href="https://aqi.jeff-o-blogs.com">AQI Monitor</a> · 
             Page generated ${updatedReadable}
         </p>
     </footer>
@@ -798,7 +834,7 @@ function build404Page(citySlug) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>City Not Found | Jeffo Blogs' AQI Monitor</title>
+    <title>City Not Found | AQI Monitor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
     <style>
