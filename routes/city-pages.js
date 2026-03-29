@@ -8,51 +8,205 @@ const iqairService = require('../services/iqairService');
 // Add more cities here as needed
 // =============================================================
 const CITY_LOOKUP = {
-  // ── THAILAND ──────────────────────────────────────────────
-  'bangkok':           { country: 'Thailand', state: 'Bangkok',            displayName: 'Bangkok',              lat: 13.7563, lon: 100.5018 },
-  'chiang-mai':        { country: 'Thailand', state: 'Chiang Mai',         displayName: 'Chiang Mai',           lat: 18.7883, lon: 98.9853  },
-  'pattaya':           { country: 'Thailand', state: 'Chonburi',           displayName: 'Pattaya',              lat: 12.9236, lon: 100.8825 },
-  'phuket':            { country: 'Thailand', state: 'Phuket',             displayName: 'Phuket',               lat: 7.8804,  lon: 98.3923  },
-  'hat-yai':           { country: 'Thailand', state: 'Songkhla',           displayName: 'Hat Yai',              lat: 7.0086,  lon: 100.4747 },
-  'nakhon-ratchasima': { country: 'Thailand', state: 'Nakhon Ratchasima',  displayName: 'Nakhon Ratchasima',    lat: 14.9799, lon: 102.0978 },
-  'khon-kaen':         { country: 'Thailand', state: 'Khon Kaen',          displayName: 'Khon Kaen',            lat: 16.4419, lon: 102.8360 },
-  'udon-thani':        { country: 'Thailand', state: 'Udon Thani',         displayName: 'Udon Thani',           lat: 17.4138, lon: 102.7872 },
+  // ══════════════════════════════════════════════════════════
+  // THAILAND — all 77 provinces
+  // Each province has two entries:
+  //   1. The province/city name slug  e.g. 'chiang-mai'
+  //   2. The Mueang (capital) district slug  e.g. 'mueang-chiang-mai'
+  // Both point to the same coordinates so either URL works.
+  // ══════════════════════════════════════════════════════════
 
-  // ── MAE HONG SON PROVINCE — all 7 districts ───────────────
-  // Uses nearest-station fallback via coords since IQAir
-  // coverage is limited in this remote mountain province
-  'mae-hong-son':      { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Mae Hong Son',         lat: 19.3020, lon: 97.9654  },
-  'pai':               { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Pai',                  lat: 19.3583, lon: 98.4417  },
-  'pang-mapha':        { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Pang Mapha',           lat: 19.5316, lon: 98.1833  },
-  'soppong':           { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Soppong',              lat: 19.5200, lon: 98.2900  },
-  'khun-yuam':         { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Khun Yuam',            lat: 18.8284, lon: 97.9347  },
-  'mae-la-noi':        { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Mae La Noi',           lat: 18.3667, lon: 97.9667  },
-  'mae-sariang':       { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Mae Sariang',          lat: 18.1669, lon: 97.9380  },
-  'sop-moei':          { country: 'Thailand', state: 'Mae Hong Son',       displayName: 'Sop Moei',             lat: 17.9167, lon: 97.9833  },
+  // ── BANGKOK (special administrative area) ─────────────────
+  'bangkok':                    { country: 'Thailand', state: 'Bangkok',                  displayName: 'Bangkok',                   lat: 13.7563, lon: 100.5018 },
 
-  // ── OTHER THAI CITIES ─────────────────────────────────────
-  'chiang-rai':        { country: 'Thailand', state: 'Chiang Rai',         displayName: 'Chiang Rai',           lat: 19.9105, lon: 99.8406  },
-  'lampang':           { country: 'Thailand', state: 'Lampang',            displayName: 'Lampang',              lat: 18.2888, lon: 99.4878  },
-  'lamphun':           { country: 'Thailand', state: 'Lamphun',            displayName: 'Lamphun',              lat: 18.5744, lon: 99.0087  },
-  'phrae':             { country: 'Thailand', state: 'Phrae',              displayName: 'Phrae',                lat: 18.1445, lon: 100.1400 },
-  'nan':               { country: 'Thailand', state: 'Nan',                displayName: 'Nan',                  lat: 18.7756, lon: 100.7730 },
-  'phayao':            { country: 'Thailand', state: 'Phayao',             displayName: 'Phayao',               lat: 19.2105, lon: 99.8865  },
-  'rayong':            { country: 'Thailand', state: 'Rayong',             displayName: 'Rayong',               lat: 12.6814, lon: 101.2816 },
-  'chonburi':          { country: 'Thailand', state: 'Chonburi',           displayName: 'Chonburi',             lat: 13.3611, lon: 100.9847 },
-  'nonthaburi':        { country: 'Thailand', state: 'Nonthaburi',         displayName: 'Nonthaburi',           lat: 13.8591, lon: 100.5209 },
-  'samut-prakan':      { country: 'Thailand', state: 'Samut Prakan',       displayName: 'Samut Prakan',         lat: 13.5990, lon: 100.5998 },
-  'nakhon-pathom':     { country: 'Thailand', state: 'Nakhon Pathom',      displayName: 'Nakhon Pathom',        lat: 13.8199, lon: 100.0440 },
-  'ayutthaya':         { country: 'Thailand', state: 'Phra Nakhon Si Ayutthaya', displayName: 'Ayutthaya',      lat: 14.3532, lon: 100.5677 },
-  'kanchanaburi':      { country: 'Thailand', state: 'Kanchanaburi',       displayName: 'Kanchanaburi',         lat: 14.0227, lon: 99.5328  },
-  'prachuap-khiri-khan': { country: 'Thailand', state: 'Prachuap Khiri Khan', displayName: 'Prachuap Khiri Khan', lat: 11.8126, lon: 99.7957 },
-  'hua-hin':           { country: 'Thailand', state: 'Prachuap Khiri Khan', displayName: 'Hua Hin',             lat: 12.5665, lon: 99.9580  },
-  'koh-samui':         { country: 'Thailand', state: 'Surat Thani',        displayName: 'Koh Samui',            lat: 9.5120,  lon: 100.0136 },
-  'surat-thani':       { country: 'Thailand', state: 'Surat Thani',        displayName: 'Surat Thani',          lat: 9.1341,  lon: 99.3308  },
-  'krabi':             { country: 'Thailand', state: 'Krabi',              displayName: 'Krabi',                lat: 8.0863,  lon: 98.9063  },
-  'trang':             { country: 'Thailand', state: 'Trang',              displayName: 'Trang',                lat: 7.5563,  lon: 99.6111  },
-  'ubon-ratchathani':  { country: 'Thailand', state: 'Ubon Ratchathani',   displayName: 'Ubon Ratchathani',     lat: 15.2448, lon: 104.8472 },
-  'nakhon-sawan':      { country: 'Thailand', state: 'Nakhon Sawan',       displayName: 'Nakhon Sawan',         lat: 15.6987, lon: 100.1199 },
-  'phitsanulok':       { country: 'Thailand', state: 'Phitsanulok',        displayName: 'Phitsanulok',          lat: 16.8211, lon: 100.2659 },
+  // ── NORTH ─────────────────────────────────────────────────
+  'chiang-mai':                 { country: 'Thailand', state: 'Chiang Mai',               displayName: 'Chiang Mai',                lat: 18.7883, lon: 98.9853  },
+  'mueang-chiang-mai':          { country: 'Thailand', state: 'Chiang Mai',               displayName: 'Mueang Chiang Mai',         lat: 18.7883, lon: 98.9853  },
+  'chiang-rai':                 { country: 'Thailand', state: 'Chiang Rai',               displayName: 'Chiang Rai',                lat: 19.9105, lon: 99.8406  },
+  'mueang-chiang-rai':          { country: 'Thailand', state: 'Chiang Rai',               displayName: 'Mueang Chiang Rai',         lat: 19.9105, lon: 99.8406  },
+  'lampang':                    { country: 'Thailand', state: 'Lampang',                  displayName: 'Lampang',                   lat: 18.2888, lon: 99.4878  },
+  'mueang-lampang':             { country: 'Thailand', state: 'Lampang',                  displayName: 'Mueang Lampang',            lat: 18.2888, lon: 99.4878  },
+  'lamphun':                    { country: 'Thailand', state: 'Lamphun',                  displayName: 'Lamphun',                   lat: 18.5744, lon: 99.0087  },
+  'mueang-lamphun':             { country: 'Thailand', state: 'Lamphun',                  displayName: 'Mueang Lamphun',            lat: 18.5744, lon: 99.0087  },
+  // Mae Hong Son capital — IQAir knows this area as 'Pang Mu' or 'Mae Hi'
+  // both are sub-districts of Mueang Mae Hong Son district
+  'mae-hong-son':               { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Mae Hong Son',              lat: 19.3020, lon: 97.9654  },
+  'mueang-mae-hong-son':        { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Mueang Mae Hong Son',       lat: 19.3020, lon: 97.9654  },
+  'nan':                        { country: 'Thailand', state: 'Nan',                      displayName: 'Nan',                       lat: 18.7756, lon: 100.7730 },
+  'mueang-nan':                 { country: 'Thailand', state: 'Nan',                      displayName: 'Mueang Nan',                lat: 18.7756, lon: 100.7730 },
+  'phrae':                      { country: 'Thailand', state: 'Phrae',                    displayName: 'Phrae',                     lat: 18.1445, lon: 100.1400 },
+  'mueang-phrae':               { country: 'Thailand', state: 'Phrae',                    displayName: 'Mueang Phrae',              lat: 18.1445, lon: 100.1400 },
+  'phayao':                     { country: 'Thailand', state: 'Phayao',                   displayName: 'Phayao',                    lat: 19.2105, lon: 99.8865  },
+  'mueang-phayao':              { country: 'Thailand', state: 'Phayao',                   displayName: 'Mueang Phayao',             lat: 19.2105, lon: 99.8865  },
+  'uttaradit':                  { country: 'Thailand', state: 'Uttaradit',                displayName: 'Uttaradit',                 lat: 17.6200, lon: 100.0990 },
+  'mueang-uttaradit':           { country: 'Thailand', state: 'Uttaradit',                displayName: 'Mueang Uttaradit',          lat: 17.6200, lon: 100.0990 },
+
+  // ── MAE HONG SON — all 7 districts + IQAir sub-district aliases ──
+  // IQAir doesn't recognise "Mae Hong Son" city by that name.
+  // Their 4 known cities are sub-district (tambon) level names:
+  //   Mae Hi, Pang Mu, Wiang Nuea, Pai
+  // We add these as direct IQAir-queryable entries AND keep the
+  // coordinate-fallback entries for districts with no IQAir coverage.
+
+  // IQAir-recognised sub-districts (will actually return live data)
+  'mae-hi':                     { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Mae Hi',                    lat: 19.2716, lon: 97.9378  },
+  'pang-mu':                    { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Pang Mu',                   lat: 19.3090, lon: 97.9680  },
+  'wiang-nuea':                 { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Wiang Nuea',                lat: 19.3800, lon: 98.4700  },
+
+  // District entries — use coordinate fallback since IQAir
+  // doesn't have them by district name
+  'pai':                        { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Pai',                       lat: 19.3583, lon: 98.4417  },
+  'pang-mapha':                 { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Pang Mapha',                lat: 19.5316, lon: 98.1833  },
+  'soppong':                    { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Soppong',                   lat: 19.5200, lon: 98.2900  },
+  'khun-yuam':                  { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Khun Yuam',                 lat: 18.8284, lon: 97.9347  },
+  'mae-la-noi':                 { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Mae La Noi',                lat: 18.3667, lon: 97.9667  },
+  'mae-sariang':                { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Mae Sariang',               lat: 18.1669, lon: 97.9380  },
+  'sop-moei':                   { country: 'Thailand', state: 'Mae Hong Son',             displayName: 'Sop Moei',                  lat: 17.9167, lon: 97.9833  },
+
+  // ── NORTHEAST (ISAN) ──────────────────────────────────────
+  'khon-kaen':                  { country: 'Thailand', state: 'Khon Kaen',                displayName: 'Khon Kaen',                 lat: 16.4419, lon: 102.8360 },
+  'mueang-khon-kaen':           { country: 'Thailand', state: 'Khon Kaen',                displayName: 'Mueang Khon Kaen',          lat: 16.4419, lon: 102.8360 },
+  'udon-thani':                 { country: 'Thailand', state: 'Udon Thani',               displayName: 'Udon Thani',                lat: 17.4138, lon: 102.7872 },
+  'mueang-udon-thani':          { country: 'Thailand', state: 'Udon Thani',               displayName: 'Mueang Udon Thani',         lat: 17.4138, lon: 102.7872 },
+  'nakhon-ratchasima':          { country: 'Thailand', state: 'Nakhon Ratchasima',        displayName: 'Nakhon Ratchasima',         lat: 14.9799, lon: 102.0978 },
+  'mueang-nakhon-ratchasima':   { country: 'Thailand', state: 'Nakhon Ratchasima',        displayName: 'Mueang Nakhon Ratchasima',  lat: 14.9799, lon: 102.0978 },
+  'ubon-ratchathani':           { country: 'Thailand', state: 'Ubon Ratchathani',         displayName: 'Ubon Ratchathani',          lat: 15.2448, lon: 104.8472 },
+  'mueang-ubon-ratchathani':    { country: 'Thailand', state: 'Ubon Ratchathani',         displayName: 'Mueang Ubon Ratchathani',   lat: 15.2448, lon: 104.8472 },
+  'roi-et':                     { country: 'Thailand', state: 'Roi Et',                   displayName: 'Roi Et',                    lat: 16.0538, lon: 103.6520 },
+  'mueang-roi-et':              { country: 'Thailand', state: 'Roi Et',                   displayName: 'Mueang Roi Et',             lat: 16.0538, lon: 103.6520 },
+  'sakon-nakhon':               { country: 'Thailand', state: 'Sakon Nakhon',             displayName: 'Sakon Nakhon',              lat: 17.1553, lon: 104.1348 },
+  'mueang-sakon-nakhon':        { country: 'Thailand', state: 'Sakon Nakhon',             displayName: 'Mueang Sakon Nakhon',       lat: 17.1553, lon: 104.1348 },
+  'nakhon-phanom':              { country: 'Thailand', state: 'Nakhon Phanom',            displayName: 'Nakhon Phanom',             lat: 17.3920, lon: 104.7730 },
+  'mueang-nakhon-phanom':       { country: 'Thailand', state: 'Nakhon Phanom',            displayName: 'Mueang Nakhon Phanom',      lat: 17.3920, lon: 104.7730 },
+  'nong-khai':                  { country: 'Thailand', state: 'Nong Khai',                displayName: 'Nong Khai',                 lat: 17.8782, lon: 102.7412 },
+  'mueang-nong-khai':           { country: 'Thailand', state: 'Nong Khai',                displayName: 'Mueang Nong Khai',          lat: 17.8782, lon: 102.7412 },
+  'loei':                       { country: 'Thailand', state: 'Loei',                     displayName: 'Loei',                      lat: 17.4860, lon: 101.7223 },
+  'mueang-loei':                { country: 'Thailand', state: 'Loei',                     displayName: 'Mueang Loei',               lat: 17.4860, lon: 101.7223 },
+  'chaiyaphum':                 { country: 'Thailand', state: 'Chaiyaphum',               displayName: 'Chaiyaphum',                lat: 15.8068, lon: 102.0315 },
+  'mueang-chaiyaphum':          { country: 'Thailand', state: 'Chaiyaphum',               displayName: 'Mueang Chaiyaphum',         lat: 15.8068, lon: 102.0315 },
+  'maha-sarakham':              { country: 'Thailand', state: 'Maha Sarakham',            displayName: 'Maha Sarakham',             lat: 16.1845, lon: 103.3001 },
+  'mueang-maha-sarakham':       { country: 'Thailand', state: 'Maha Sarakham',            displayName: 'Mueang Maha Sarakham',      lat: 16.1845, lon: 103.3001 },
+  'kalasin':                    { country: 'Thailand', state: 'Kalasin',                  displayName: 'Kalasin',                   lat: 16.4322, lon: 103.5059 },
+  'mueang-kalasin':             { country: 'Thailand', state: 'Kalasin',                  displayName: 'Mueang Kalasin',            lat: 16.4322, lon: 103.5059 },
+  'mukdahan':                   { country: 'Thailand', state: 'Mukdahan',                 displayName: 'Mukdahan',                  lat: 16.5436, lon: 104.7237 },
+  'mueang-mukdahan':            { country: 'Thailand', state: 'Mukdahan',                 displayName: 'Mueang Mukdahan',           lat: 16.5436, lon: 104.7237 },
+  'yasothon':                   { country: 'Thailand', state: 'Yasothon',                 displayName: 'Yasothon',                  lat: 15.7924, lon: 104.1449 },
+  'mueang-yasothon':            { country: 'Thailand', state: 'Yasothon',                 displayName: 'Mueang Yasothon',           lat: 15.7924, lon: 104.1449 },
+  'amnat-charoen':              { country: 'Thailand', state: 'Amnat Charoen',            displayName: 'Amnat Charoen',             lat: 15.8656, lon: 104.6257 },
+  'mueang-amnat-charoen':       { country: 'Thailand', state: 'Amnat Charoen',            displayName: 'Mueang Amnat Charoen',      lat: 15.8656, lon: 104.6257 },
+  'bueng-kan':                  { country: 'Thailand', state: 'Bueng Kan',                displayName: 'Bueng Kan',                 lat: 18.3609, lon: 103.6518 },
+  'mueang-bueng-kan':           { country: 'Thailand', state: 'Bueng Kan',                displayName: 'Mueang Bueng Kan',          lat: 18.3609, lon: 103.6518 },
+  'nong-bua-lamphu':            { country: 'Thailand', state: 'Nongbua Lamphu',           displayName: 'Nong Bua Lamphu',           lat: 17.2041, lon: 102.4410 },
+  'mueang-nong-bua-lamphu':     { country: 'Thailand', state: 'Nongbua Lamphu',           displayName: 'Mueang Nong Bua Lamphu',    lat: 17.2041, lon: 102.4410 },
+  'buriram':                    { country: 'Thailand', state: 'Buriram',                  displayName: 'Buriram',                   lat: 14.9932, lon: 103.1029 },
+  'mueang-buriram':             { country: 'Thailand', state: 'Buriram',                  displayName: 'Mueang Buriram',            lat: 14.9932, lon: 103.1029 },
+  'surin':                      { country: 'Thailand', state: 'Surin',                    displayName: 'Surin',                     lat: 14.8826, lon: 103.4937 },
+  'mueang-surin':               { country: 'Thailand', state: 'Surin',                    displayName: 'Mueang Surin',              lat: 14.8826, lon: 103.4937 },
+  'sisaket':                    { country: 'Thailand', state: 'Sisaket',                  displayName: 'Sisaket',                   lat: 15.1186, lon: 104.3220 },
+  'mueang-sisaket':             { country: 'Thailand', state: 'Sisaket',                  displayName: 'Mueang Sisaket',            lat: 15.1186, lon: 104.3220 },
+
+  // ── CENTRAL ───────────────────────────────────────────────
+  'nakhon-sawan':               { country: 'Thailand', state: 'Nakhon Sawan',             displayName: 'Nakhon Sawan',              lat: 15.6987, lon: 100.1199 },
+  'mueang-nakhon-sawan':        { country: 'Thailand', state: 'Nakhon Sawan',             displayName: 'Mueang Nakhon Sawan',       lat: 15.6987, lon: 100.1199 },
+  'nakhon-pathom':              { country: 'Thailand', state: 'Nakhon Pathom',            displayName: 'Nakhon Pathom',             lat: 13.8199, lon: 100.0440 },
+  'mueang-nakhon-pathom':       { country: 'Thailand', state: 'Nakhon Pathom',            displayName: 'Mueang Nakhon Pathom',      lat: 13.8199, lon: 100.0440 },
+  'ayutthaya':                  { country: 'Thailand', state: 'Phra Nakhon Si Ayutthaya', displayName: 'Ayutthaya',                 lat: 14.3532, lon: 100.5677 },
+  'phra-nakhon-si-ayutthaya':   { country: 'Thailand', state: 'Phra Nakhon Si Ayutthaya', displayName: 'Phra Nakhon Si Ayutthaya', lat: 14.3532, lon: 100.5677 },
+  'nonthaburi':                 { country: 'Thailand', state: 'Nonthaburi',               displayName: 'Nonthaburi',                lat: 13.8591, lon: 100.5209 },
+  'mueang-nonthaburi':          { country: 'Thailand', state: 'Nonthaburi',               displayName: 'Mueang Nonthaburi',         lat: 13.8591, lon: 100.5209 },
+  'samut-prakan':               { country: 'Thailand', state: 'Samut Prakan',             displayName: 'Samut Prakan',              lat: 13.5990, lon: 100.5998 },
+  'mueang-samut-prakan':        { country: 'Thailand', state: 'Samut Prakan',             displayName: 'Mueang Samut Prakan',       lat: 13.5990, lon: 100.5998 },
+  'samut-sakhon':               { country: 'Thailand', state: 'Samut Sakhon',             displayName: 'Samut Sakhon',              lat: 13.5475, lon: 100.2739 },
+  'mueang-samut-sakhon':        { country: 'Thailand', state: 'Samut Sakhon',             displayName: 'Mueang Samut Sakhon',       lat: 13.5475, lon: 100.2739 },
+  'samut-songkhram':            { country: 'Thailand', state: 'Samut Songkhram',          displayName: 'Samut Songkhram',           lat: 13.4090, lon: 100.0020 },
+  'mueang-samut-songkhram':     { country: 'Thailand', state: 'Samut Songkhram',          displayName: 'Mueang Samut Songkhram',    lat: 13.4090, lon: 100.0020 },
+  'kanchanaburi':               { country: 'Thailand', state: 'Kanchanaburi',             displayName: 'Kanchanaburi',              lat: 14.0227, lon: 99.5328  },
+  'mueang-kanchanaburi':        { country: 'Thailand', state: 'Kanchanaburi',             displayName: 'Mueang Kanchanaburi',       lat: 14.0227, lon: 99.5328  },
+  'ratchaburi':                 { country: 'Thailand', state: 'Ratchaburi',               displayName: 'Ratchaburi',                lat: 13.5360, lon: 99.8172  },
+  'mueang-ratchaburi':          { country: 'Thailand', state: 'Ratchaburi',               displayName: 'Mueang Ratchaburi',         lat: 13.5360, lon: 99.8172  },
+  'phetchaburi':                { country: 'Thailand', state: 'Phetchaburi',              displayName: 'Phetchaburi',               lat: 13.1119, lon: 99.9390  },
+  'mueang-phetchaburi':         { country: 'Thailand', state: 'Phetchaburi',              displayName: 'Mueang Phetchaburi',        lat: 13.1119, lon: 99.9390  },
+  'prachuap-khiri-khan':        { country: 'Thailand', state: 'Prachuap Khiri Khan',      displayName: 'Prachuap Khiri Khan',       lat: 11.8126, lon: 99.7957  },
+  'mueang-prachuap-khiri-khan': { country: 'Thailand', state: 'Prachuap Khiri Khan',      displayName: 'Mueang Prachuap Khiri Khan',lat: 11.8126, lon: 99.7957  },
+  'hua-hin':                    { country: 'Thailand', state: 'Prachuap Khiri Khan',      displayName: 'Hua Hin',                   lat: 12.5665, lon: 99.9580  },
+  'lopburi':                    { country: 'Thailand', state: 'Lopburi',                  displayName: 'Lopburi',                   lat: 14.7995, lon: 100.6534 },
+  'mueang-lopburi':             { country: 'Thailand', state: 'Lopburi',                  displayName: 'Mueang Lopburi',            lat: 14.7995, lon: 100.6534 },
+  'saraburi':                   { country: 'Thailand', state: 'Saraburi',                 displayName: 'Saraburi',                  lat: 14.5289, lon: 100.9106 },
+  'mueang-saraburi':            { country: 'Thailand', state: 'Saraburi',                 displayName: 'Mueang Saraburi',           lat: 14.5289, lon: 100.9106 },
+  'ang-thong':                  { country: 'Thailand', state: 'Ang Thong',                displayName: 'Ang Thong',                 lat: 14.5896, lon: 100.4551 },
+  'mueang-ang-thong':           { country: 'Thailand', state: 'Ang Thong',                displayName: 'Mueang Ang Thong',          lat: 14.5896, lon: 100.4551 },
+  'sing-buri':                  { country: 'Thailand', state: 'Sing Buri',                displayName: 'Sing Buri',                 lat: 14.8904, lon: 100.3966 },
+  'mueang-sing-buri':           { country: 'Thailand', state: 'Sing Buri',                displayName: 'Mueang Sing Buri',          lat: 14.8904, lon: 100.3966 },
+  'chai-nat':                   { country: 'Thailand', state: 'Chai Nat',                 displayName: 'Chai Nat',                  lat: 15.1853, lon: 100.1250 },
+  'mueang-chai-nat':            { country: 'Thailand', state: 'Chai Nat',                 displayName: 'Mueang Chai Nat',           lat: 15.1853, lon: 100.1250 },
+  'nakhon-nayok':               { country: 'Thailand', state: 'Nakhon Nayok',             displayName: 'Nakhon Nayok',              lat: 14.2057, lon: 101.2132 },
+  'mueang-nakhon-nayok':        { country: 'Thailand', state: 'Nakhon Nayok',             displayName: 'Mueang Nakhon Nayok',       lat: 14.2057, lon: 101.2132 },
+  'pathum-thani':               { country: 'Thailand', state: 'Pathum Thani',             displayName: 'Pathum Thani',              lat: 14.0208, lon: 100.5250 },
+  'mueang-pathum-thani':        { country: 'Thailand', state: 'Pathum Thani',             displayName: 'Mueang Pathum Thani',       lat: 14.0208, lon: 100.5250 },
+  'suphan-buri':                { country: 'Thailand', state: 'Suphan Buri',              displayName: 'Suphan Buri',               lat: 14.4744, lon: 100.1177 },
+  'mueang-suphan-buri':         { country: 'Thailand', state: 'Suphan Buri',              displayName: 'Mueang Suphan Buri',        lat: 14.4744, lon: 100.1177 },
+  'kamphaeng-phet':             { country: 'Thailand', state: 'Kamphaeng Phet',           displayName: 'Kamphaeng Phet',            lat: 16.4827, lon: 99.5226  },
+  'mueang-kamphaeng-phet':      { country: 'Thailand', state: 'Kamphaeng Phet',           displayName: 'Mueang Kamphaeng Phet',     lat: 16.4827, lon: 99.5226  },
+  'nakhon-sawan':               { country: 'Thailand', state: 'Nakhon Sawan',             displayName: 'Nakhon Sawan',              lat: 15.6987, lon: 100.1199 },
+  'phichit':                    { country: 'Thailand', state: 'Phichit',                  displayName: 'Phichit',                   lat: 16.4432, lon: 100.3487 },
+  'mueang-phichit':             { country: 'Thailand', state: 'Phichit',                  displayName: 'Mueang Phichit',            lat: 16.4432, lon: 100.3487 },
+  'phitsanulok':                { country: 'Thailand', state: 'Phitsanulok',              displayName: 'Phitsanulok',               lat: 16.8211, lon: 100.2659 },
+  'mueang-phitsanulok':         { country: 'Thailand', state: 'Phitsanulok',              displayName: 'Mueang Phitsanulok',        lat: 16.8211, lon: 100.2659 },
+  'phetchabun':                 { country: 'Thailand', state: 'Phetchabun',               displayName: 'Phetchabun',                lat: 16.4189, lon: 101.1591 },
+  'mueang-phetchabun':          { country: 'Thailand', state: 'Phetchabun',               displayName: 'Mueang Phetchabun',         lat: 16.4189, lon: 101.1591 },
+  'sukhothai':                  { country: 'Thailand', state: 'Sukhothai',                displayName: 'Sukhothai',                 lat: 17.0069, lon: 99.8230  },
+  'mueang-sukhothai':           { country: 'Thailand', state: 'Sukhothai',                displayName: 'Mueang Sukhothai',          lat: 17.0069, lon: 99.8230  },
+  'tak':                        { country: 'Thailand', state: 'Tak',                      displayName: 'Tak',                       lat: 16.8800, lon: 99.1253  },
+  'mueang-tak':                 { country: 'Thailand', state: 'Tak',                      displayName: 'Mueang Tak',                lat: 16.8800, lon: 99.1253  },
+
+  // ── EAST ──────────────────────────────────────────────────
+  'chonburi':                   { country: 'Thailand', state: 'Chonburi',                 displayName: 'Chonburi',                  lat: 13.3611, lon: 100.9847 },
+  'mueang-chonburi':            { country: 'Thailand', state: 'Chonburi',                 displayName: 'Mueang Chonburi',           lat: 13.3611, lon: 100.9847 },
+  'pattaya':                    { country: 'Thailand', state: 'Chonburi',                 displayName: 'Pattaya',                   lat: 12.9236, lon: 100.8825 },
+  'rayong':                     { country: 'Thailand', state: 'Rayong',                   displayName: 'Rayong',                    lat: 12.6814, lon: 101.2816 },
+  'mueang-rayong':              { country: 'Thailand', state: 'Rayong',                   displayName: 'Mueang Rayong',             lat: 12.6814, lon: 101.2816 },
+  'chanthaburi':                { country: 'Thailand', state: 'Chanthaburi',              displayName: 'Chanthaburi',               lat: 12.6113, lon: 102.1039 },
+  'mueang-chanthaburi':         { country: 'Thailand', state: 'Chanthaburi',              displayName: 'Mueang Chanthaburi',        lat: 12.6113, lon: 102.1039 },
+  'trat':                       { country: 'Thailand', state: 'Trat',                     displayName: 'Trat',                      lat: 12.2427, lon: 102.5175 },
+  'mueang-trat':                { country: 'Thailand', state: 'Trat',                     displayName: 'Mueang Trat',               lat: 12.2427, lon: 102.5175 },
+  'chachoengsao':               { country: 'Thailand', state: 'Chachoengsao',             displayName: 'Chachoengsao',              lat: 13.6903, lon: 101.0779 },
+  'mueang-chachoengsao':        { country: 'Thailand', state: 'Chachoengsao',             displayName: 'Mueang Chachoengsao',       lat: 13.6903, lon: 101.0779 },
+  'prachin-buri':               { country: 'Thailand', state: 'Prachin Buri',             displayName: 'Prachin Buri',              lat: 14.0509, lon: 101.3659 },
+  'mueang-prachin-buri':        { country: 'Thailand', state: 'Prachin Buri',             displayName: 'Mueang Prachin Buri',       lat: 14.0509, lon: 101.3659 },
+  'sa-kaeo':                    { country: 'Thailand', state: 'Sa Kaeo',                  displayName: 'Sa Kaeo',                   lat: 13.8240, lon: 102.0645 },
+  'mueang-sa-kaeo':             { country: 'Thailand', state: 'Sa Kaeo',                  displayName: 'Mueang Sa Kaeo',            lat: 13.8240, lon: 102.0645 },
+
+  // ── SOUTH ─────────────────────────────────────────────────
+  'phuket':                     { country: 'Thailand', state: 'Phuket',                   displayName: 'Phuket',                    lat: 7.8804,  lon: 98.3923  },
+  'mueang-phuket':              { country: 'Thailand', state: 'Phuket',                   displayName: 'Mueang Phuket',             lat: 7.8804,  lon: 98.3923  },
+  'krabi':                      { country: 'Thailand', state: 'Krabi',                    displayName: 'Krabi',                     lat: 8.0863,  lon: 98.9063  },
+  'mueang-krabi':               { country: 'Thailand', state: 'Krabi',                    displayName: 'Mueang Krabi',              lat: 8.0863,  lon: 98.9063  },
+  'trang':                      { country: 'Thailand', state: 'Trang',                    displayName: 'Trang',                     lat: 7.5563,  lon: 99.6111  },
+  'mueang-trang':               { country: 'Thailand', state: 'Trang',                    displayName: 'Mueang Trang',              lat: 7.5563,  lon: 99.6111  },
+  'surat-thani':                { country: 'Thailand', state: 'Surat Thani',              displayName: 'Surat Thani',               lat: 9.1341,  lon: 99.3308  },
+  'mueang-surat-thani':         { country: 'Thailand', state: 'Surat Thani',              displayName: 'Mueang Surat Thani',        lat: 9.1341,  lon: 99.3308  },
+  'koh-samui':                  { country: 'Thailand', state: 'Surat Thani',              displayName: 'Koh Samui',                 lat: 9.5120,  lon: 100.0136 },
+  'nakhon-si-thammarat':        { country: 'Thailand', state: 'Nakhon Si Thammarat',      displayName: 'Nakhon Si Thammarat',       lat: 8.4322,  lon: 99.9631  },
+  'mueang-nakhon-si-thammarat': { country: 'Thailand', state: 'Nakhon Si Thammarat',      displayName: 'Mueang Nakhon Si Thammarat',lat: 8.4322,  lon: 99.9631  },
+  'phatthalung':                { country: 'Thailand', state: 'Phatthalung',              displayName: 'Phatthalung',               lat: 7.6166,  lon: 100.0742 },
+  'mueang-phatthalung':         { country: 'Thailand', state: 'Phatthalung',              displayName: 'Mueang Phatthalung',        lat: 7.6166,  lon: 100.0742 },
+  'songkhla':                   { country: 'Thailand', state: 'Songkhla',                 displayName: 'Songkhla',                  lat: 7.1996,  lon: 100.5956 },
+  'mueang-songkhla':            { country: 'Thailand', state: 'Songkhla',                 displayName: 'Mueang Songkhla',           lat: 7.1996,  lon: 100.5956 },
+  'hat-yai':                    { country: 'Thailand', state: 'Songkhla',                 displayName: 'Hat Yai',                   lat: 7.0086,  lon: 100.4747 },
+  'satun':                      { country: 'Thailand', state: 'Satun',                    displayName: 'Satun',                     lat: 6.6238,  lon: 100.0673 },
+  'mueang-satun':               { country: 'Thailand', state: 'Satun',                    displayName: 'Mueang Satun',              lat: 6.6238,  lon: 100.0673 },
+  'pattani':                    { country: 'Thailand', state: 'Pattani',                  displayName: 'Pattani',                   lat: 6.8692,  lon: 101.2501 },
+  'mueang-pattani':             { country: 'Thailand', state: 'Pattani',                  displayName: 'Mueang Pattani',            lat: 6.8692,  lon: 101.2501 },
+  'yala':                       { country: 'Thailand', state: 'Yala',                     displayName: 'Yala',                      lat: 6.5413,  lon: 101.2803 },
+  'mueang-yala':                { country: 'Thailand', state: 'Yala',                     displayName: 'Mueang Yala',               lat: 6.5413,  lon: 101.2803 },
+  'narathiwat':                 { country: 'Thailand', state: 'Narathiwat',               displayName: 'Narathiwat',                lat: 6.4251,  lon: 101.8253 },
+  'mueang-narathiwat':          { country: 'Thailand', state: 'Narathiwat',               displayName: 'Mueang Narathiwat',         lat: 6.4251,  lon: 101.8253 },
+  'ranong':                     { country: 'Thailand', state: 'Ranong',                   displayName: 'Ranong',                    lat: 9.9529,  lon: 98.6084  },
+  'mueang-ranong':              { country: 'Thailand', state: 'Ranong',                   displayName: 'Mueang Ranong',             lat: 9.9529,  lon: 98.6084  },
+  'chumphon':                   { country: 'Thailand', state: 'Chumphon',                 displayName: 'Chumphon',                  lat: 10.4930, lon: 99.1800  },
+  'mueang-chumphon':            { country: 'Thailand', state: 'Chumphon',                 displayName: 'Mueang Chumphon',           lat: 10.4930, lon: 99.1800  },
+  'phang-nga':                  { country: 'Thailand', state: 'Phang Nga',                displayName: 'Phang Nga',                 lat: 8.4501,  lon: 98.5259  },
+  'mueang-phang-nga':           { country: 'Thailand', state: 'Phang Nga',                displayName: 'Mueang Phang Nga',          lat: 8.4501,  lon: 98.5259  },
 
   // ── INDIA ─────────────────────────────────────────────────
   'delhi':          { country: 'India',   state: 'Delhi',               displayName: 'Delhi',           lat: 28.7041, lon: 77.1025  },
@@ -164,15 +318,25 @@ function getWindDirection(deg) {
 // ── SEO City Page Route ───────────────────────────────────────
 router.get('/test-city', (req, res) => res.send('<h1>City pages route is working!</h1>'));
 
+// ── IQAir sub-district name overrides ────────────────────────
+// Some cities are not in IQAir by their common name.
+// This maps displayName → the actual city name IQAir recognises.
+// Discovered by querying /api/aqi/cities for each province.
+const IQAIR_NAME_OVERRIDE = {
+  // Mae Hong Son capital area — IQAir knows sub-districts, not the city
+  'Mae Hong Son':        'Pang Mu',
+  'Mueang Mae Hong Son': 'Pang Mu',
+  // Add more overrides here as you discover them:
+  // 'City Display Name': 'IQAir City Name',
+};
+
 router.get('/:city-aqi', async (req, res) => {
   try {
     const citySlug = req.params.city;
     console.log(`🌍 City page requested: ${citySlug}`);
 
-    // Look up city metadata
     const cityMeta = CITY_LOOKUP[citySlug];
 
-    // If city not in lookup, return 404 with helpful message
     if (!cityMeta) {
       return res.status(404).send(build404Page(citySlug));
     }
@@ -180,27 +344,38 @@ router.get('/:city-aqi', async (req, res) => {
     const { country, state, displayName, lat, lon } = cityMeta;
     console.log(`🌍 Rendering page for: ${displayName}`);
 
-    // ── Fetch live AQI data server-side ──────────────────────
     let aqiData = null;
     let fetchError = null;
 
-    // Strategy 1: Try with state
+    // Strategy 1: Try with state using display name
     try {
       aqiData = await iqairService.getCityData(displayName, state, country);
     } catch (e1) {
-      // Strategy 2: Try city as state
-      try {
-        aqiData = await iqairService.getCityData(displayName, displayName, country);
-      } catch (e2) {
-        // Strategy 3: Try nearest by coords
+      // Strategy 2: Try IQAir override name if one exists
+      const overrideName = IQAIR_NAME_OVERRIDE[displayName];
+      if (overrideName) {
         try {
-          const stations = await iqairService.getNearbyStations(lat, lon, 50);
-          if (stations && stations.length > 0) {
-            aqiData = stations[0];
-          }
+          aqiData = await iqairService.getCityData(overrideName, state, country);
+          console.log(`✅ Used IQAir override name "${overrideName}" for ${displayName}`);
+        } catch (e2) { /* fall through */ }
+      }
+
+      // Strategy 3: Try city as state
+      if (!aqiData) {
+        try {
+          aqiData = await iqairService.getCityData(displayName, displayName, country);
         } catch (e3) {
-          fetchError = e3.message;
-          console.error(`❌ All fetch strategies failed for ${displayName}:`, fetchError);
+          // Strategy 4: Nearest station by coordinates (always works)
+          try {
+            const stations = await iqairService.getNearbyStations(lat, lon, 50);
+            if (stations && stations.length > 0) {
+              aqiData = stations[0];
+              console.log(`📍 Used coordinate fallback for ${displayName}`);
+            }
+          } catch (e4) {
+            fetchError = e4.message;
+            console.error(`❌ All fetch strategies failed for ${displayName}:`, fetchError);
+          }
         }
       }
     }
