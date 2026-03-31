@@ -1471,33 +1471,104 @@
     }
 
     // ── City Search ──────────────────────────────────────────
-    // Quick lookup table for popular cities (instant results)
     const CITY_QUICK = [
-        { city: 'Bangkok',         state: 'Bangkok',          country: 'Thailand'     },
-        { city: 'Chiang Mai',      state: 'Chiang Mai',       country: 'Thailand'     },
-        { city: 'Phuket',          state: 'Phuket',           country: 'Thailand'     },
-        { city: 'Pattaya',         state: 'Chonburi',         country: 'Thailand'     },
-        { city: 'London',          state: 'England',          country: 'UK'           },
-        { city: 'Paris',           state: 'Ile-de-France',    country: 'France'       },
-        { city: 'New York',        state: 'New York',         country: 'USA'          },
-        { city: 'Los Angeles',     state: 'California',       country: 'USA'          },
-        { city: 'Tokyo',           state: 'Tokyo',            country: 'Japan'        },
-        { city: 'Delhi',           state: 'Delhi',            country: 'India'        },
-        { city: 'Mumbai',          state: 'Maharashtra',      country: 'India'        },
-        { city: 'Beijing',         state: 'Beijing',          country: 'China'        },
-        { city: 'Shanghai',        state: 'Shanghai',         country: 'China'        },
-        { city: 'Singapore',       state: 'Singapore',        country: 'Singapore'    },
-        { city: 'Kuala Lumpur',    state: 'Kuala Lumpur',     country: 'Malaysia'     },
-        { city: 'Jakarta',         state: 'Jakarta',          country: 'Indonesia'    },
-        { city: 'Ho Chi Minh City',state: 'Ho Chi Minh City', country: 'Vietnam'      },
-        { city: 'Hanoi',           state: 'Hanoi',            country: 'Vietnam'      },
-        { city: 'Seoul',           state: 'Seoul',            country: 'South Korea'  },
-        { city: 'Sydney',          state: 'New South Wales',  country: 'Australia'    },
-        { city: 'Dubai',           state: 'Dubai',            country: 'UAE'          },
-        { city: 'Cairo',           state: 'Cairo',            country: 'Egypt'        },
-        { city: 'Berlin',          state: 'Berlin',           country: 'Germany'      },
-        { city: 'Madrid',          state: 'Community of Madrid', country: 'Spain'     },
-        { city: 'São Paulo',       state: 'Sao Paulo',        country: 'Brazil'       },
+        // ── THAILAND ──────────────────────────────────────────
+        { city: 'Bangkok',          state: 'Bangkok',             country: 'Thailand'      },
+        { city: 'Chiang Mai',       state: 'Chiang Mai',          country: 'Thailand'      },
+        { city: 'Phuket',           state: 'Phuket',              country: 'Thailand'      },
+        { city: 'Pattaya',          state: 'Chonburi',            country: 'Thailand'      },
+        { city: 'Chiang Rai',       state: 'Chiang Rai',          country: 'Thailand'      },
+        { city: 'Khon Kaen',        state: 'Khon Kaen',           country: 'Thailand'      },
+        { city: 'Udon Thani',       state: 'Udon Thani',          country: 'Thailand'      },
+        { city: 'Hat Yai',          state: 'Songkhla',            country: 'Thailand'      },
+        { city: 'Nakhon Ratchasima',state: 'Nakhon Ratchasima',   country: 'Thailand'      },
+        { city: 'Pai',              state: 'Mae Hong Son',         country: 'Thailand'      },
+        { city: 'Pang Mu',          state: 'Mae Hong Son',         country: 'Thailand'      },
+        { city: 'Mae Hi',           state: 'Mae Hong Son',         country: 'Thailand'      },
+        { city: 'Wiang Nuea',       state: 'Mae Hong Son',         country: 'Thailand'      },
+        // ── UK ────────────────────────────────────────────────
+        { city: 'London',           state: 'England',              country: 'UK'            },
+        { city: 'Manchester',       state: 'England',              country: 'UK'            },
+        { city: 'Birmingham',       state: 'England',              country: 'UK'            },
+        { city: 'Leeds',            state: 'England',              country: 'UK'            },
+        { city: 'Glasgow',          state: 'Scotland',             country: 'UK'            },
+        { city: 'Edinburgh',        state: 'Scotland',             country: 'UK'            },
+        { city: 'Liverpool',        state: 'England',              country: 'UK'            },
+        { city: 'Bristol',          state: 'England',              country: 'UK'            },
+        { city: 'Sheffield',        state: 'England',              country: 'UK'            },
+        { city: 'Newcastle',        state: 'England',              country: 'UK'            },
+        { city: 'Cardiff',          state: 'Wales',                country: 'UK'            },
+        { city: 'Belfast',          state: 'Northern Ireland',     country: 'UK'            },
+        { city: 'Nottingham',       state: 'England',              country: 'UK'            },
+        { city: 'Leicester',        state: 'England',              country: 'UK'            },
+        { city: 'Oxford',           state: 'England',              country: 'UK'            },
+        { city: 'Cambridge',        state: 'England',              country: 'UK'            },
+        // ── EUROPE ────────────────────────────────────────────
+        { city: 'Paris',            state: 'Ile-de-France',        country: 'France'        },
+        { city: 'Berlin',           state: 'Berlin',               country: 'Germany'       },
+        { city: 'Madrid',           state: 'Community of Madrid',  country: 'Spain'         },
+        { city: 'Barcelona',        state: 'Catalonia',            country: 'Spain'         },
+        { city: 'Rome',             state: 'Lazio',                country: 'Italy'         },
+        { city: 'Milan',            state: 'Lombardy',             country: 'Italy'         },
+        { city: 'Amsterdam',        state: 'North Holland',        country: 'Netherlands'   },
+        { city: 'Brussels',         state: 'Brussels',             country: 'Belgium'       },
+        { city: 'Vienna',           state: 'Vienna',               country: 'Austria'       },
+        { city: 'Warsaw',           state: 'Masovian',             country: 'Poland'        },
+        { city: 'Prague',           state: 'Prague',               country: 'Czech Republic'},
+        { city: 'Stockholm',        state: 'Stockholm',            country: 'Sweden'        },
+        { city: 'Copenhagen',       state: 'Capital Region',       country: 'Denmark'       },
+        { city: 'Zurich',           state: 'Zurich',               country: 'Switzerland'   },
+        { city: 'Istanbul',         state: 'Istanbul',             country: 'Turkey'        },
+        { city: 'Athens',           state: 'Attica',               country: 'Greece'        },
+        // ── USA ───────────────────────────────────────────────
+        { city: 'New York',         state: 'New York',             country: 'USA'           },
+        { city: 'Los Angeles',      state: 'California',           country: 'USA'           },
+        { city: 'Chicago',          state: 'Illinois',             country: 'USA'           },
+        { city: 'Houston',          state: 'Texas',                country: 'USA'           },
+        { city: 'Phoenix',          state: 'Arizona',              country: 'USA'           },
+        { city: 'San Francisco',    state: 'California',           country: 'USA'           },
+        { city: 'Seattle',          state: 'Washington',           country: 'USA'           },
+        { city: 'Miami',            state: 'Florida',              country: 'USA'           },
+        { city: 'Denver',           state: 'Colorado',             country: 'USA'           },
+        { city: 'Boston',           state: 'Massachusetts',        country: 'USA'           },
+        // ── ASIA ──────────────────────────────────────────────
+        { city: 'Tokyo',            state: 'Tokyo',                country: 'Japan'         },
+        { city: 'Osaka',            state: 'Osaka',                country: 'Japan'         },
+        { city: 'Seoul',            state: 'Seoul',                country: 'South Korea'   },
+        { city: 'Beijing',          state: 'Beijing',              country: 'China'         },
+        { city: 'Shanghai',         state: 'Shanghai',             country: 'China'         },
+        { city: 'Delhi',            state: 'Delhi',                country: 'India'         },
+        { city: 'Mumbai',           state: 'Maharashtra',          country: 'India'         },
+        { city: 'Bangalore',        state: 'Karnataka',            country: 'India'         },
+        { city: 'Singapore',        state: 'Singapore',            country: 'Singapore'     },
+        { city: 'Kuala Lumpur',     state: 'Kuala Lumpur',         country: 'Malaysia'      },
+        { city: 'Jakarta',          state: 'Jakarta',              country: 'Indonesia'     },
+        { city: 'Ho Chi Minh City', state: 'Ho Chi Minh City',     country: 'Vietnam'       },
+        { city: 'Hanoi',            state: 'Hanoi',                country: 'Vietnam'       },
+        { city: 'Manila',           state: 'Metro Manila',         country: 'Philippines'   },
+        { city: 'Yangon',           state: 'Yangon',               country: 'Myanmar'       },
+        { city: 'Phnom Penh',       state: 'Phnom Penh',           country: 'Cambodia'      },
+        { city: 'Vientiane',        state: 'Vientiane Prefecture', country: 'Laos'          },
+        { city: 'Dubai',            state: 'Dubai',                country: 'UAE'           },
+        { city: 'Riyadh',           state: 'Riyadh',               country: 'Saudi Arabia'  },
+        { city: 'Karachi',          state: 'Sindh',                country: 'Pakistan'      },
+        // ── AUSTRALIA ─────────────────────────────────────────
+        { city: 'Sydney',           state: 'New South Wales',      country: 'Australia'     },
+        { city: 'Melbourne',        state: 'Victoria',             country: 'Australia'     },
+        { city: 'Brisbane',         state: 'Queensland',           country: 'Australia'     },
+        { city: 'Perth',            state: 'Western Australia',    country: 'Australia'     },
+        // ── AFRICA & AMERICAS ─────────────────────────────────
+        { city: 'Cairo',            state: 'Cairo',                country: 'Egypt'         },
+        { city: 'Lagos',            state: 'Lagos',                country: 'Nigeria'       },
+        { city: 'Nairobi',          state: 'Nairobi',              country: 'Kenya'         },
+        { city: 'Johannesburg',     state: 'Gauteng',              country: 'South Africa'  },
+        { city: 'São Paulo',        state: 'Sao Paulo',            country: 'Brazil'        },
+        { city: 'Buenos Aires',     state: 'Buenos Aires',         country: 'Argentina'     },
+        { city: 'Bogota',           state: 'Bogota',               country: 'Colombia'      },
+        { city: 'Lima',             state: 'Lima',                 country: 'Peru'          },
+        { city: 'Toronto',          state: 'Ontario',              country: 'Canada'        },
+        { city: 'Vancouver',        state: 'British Columbia',     country: 'Canada'        },
+        { city: 'Montreal',         state: 'Quebec',               country: 'Canada'        },
     ];
 
     let searchTimeout = null;
@@ -1549,16 +1620,36 @@
         if (!q) return;
         hideSuggestions();
 
-        // Check quick lookup first
         const lower = q.toLowerCase();
-        const match = CITY_QUICK.find(c => c.city.toLowerCase() === lower);
+        const toTitle = s => s.replace(/\b\w/g, c => c.toUpperCase());
+
+        // Exact match
+        let match = CITY_QUICK.find(c => c.city.toLowerCase() === lower);
+        // Partial match
+        if (!match) match = CITY_QUICK.find(c => c.city.toLowerCase().includes(lower));
+
         if (match) {
             await searchCityByName(match.city, match.state, match.country);
             return;
         }
 
-        // Otherwise try API directly — city as both city and state
-        await searchCityByName(q, q, '');
+        // Not in quick list — try title-cased with multiple countries
+        const titled = toTitle(q);
+        const countries = ['Thailand', 'UK', 'USA', 'Australia', 'India', 'France', 'Germany', 'Japan'];
+        for (const country of countries) {
+            try {
+                const url = `${API_URL}/api/aqi/city?city=${encodeURIComponent(titled)}&state=${encodeURIComponent(titled)}&country=${encodeURIComponent(country)}`;
+                const res  = await fetch(url);
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    displayStations([data.data]);
+                    updateLastUpdated();
+                    return;
+                }
+            } catch { /* try next country */ }
+        }
+
+        showError(`City "${titled}" not found. Try the full name or use Browse Cities.`);
     }
 
     async function searchCityByName(city, state, country) {
@@ -1617,21 +1708,49 @@
     }
 
     async function fetchCityAQI(cityInput) {
-        // Check quick lookup first
-        const lower = cityInput.toLowerCase().trim();
-        const match = CITY_QUICK.find(c => c.city.toLowerCase() === lower);
-        const city    = match ? match.city    : cityInput.trim();
-        const state   = match ? match.state   : cityInput.trim();
-        const country = match ? match.country : '';
+        const trimmed = cityInput.trim();
+        const lower   = trimmed.toLowerCase();
+        const toTitle = s => s.replace(/\b\w/g, c => c.toUpperCase());
+        const titled  = toTitle(trimmed);
 
-        let url = `${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}`;
-        if (country) url += `&country=${encodeURIComponent(country)}`;
-        if (state)   url += `&state=${encodeURIComponent(state)}`;
+        // 1. Exact match in CITY_QUICK
+        let match = CITY_QUICK.find(c => c.city.toLowerCase() === lower);
 
-        const res  = await fetch(url);
-        const data = await res.json();
-        if (!res.ok || !data.success) throw new Error(data.error || 'City not found');
-        return data.data;
+        // 2. Partial match
+        if (!match) {
+            match = CITY_QUICK.find(c =>
+                c.city.toLowerCase().startsWith(lower) ||
+                lower.startsWith(c.city.toLowerCase())
+            );
+        }
+
+        // 3. Use matched entry with correct country/state
+        if (match) {
+            const url = `${API_URL}/api/aqi/city?city=${encodeURIComponent(match.city)}&country=${encodeURIComponent(match.country)}&state=${encodeURIComponent(match.state)}`;
+            const res  = await fetch(url);
+            const data = await res.json();
+            if (res.ok && data.success) return data.data;
+        }
+
+        // 4. Unknown city — try title-cased with city as state, no country assumption
+        // Let the backend's multi-strategy fallback handle it
+        const attempts = [
+            `${API_URL}/api/aqi/city?city=${encodeURIComponent(titled)}&state=${encodeURIComponent(titled)}&country=Thailand`,
+            `${API_URL}/api/aqi/city?city=${encodeURIComponent(titled)}&state=${encodeURIComponent(titled)}&country=UK`,
+            `${API_URL}/api/aqi/city?city=${encodeURIComponent(titled)}&state=${encodeURIComponent(titled)}&country=USA`,
+            `${API_URL}/api/aqi/city?city=${encodeURIComponent(titled)}&state=${encodeURIComponent(titled)}&country=Australia`,
+            `${API_URL}/api/aqi/city?city=${encodeURIComponent(titled)}&state=${encodeURIComponent(titled)}&country=India`,
+        ];
+
+        for (const url of attempts) {
+            try {
+                const res  = await fetch(url);
+                const data = await res.json();
+                if (res.ok && data.success) return data.data;
+            } catch { /* try next */ }
+        }
+
+        throw new Error('City not found — try typing the full city name or use Browse Cities');
     }
 
     function renderCompareCard(containerId, station) {
@@ -1666,25 +1785,29 @@
 
         let aqiA = null, aqiB = null;
 
+        // Fetch both independently in parallel so one failure doesn't block the other
+        const [resA, resB] = await Promise.allSettled([
+            qA ? fetchCityAQI(qA) : Promise.reject(new Error('No input')),
+            qB ? fetchCityAQI(qB) : Promise.reject(new Error('No input')),
+        ]);
+
         if (qA) {
             setCompareLoading('compareResultA');
-            try {
-                const s = await fetchCityAQI(qA);
-                aqiA = renderCompareCard('compareResultA', s);
-            } catch (e) {
+            if (resA.status === 'fulfilled') {
+                aqiA = renderCompareCard('compareResultA', resA.value);
+            } else {
                 document.getElementById('compareResultA').innerHTML =
-                    `<span style="font-family:var(--mono);font-size:12px;color:#fca5a5">❌ ${getFriendlyError(e.message).title}</span>`;
+                    `<span style="font-family:var(--mono);font-size:12px;color:#fca5a5">❌ ${getFriendlyError(resA.reason?.message).title}</span>`;
             }
         }
 
         if (qB) {
             setCompareLoading('compareResultB');
-            try {
-                const s = await fetchCityAQI(qB);
-                aqiB = renderCompareCard('compareResultB', s);
-            } catch (e) {
+            if (resB.status === 'fulfilled') {
+                aqiB = renderCompareCard('compareResultB', resB.value);
+            } else {
                 document.getElementById('compareResultB').innerHTML =
-                    `<span style="font-family:var(--mono);font-size:12px;color:#fca5a5">❌ ${getFriendlyError(e.message).title}</span>`;
+                    `<span style="font-family:var(--mono);font-size:12px;color:#fca5a5">❌ ${getFriendlyError(resB.reason?.message).title}</span>`;
             }
         }
 
