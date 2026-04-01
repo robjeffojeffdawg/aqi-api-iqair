@@ -158,6 +158,7 @@ app.get('/health', (req, res) => {
     services: {
       iqair: iqairService.isAvailable(),
       purpleair: purpleairAvailable,
+      openaq: openAQService.isAvailable(),
       mongodb: require('mongoose').connection.readyState === 1
     }
   });
