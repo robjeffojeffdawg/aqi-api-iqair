@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const iqairService = require('../services/iqairService');
 const purpleAirService = require('../services/purpleAirService');
+const openAQService = require('../services/openAQService');
 
 // GET /api/aqi/nearby
 // Get nearest city based on coordinates - now supports multiple sources
