@@ -5,32 +5,27 @@ const purpleAirService = require('../services/purpleAirService');
 const openAQService = require('../services/openAQService');
 
 // GET /api/aqi/nearby
-// Get nearest city based on coordinates - now supports multiple sources
+// Get nearest stations based on coordinates — IQAir + PurpleAir + OpenAQ
 router.get('/nearby', async (req, res, next) => {
   try {
     const { lat, lon, radius, sources } = req.query;
 
     if (!lat || !lon) {
-      return res.status(400).json({
-        error: 'Latitude and longitude are required'
-      });
+      return res.status(400).json({ error: 'Latitude and longitude are required' });
     }
 
-    const latitude = parseFloat(lat);
-    const longitude = parseFloat(lon);
+    const latitude     = parseFloat(lat);
+    const longitude    = parseFloat(lon);
     const searchRadius = radius ? parseInt(radius) : 50;
 
     if (isNaN(latitude) || isNaN(longitude)) {
-      return res.status(400).json({
-        error: 'Invalid coordinates'
-      });
+      return res.status(400).json({ error: 'Invalid coordinates' });
     }
 
-    // Determine which sources to use
-    const sourcesArray = sources ? sources.split(',') : ['iqair', 'purpleair'];
+    const sourcesArray = sources ? sources.split(',') : ['iqair', 'purpleair', 'openaq'];
     let allStations = [];
 
-    // Get IQAir data
+    // IQAir
     if (sourcesArray.includes('iqair')) {
       try {
         const iqairStations = await iqairService.getNearbyStations(latitude, longitude, searchRadius);
@@ -40,7 +35,7 @@ router.get('/nearby', async (req, res, next) => {
       }
     }
 
-    // Get PurpleAir data
+    // PurpleAir
     if (sourcesArray.includes('purpleair') && purpleAirService.isAvailable()) {
       try {
         const purpleAirStations = await purpleAirService.getNearbySensors(latitude, longitude, searchRadius);
@@ -50,8 +45,25 @@ router.get('/nearby', async (req, res, next) => {
       }
     }
 
-    // Sort by distance
-    allStations.sort((a, b) => a.distance - b.distance);
+    // OpenAQ — fallback when IQAir has fewer than 2 stations
+    const iqairCount = allStations.filter(s => s.source === 'IQAir').length;
+    if (sourcesArray.includes('openaq') && openAQService.isAvailable() && iqairCount < 2) {
+      try {
+        const openAQStations = await openAQService.getNearbySensors(
+          latitude, longitude, Math.min(searchRadius, 25)
+        );
+        for (const oStation of openAQStations) {
+          const alreadyCovered = allStations.some(s =>
+            s.distance !== undefined && Math.abs(s.distance - oStation.distance) < 2
+          );
+          if (!alreadyCovered) allStations.push(oStation);
+        }
+      } catch (error) {
+        console.error('OpenAQ fetch failed:', error.message);
+      }
+    }
+
+    allStations.sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999));
 
     res.json({
       success: true,
@@ -61,19 +73,18 @@ router.get('/nearby', async (req, res, next) => {
         count: allStations.length,
         stations: allStations,
         sources: {
-          iqair: sourcesArray.includes('iqair'),
-          purpleair: sourcesArray.includes('purpleair') && purpleAirService.isAvailable()
+          iqair:     sourcesArray.includes('iqair'),
+          purpleair: sourcesArray.includes('purpleair') && purpleAirService.isAvailable(),
+          openaq:    sourcesArray.includes('openaq')    && openAQService.isAvailable(),
         }
       }
     });
-
   } catch (error) {
     next(error);
   }
 });
 
 // GET /api/aqi/city
-// Get detailed data for a specific city (IQAir only)
 router.get('/city', async (req, res, next) => {
   try {
     const { city, state, country } = req.query;
@@ -87,47 +98,29 @@ router.get('/city', async (req, res, next) => {
 
     console.log(`Attempting to fetch: ${city}, ${state || 'no state'}, ${country}`);
 
-    // Strategy 1: Try with provided state (if given)
     if (state) {
       try {
         const details = await iqairService.getCityData(city, state, country);
-        return res.json({
-          success: true,
-          data: details,
-          method: 'with-state'
-        });
+        return res.json({ success: true, data: details, method: 'with-state' });
       } catch (stateError) {
         console.log('Failed with state:', stateError.message);
       }
     }
 
-    // Strategy 2: Try with city as both city and state
     try {
-      console.log('Trying city as state...');
       const details = await iqairService.getCityData(city, city, country);
-      return res.json({ 
-        success: true, 
-        data: details, 
-        method: 'city-as-state'
-      });
+      return res.json({ success: true, data: details, method: 'city-as-state' });
     } catch (cityStateError) {
       console.log('Failed with city as state:', cityStateError.message);
     }
 
-    // Strategy 3: Try without state
     try {
-      console.log('Trying without state...');
       const details = await iqairService.getCityData(city, null, country);
-      return res.json({
-        success: true,
-        data: details,
-        method: 'no-state'
-      });
+      return res.json({ success: true, data: details, method: 'no-state' });
     } catch (noStateError) {
       console.log('Failed without state:', noStateError.message);
     }
 
-    // All strategies failed
     return res.status(404).json({
       success: false,
       error: 'City not found',
@@ -137,7 +130,6 @@ router.get('/city', async (req, res, next) => {
         'Browse /api/aqi/states and /api/aqi/cities to find exact names'
       ]
     });
-
   } catch (error) {
     console.error('City endpoint error:', error);
     next(error);
@@ -145,83 +137,34 @@ router.get('/city', async (req, res, next) => {
 });
 
 // GET /api/aqi/countries
-// Get list of supported countries (IQAir only)
 router.get('/countries', async (req, res, next) => {
   try {
     const countries = await iqairService.getCountries();
-
-    res.json({
-      success: true,
-      data: {
-        count: countries.length,
-        countries: countries
-      }
-    });
-
-  } catch (error) {
-    next(error);
-  }
+    res.json({ success: true, data: { count: countries.length, countries } });
+  } catch (error) { next(error); }
 });
 
 // GET /api/aqi/states
-// Get list of states in a country (IQAir only)
 router.get('/states', async (req, res, next) => {
   try {
     const { country } = req.query;
-
-    if (!country) {
-      return res.status(400).json({
-        error: 'Country is required'
-      });
-    }
-
+    if (!country) return res.status(400).json({ error: 'Country is required' });
     const states = await iqairService.getStates(country);
-
-    res.json({
-      success: true,
-      data: {
-        country: country,
-        count: states.length,
-        states: states
-      }
-    });
-
-  } catch (error) {
-    next(error);
-  }
+    res.json({ success: true, data: { country, count: states.length, states } });
+  } catch (error) { next(error); }
 });
 
 // GET /api/aqi/cities
-// Get list of cities in a state/country (IQAir only)
 router.get('/cities', async (req, res, next) => {
   try {
     const { state, country } = req.query;
-
-    if (!state || !country) {
-      return res.status(400).json({
-        error: 'Both state and country are required'
-      });
-    }
-
+    if (!state || !country) return res.status(400).json({ error: 'Both state and country are required' });
     const cities = await iqairService.getCities(state, country);
-
-    res.json({
-      success: true,
-      data: {
-        state: state,
-        country: country,
-        count: cities.length,
-        cities: cities
-      }
-    });
-
-  } catch (error) {
-    next(error);
-  }
+    res.json({ success: true, data: { state, country, count: cities.length, cities } });
+  } catch (error) { next(error); }
 });
 
 // GET /api/aqi/sources
-// Get available data sources
 router.get('/sources', (req, res) => {
   res.json({
     success: true,
@@ -238,6 +181,12 @@ router.get('/sources', (req, res) => {
           available: purpleAirService.isAvailable(),
           description: 'Community-operated air quality sensors',
           features: ['Real-time PM2.5', 'High sensor density', 'Neighborhood-level data']
+        },
+        {
+          name: 'OpenAQ',
+          available: openAQService.isAvailable(),
+          description: 'DEFRA + global government monitoring networks via OpenAQ v3',
+          features: ['UK/Europe coverage', 'DEFRA stations', 'Fallback for thin IQAir coverage']
         }
       ]
     }
@@ -245,41 +194,25 @@ router.get('/sources', (req, res) => {
 });
 
 // DELETE /api/aqi/cache
-// Clear all caches
 router.delete('/cache', async (req, res, next) => {
   try {
     iqairService.clearCache();
-    if (purpleAirService.isAvailable()) {
-      purpleAirService.clearCache();
-    }
-    
-    res.json({
-      success: true,
-      message: 'All caches cleared successfully'
-    });
-
-  } catch (error) {
-    next(error);
-  }
+    if (purpleAirService.isAvailable()) purpleAirService.clearCache();
+    if (openAQService.isAvailable())    openAQService.clearCache();
+    res.json({ success: true, message: 'All caches cleared successfully' });
+  } catch (error) { next(error); }
 });
 
 // GET /api/aqi/cache/stats
-// Get cache statistics
 router.get('/cache/stats', async (req, res, next) => {
   try {
     const stats = {
-      iqair: iqairService.getCacheStats(),
-      purpleair: purpleAirService.isAvailable() ? purpleAirService.getCacheStats() : null
+      iqair:     iqairService.getCacheStats(),
+      purpleair: purpleAirService.isAvailable() ? purpleAirService.getCacheStats() : null,
+      openaq:    openAQService.isAvailable()    ? openAQService.getMetrics()       : null,
     };
-    
-    res.json({
-      success: true,
-      data: stats
-    });
-
-  } catch (error) {
-    next(error);
-  }
+    res.json({ success: true, data: stats });
+  } catch (error) { next(error); }
 });
 
 module.exports = router;
