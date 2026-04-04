@@ -690,6 +690,114 @@
 
     .links-list a:hover { text-decoration: underline; }
 
+    /* ── COMPARE ── */
+    .compare-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .compare-panel.open { display: block; }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 48px 1fr;
+      gap: 12px;
+      align-items: start;
+      margin-top: 12px;
+    }
+
+    .compare-col-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .compare-search-wrap {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .compare-input {
+      flex: 1;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .compare-input:focus { outline: none; border-color: var(--accent); }
+
+    .compare-go {
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 7px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .compare-go:hover { background: #2563eb; }
+
+    .compare-vs {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-top: 28px;
+      gap: 6px;
+    }
+
+    .vs-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      background: var(--border);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .vs-diff {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .compare-result {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .compare-city-name { font-size: 13px; font-weight: 700; color: var(--text); }
+    .compare-aqi-num { font-family: 'DM Mono', monospace; font-size: 36px; font-weight: 700; line-height: 1; }
+    .compare-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block; }
+    .compare-placeholder { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+    @media (max-width: 600px) {
+      .compare-grid { grid-template-columns: 1fr; }
+      .compare-vs { flex-direction: row; padding-top: 0; }
+    }
+
     /* ── MOBILE ── */
     @media (max-width: 600px) {
       nav { padding: 0 12px; }
@@ -721,7 +829,34 @@
   <div class="controls-bar">
     <button class="btn btn-primary" onclick="getCurrentLocation()" id="locBtn">📍 My Location</button>
     <button class="btn btn-ghost" onclick="toggleBrowse()">🗺 Browse Cities</button>
+    <button class="btn btn-ghost" onclick="toggleCompare()" id="compareBtn">⚖️ Compare</button>
     <button class="btn btn-ghost" onclick="refreshData()" id="refreshBtn">↺ Refresh</button>
+  </div>
+
+  <div class="compare-panel" id="comparePanel">
+    <label>Compare Two Cities</label>
+    <div class="compare-grid">
+      <div>
+        <div class="compare-col-label">City A</div>
+        <div class="compare-search-wrap">
+          <input type="text" id="compareInputA" class="compare-input" placeholder="e.g. London" onkeydown="if(event.key==='Enter') runCompare()">
+          <button class="compare-go" onclick="runCompare()">Go</button>
+        </div>
+        <div class="compare-result" id="compareResultA"><span class="compare-placeholder">Enter a city above</span></div>
+      </div>
+      <div class="compare-vs">
+        <div class="vs-badge">VS</div>
+        <div class="vs-diff" id="vsDiff">—</div>
+      </div>
+      <div>
+        <div class="compare-col-label">City B</div>
+        <div class="compare-search-wrap">
+          <input type="text" id="compareInputB" class="compare-input" placeholder="e.g. Bangkok" onkeydown="if(event.key==='Enter') runCompare()">
+          <button class="compare-go" onclick="runCompare()">Go</button>
+        </div>
+        <div class="compare-result" id="compareResultB"><span class="compare-placeholder">Enter a city above</span></div>
+      </div>
+    </div>
   </div>
 
   <div class="browse-panel" id="browsePanel">
@@ -1118,6 +1253,104 @@
       updateHealth(d.data);
       updateTimestamp('liveTimestamp');
     } catch (e) { showError(e.message, 'live'); }
+  }
+
+  // ── COMPARE ──
+  function toggleCompare() {
+    const panel = document.getElementById('comparePanel');
+    const btn   = document.getElementById('compareBtn');
+    const open  = panel.classList.toggle('open');
+    btn.classList.toggle('btn-primary', open);
+    btn.classList.toggle('btn-ghost', !open);
+    if (open) setTimeout(() => document.getElementById('compareInputA').focus(), 150);
+  }
+
+  async function fetchCityAQI(input) {
+    const city = input.trim().replace(/\b\w/g, c => c.toUpperCase());
+    if (!city) throw new Error('No input');
+
+    // Strategy 1: try city as both city and state, no country — backend tries multiple fallbacks
+    try {
+      const r = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(city)}&country=`);
+      const d = await r.json();
+      if (r.ok && d.success) return d.data;
+    } catch {}
+
+    // Strategy 2: fetch countries list, then try each country
+    let countries = [];
+    try {
+      const r = await fetch(`${API_URL}/api/aqi/countries`);
+      const d = await r.json();
+      if (d.success) countries = d.data.countries.map(c => c.country);
+    } catch {}
+
+    // Prioritise likely countries first, then try rest
+    const priority = ['Thailand','United Kingdom','United States','Australia','India','Germany','France','Japan','China','Singapore','Canada','Indonesia','Malaysia'];
+    const ordered = [...priority.filter(p => countries.includes(p)), ...countries.filter(c => !priority.includes(c))];
+
+    for (const country of ordered.slice(0, 40)) {
+      try {
+        const r = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`);
+        const d = await r.json();
+        if (r.ok && d.success) return d.data;
+      } catch {}
+    }
+
+    throw new Error(`"${city}" not found — try the full city name or use Browse Cities`);
+  }
+
+  function renderCompareCard(id, station) {
+    const aqi = Math.round(station.aqi?.us ?? station.aqi ?? 0);
+    const cat = getCategory(aqi);
+    const el  = document.getElementById(id);
+    el.innerHTML = `
+      <div class="compare-city-name">${station.name || station.city || '—'}</div>
+      <div class="compare-aqi-num" style="color:${cat.color}">${aqi}</div>
+      <div class="compare-badge" style="background:${cat.color}22;color:${cat.color}">${cat.level}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${[station.city,station.country].filter(Boolean).join(', ')}</div>`;
+    return aqi;
+  }
+
+  async function runCompare() {
+    const qA = document.getElementById('compareInputA').value.trim();
+    const qB = document.getElementById('compareInputB').value.trim();
+    if (!qA && !qB) return;
+    document.getElementById('vsDiff').textContent = '…';
+
+    const setLoading = id => { document.getElementById(id).innerHTML = `<span class="compare-placeholder">Loading…</span>`; };
+    if (qA) setLoading('compareResultA');
+    if (qB) setLoading('compareResultB');
+
+    const [resA, resB] = await Promise.allSettled([
+      qA ? fetchCityAQI(qA) : Promise.reject(),
+      qB ? fetchCityAQI(qB) : Promise.reject(),
+    ]);
+
+    let aqiA = null, aqiB = null;
+
+    if (qA) {
+      if (resA.status === 'fulfilled') {
+        aqiA = renderCompareCard('compareResultA', resA.value);
+      } else {
+        document.getElementById('compareResultA').innerHTML = `<span class="compare-placeholder" style="color:#fca5a5">❌ ${resA.reason?.message || 'Not found'}</span>`;
+      }
+    }
+
+    if (qB) {
+      if (resB.status === 'fulfilled') {
+        aqiB = renderCompareCard('compareResultB', resB.value);
+      } else {
+        document.getElementById('compareResultB').innerHTML = `<span class="compare-placeholder" style="color:#fca5a5">❌ ${resB.reason?.message || 'Not found'}</span>`;
+      }
+    }
+
+    if (aqiA !== null && aqiB !== null) {
+      const diff = aqiA - aqiB;
+      document.getElementById('vsDiff').textContent = (diff > 0 ? '+' : '') + diff;
+      document.getElementById('vsDiff').style.color = diff === 0 ? 'var(--muted)' : diff > 0 ? '#ef4444' : '#22c55e';
+    } else {
+      document.getElementById('vsDiff').textContent = '—';
+    }
   }
 
   // ── REFRESH ──
