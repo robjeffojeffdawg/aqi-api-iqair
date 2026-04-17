@@ -560,9 +560,17 @@
       const d = await r.json();
       if (r.ok && d.success) return d.data;
     } catch {}
+// Try UK specifically with correct state lookup
+for (const state of ['England','Scotland','Wales','Northern Ireland']) {
+  try {
+    const r = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=UK`);
+    const d = await r.json();
+    if (r.ok && d.success) return d.data;
+  } catch {}
+}
     let countries = [];
-    try { const r = await fetch(`${API_URL}/api/aqi/countries`); const d = await r.json(); if (d.success) countries = d.data.countries.map(c => c.country); } catch {}
-    const priority = ['Thailand','United Kingdom','United States','Australia','India','Germany','France','Japan','China','Singapore','Canada','Indonesia','Malaysia'];
+     try { const r = await fetch(`${API_URL}/api/aqi/countries`); const d = await r.json(); if (d.success) countries = d.data.countries.map(c => c.country); } catch {}
+     const priority = ['Thailand','UK','USA','Australia','India','Germany','France','Japan','China','Singapore','Canada','Indonesia','Malaysia','Spain','Italy','Netherlands','Poland','Portugal','Sweden','Norway','Denmark','Belgium','Switzerland','Ireland'];
     const ordered  = [...priority.filter(p => countries.includes(p)), ...countries.filter(c => !priority.includes(c))];
     for (const country of ordered.slice(0, 40)) {
       try {
