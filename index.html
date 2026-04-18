@@ -553,34 +553,23 @@
 
   // COMPARE
   async function fetchCityAQI(input) {
-    const city = input.trim().replace(/\b\w/g, c => c.toUpperCase());
-    if (!city) throw new Error('No input');
-    try {
-      const r = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(city)}&country=`);
-      const d = await r.json();
-      if (r.ok && d.success) return d.data;
-    } catch {}
-// Try UK specifically with correct state lookup
-for (const state of ['England','Scotland','Wales','Northern Ireland']) {
-  try {
-    const r = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=UK`);
-    const d = await r.json();
-    if (r.ok && d.success) return d.data;
-  } catch {}
+  const q = input.trim();
+  if (!q) throw new Error('No input');
+
+  // Search backend index
+  const r = await fetch(`${API_URL}/api/aqi/search?q=${encodeURIComponent(q.toLowerCase())}`);
+  const d = await r.json();
+
+  if (d.data?.building) throw new Error('City index is warming up — try again in 30 seconds');
+  if (!d.success || !d.data.results.length) throw new Error(`"${q}" not found — try a different spelling or use Browse Cities`);
+
+  // Take the best match and fetch its AQI
+  const { city, state, country } = d.data.results[0];
+  const r2 = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
+  const d2 = await r2.json();
+  if (!r2.ok || !d2.success) throw new Error(`Found "${city}" but couldn't fetch its AQI data`);
+  return d2.data;
 }
-    let countries = [];
-     try { const r = await fetch(`${API_URL}/api/aqi/countries`); const d = await r.json(); if (d.success) countries = d.data.countries.map(c => c.country); } catch {}
-     const priority = ['Thailand','UK','USA','Australia','India','Germany','France','Japan','China','Singapore','Canada','Indonesia','Malaysia','Spain','Italy','Netherlands','Poland','Portugal','Sweden','Norway','Denmark','Belgium','Switzerland','Ireland'];
-    const ordered  = [...priority.filter(p => countries.includes(p)), ...countries.filter(c => !priority.includes(c))];
-    for (const country of ordered.slice(0, 40)) {
-      try {
-        const r = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`);
-        const d = await r.json();
-        if (r.ok && d.success) return d.data;
-      } catch {}
-    }
-    throw new Error(`"${city}" not found — try the full name or use Browse Cities`);
-  }
 
   function renderCompareCard(id, station) {
     const aqi = Math.round(station.aqi?.us ?? station.aqi ?? 0), cat = getCategory(aqi);

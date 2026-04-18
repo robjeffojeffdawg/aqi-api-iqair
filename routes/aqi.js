@@ -215,4 +215,70 @@ router.get('/cache/stats', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+// GET /api/aqi/search?q=manchester
+// Fuzzy city search across all countries/states
+let cityIndex = null;
+let cityIndexBuilding = false;
+
+async function buildCityIndex() {
+  if (cityIndex || cityIndexBuilding) return;
+  cityIndexBuilding = true;
+  console.log('Building city index...');
+  const index = [];
+  try {
+    const countries = await iqairService.getCountries();
+    // Prioritise key countries first
+    const priority = ['UK','USA','Thailand','Australia','India','Germany','France','Japan','China','Singapore','Canada','Indonesia','Malaysia','Spain','Italy','Netherlands','Ireland','Poland','Sweden','Norway','Denmark','Belgium','Switzerland','Brazil','Mexico','South Africa','New Zealand'];
+    const all = [...priority.filter(p => countries.map(c=>c.country).includes(p)), ...countries.map(c=>c.country).filter(c=>!priority.includes(c))];
+    for (const country of all.slice(0, 50)) {
+      try {
+        const states = await iqairService.getStates(country);
+        for (const { state } of states) {
+          try {
+            const cities = await iqairService.getCities(state, country);
+            for (const { city } of cities) {
+              index.push({ city, state, country, search: city.toLowerCase() });
+            }
+          } catch {}
+        }
+      } catch {}
+    }
+    cityIndex = index;
+    console.log(`City index built: ${index.length} cities`);
+  } catch (e) {
+    console.error('City index build failed:', e.message);
+  }
+  cityIndexBuilding = false;
+}
+
+router.get('/search', async (req, res, next) => {
+  try {
+    const q = (req.query.q || '').trim().toLowerCase();
+    if (!q || q.length < 2) return res.status(400).json({ error: 'Query must be at least 2 characters' });
+
+    // Trigger index build in background if not ready
+    if (!cityIndex) {
+      buildCityIndex();
+      return res.json({ success: true, data: { results: [], building: true, message: 'City index is building, try again in 30 seconds' } });
+    }
+
+    const results = cityIndex
+      .filter(c => c.search.includes(q))
+      .sort((a, b) => {
+        // Exact match first, then starts-with, then includes
+        const aExact = a.search === q, bExact = b.search === q;
+        const aStarts = a.search.startsWith(q), bStarts = b.search.startsWith(q);
+        if (aExact !== bExact) return aExact ? -1 : 1;
+        if (aStarts !== bStarts) return aStarts ? -1 : 1;
+        return a.city.localeCompare(b.city);
+      })
+      .slice(0, 10);
+
+    res.json({ success: true, data: { query: q, count: results.length, results } });
+  } catch (error) { next(error); }
+});
+
+// Kick off index build on startup (non-blocking)
+setTimeout(buildCityIndex, 5000);
+
 module.exports = router;
