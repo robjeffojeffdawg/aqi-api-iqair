@@ -281,4 +281,13 @@ router.get('/search', async (req, res, next) => {
 // Kick off index build on startup (non-blocking)
 setTimeout(buildCityIndex, 5000);
 
+router.get('/search/debug', (req, res) => {
+  res.json({
+    indexBuilt: !!cityIndex,
+    indexSize: cityIndex ? cityIndex.length : 0,
+    building: cityIndexBuilding,
+    sample: cityIndex ? cityIndex.slice(0, 5) : []
+  });
+});
+
 module.exports = router;
