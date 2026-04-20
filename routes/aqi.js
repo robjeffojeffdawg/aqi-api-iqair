@@ -247,11 +247,11 @@ async function buildCityIndex() {
           for (const { city } of cities) {
             index.push({ city, state, country, search: city.toLowerCase() });
           }
-          await sleep(300); // pause between city calls
+          await sleep(800); // pause between city calls
         } catch {}
       }
       console.log(`Indexed ${country}: ${index.length} cities so far`);
-      await sleep(500); // pause between countries
+      await sleep(1500); // pause between countries
     } catch (e) {
       console.log(`Skipped ${country}: ${e.message}`);
     }
