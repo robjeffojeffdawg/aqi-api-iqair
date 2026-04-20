@@ -224,18 +224,55 @@ const TARGET_COUNTRIES = [
   'China','Singapore','Canada','Indonesia','Malaysia','Spain','Italy',
   'Netherlands','Ireland','Poland','Sweden','Norway','Denmark','Belgium',
   'Switzerland','Brazil','Mexico','South Africa','New Zealand','Portugal',
-  'Greece','Turkey','UAE','Saudi Arabia','South Korea','Taiwan','Vietnam',
-  'Philippines','Pakistan','Bangladesh','Sri Lanka','Nepal','Kenya',
-  'Nigeria','Ghana','Ethiopia','Tanzania','Uganda','Zimbabwe','Zambia',
-  'Argentina','Chile','Colombia','Peru'
+  'Greece','Turkey','United Arab Emirates','Saudi Arabia','South Korea',
+  'Taiwan','Vietnam','Philippines','Pakistan','Bangladesh','Sri Lanka',
+  'Nepal','Kenya','Nigeria','Ghana','Argentina','Chile','Colombia','Peru'
 ];
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+const mongoose = require('mongoose');
+
+// Simple schema to persist the index
+const CityIndexSchema = new mongoose.Schema({
+  _id: { type: String, default: 'singleton' },
+  cities: [{ city: String, state: String, country: String, search: String }],
+  builtAt: Date
+});
+const CityIndexModel = mongoose.models.CityIndex || mongoose.model('CityIndex', CityIndexSchema);
+
+async function loadIndexFromDB() {
+  try {
+    const doc = await CityIndexModel.findById('singleton');
+    if (doc && doc.cities.length > 500) {
+      cityIndex = doc.cities;
+      console.log(`City index loaded from DB: ${cityIndex.length} cities`);
+      return true;
+    }
+  } catch (e) { console.log('Could not load city index from DB:', e.message); }
+  return false;
+}
+
+async function saveIndexToDB(index) {
+  try {
+    await CityIndexModel.findByIdAndUpdate(
+      'singleton',
+      { cities: index, builtAt: new Date() },
+      { upsert: true }
+    );
+    console.log(`City index saved to DB: ${index.length} cities`);
+  } catch (e) { console.log('Could not save city index to DB:', e.message); }
+}
+
 async function buildCityIndex() {
   if (cityIndexBuilding) return;
+
+  // Try loading from DB first
+  const loaded = await loadIndexFromDB();
+  if (loaded) return;
+
   cityIndexBuilding = true;
-  console.log('Building city index...');
+  console.log('Building city index from scratch...');
   const index = [];
 
   for (const country of TARGET_COUNTRIES) {
@@ -247,19 +284,18 @@ async function buildCityIndex() {
           for (const { city } of cities) {
             index.push({ city, state, country, search: city.toLowerCase() });
           }
-          await sleep(800); // pause between city calls
+          await sleep(1000);
         } catch {}
       }
       console.log(`Indexed ${country}: ${index.length} cities so far`);
-      await sleep(1500); // pause between countries
-    } catch (e) {
-      console.log(`Skipped ${country}: ${e.message}`);
-    }
+      await sleep(2000);
+    } catch (e) { console.log(`Skipped ${country}: ${e.message}`); }
   }
 
   cityIndex = index;
   cityIndexBuilding = false;
   console.log(`City index complete: ${index.length} cities`);
+  await saveIndexToDB(index);
 }
 
 router.get('/search', async (req, res, next) => {
@@ -296,8 +332,8 @@ router.get('/search/debug', (req, res) => {
   });
 });
 
-// Kick off on startup after 10s delay
-setTimeout(buildCityIndex, 10000);
+// On startup: load from DB instantly, only rebuild if missing
+setTimeout(buildCityIndex, 5000);
 
 router.get('/search/debug', (req, res) => {
   res.json({
