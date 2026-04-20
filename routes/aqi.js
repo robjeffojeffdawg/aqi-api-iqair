@@ -244,7 +244,7 @@ const CityIndexModel = mongoose.models.CityIndex || mongoose.model('CityIndex', 
 async function loadIndexFromDB() {
   try {
     const doc = await CityIndexModel.findById('singleton');
-    if (doc && doc.cities.length > 500) {
+    if (doc && doc.cities.length > 2000) {
       cityIndex = doc.cities;
       console.log(`City index loaded from DB: ${cityIndex.length} cities`);
       return true;
@@ -342,6 +342,15 @@ router.get('/search/debug', (req, res) => {
     building: cityIndexBuilding,
     sample: cityIndex ? cityIndex.slice(0, 5) : []
   });
+});
+
+router.delete('/search/index', async (req, res) => {
+  try {
+    await CityIndexModel.deleteOne({ _id: 'singleton' });
+    cityIndex = null;
+    cityIndexBuilding = false;
+    res.json({ success: true, message: 'Index cleared. Restart Railway to rebuild.' });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 module.exports = router;
