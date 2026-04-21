@@ -244,7 +244,7 @@ const CityIndexModel = mongoose.models.CityIndex || mongoose.model('CityIndex', 
 async function loadIndexFromDB() {
   try {
     const doc = await CityIndexModel.findById('singleton');
-    if (doc && doc.cities.length > 2000) {
+    if (false && doc && doc.cities.length > 2000) {
       cityIndex = doc.cities;
       console.log(`City index loaded from DB: ${cityIndex.length} cities`);
       return true;
