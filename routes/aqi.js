@@ -220,13 +220,13 @@ let cityIndex = null;
 let cityIndexBuilding = false;
 
 const TARGET_COUNTRIES = [
-  'UK','USA','Thailand','Australia','India','Germany','France','Japan',
+  'UK','Thailand','Australia','India','Germany','France','Japan',
   'China','Singapore','Canada','Indonesia','Malaysia','Spain','Italy',
   'Netherlands','Ireland','Poland','Sweden','Norway','Denmark','Belgium',
   'Switzerland','Brazil','Mexico','South Africa','New Zealand','Portugal',
   'Greece','Turkey','United Arab Emirates','Saudi Arabia','South Korea',
   'Taiwan','Vietnam','Philippines','Pakistan','Bangladesh','Sri Lanka',
-  'Nepal','Kenya','Nigeria','Ghana','Argentina','Chile','Colombia','Peru'
+  'Nepal','Kenya','Nigeria','Ghana','Argentina','Chile','Colombia','Peru','USA'
 ];
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
