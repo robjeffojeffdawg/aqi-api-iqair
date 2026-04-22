@@ -216,97 +216,12 @@ router.get('/cache/stats', async (req, res, next) => {
 });
 
 // ── CITY SEARCH INDEX ──────────────────────────────────────────
-let cityIndex = null;
-let cityIndexBuilding = false;
-
-const TARGET_COUNTRIES = [
-  'UK','Thailand','Australia','India','Germany','France','Japan',
-  'China','Singapore','Canada','Indonesia','Malaysia','Spain','Italy',
-  'Netherlands','Ireland','Poland','Sweden','Norway','Denmark','Belgium',
-  'Switzerland','Brazil','Mexico','South Africa','New Zealand','Portugal',
-  'Greece','Turkey','United Arab Emirates','Saudi Arabia','South Korea',
-  'Taiwan','Vietnam','Philippines','Pakistan','Bangladesh','Sri Lanka',
-  'Nepal','Kenya','Nigeria','Ghana','Argentina','Chile','Colombia','Peru','USA'
-];
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-const mongoose = require('mongoose');
-
-// Simple schema to persist the index
-const CityIndexSchema = new mongoose.Schema({
-  _id: { type: String, default: 'singleton' },
-  cities: [{ city: String, state: String, country: String, search: String }],
-  builtAt: Date
-});
-const CityIndexModel = mongoose.models.CityIndex || mongoose.model('CityIndex', CityIndexSchema);
-
-async function loadIndexFromDB() {
-  try {
-    const doc = await CityIndexModel.findById('singleton');
-    if (false && doc && doc.cities.length > 2000) {
-      cityIndex = doc.cities;
-      console.log(`City index loaded from DB: ${cityIndex.length} cities`);
-      return true;
-    }
-  } catch (e) { console.log('Could not load city index from DB:', e.message); }
-  return false;
-}
-
-async function saveIndexToDB(index) {
-  try {
-    await CityIndexModel.findByIdAndUpdate(
-      'singleton',
-      { cities: index, builtAt: new Date() },
-      { upsert: true }
-    );
-    console.log(`City index saved to DB: ${index.length} cities`);
-  } catch (e) { console.log('Could not save city index to DB:', e.message); }
-}
-
-async function buildCityIndex() {
-  if (cityIndexBuilding) return;
-
-  // Try loading from DB first
-  const loaded = await loadIndexFromDB();
-  if (loaded) return;
-
-  cityIndexBuilding = true;
-  console.log('Building city index from scratch...');
-  const index = [];
-
-  for (const country of TARGET_COUNTRIES) {
-    try {
-      const states = await iqairService.getStates(country);
-      for (const { state } of states) {
-        try {
-          const cities = await iqairService.getCities(state, country);
-          for (const { city } of cities) {
-            index.push({ city, state, country, search: city.toLowerCase() });
-          }
-          await sleep(1000);
-        } catch {}
-      }
-      console.log(`Indexed ${country}: ${index.length} cities so far`);
-      await sleep(2000);
-    } catch (e) { console.log(`Skipped ${country}: ${e.message}`); }
-  }
-
-  cityIndex = index;
-  cityIndexBuilding = false;
-  console.log(`City index complete: ${index.length} cities`);
-  await saveIndexToDB(index);
-}
+const cityIndex = require('../services/cityIndex');
 
 router.get('/search', async (req, res, next) => {
   try {
     const q = (req.query.q || '').trim().toLowerCase();
     if (!q || q.length < 2) return res.status(400).json({ error: 'Query must be at least 2 characters' });
-
-    if (!cityIndex) {
-      if (!cityIndexBuilding) buildCityIndex();
-      return res.json({ success: true, data: { results: [], building: true, message: 'City index is warming up — try again in 60 seconds' } });
-    }
 
     const results = cityIndex
       .filter(c => c.search.includes(q))
@@ -324,33 +239,7 @@ router.get('/search', async (req, res, next) => {
 });
 
 router.get('/search/debug', (req, res) => {
-  res.json({
-    indexBuilt: !!cityIndex,
-    indexSize: cityIndex ? cityIndex.length : 0,
-    building: cityIndexBuilding,
-    sample: cityIndex ? cityIndex.slice(0, 5) : []
-  });
-});
-
-// On startup: load from DB instantly, only rebuild if missing
-setTimeout(buildCityIndex, 5000);
-
-router.get('/search/debug', (req, res) => {
-  res.json({
-    indexBuilt: !!cityIndex,
-    indexSize: cityIndex ? cityIndex.length : 0,
-    building: cityIndexBuilding,
-    sample: cityIndex ? cityIndex.slice(0, 5) : []
-  });
-});
-
-router.delete('/search/index', async (req, res) => {
-  try {
-    await CityIndexModel.deleteOne({ _id: 'singleton' });
-    cityIndex = null;
-    cityIndexBuilding = false;
-    res.json({ success: true, message: 'Index cleared. Restart Railway to rebuild.' });
-  } catch (e) { res.status(500).json({ error: e.message }); }
+  res.json({ indexSize: cityIndex.length, sample: cityIndex.slice(0, 3) });
 });
 
 module.exports = router;
