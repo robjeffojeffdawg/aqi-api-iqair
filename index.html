@@ -641,22 +641,36 @@
   }
 
   async function loadHistory() {
-    if (!userLat || !userLon) return;
-    const hours = { '24h':24, '7d':168, '30d':720 }[currentPeriod];
-    try {
-      const r = await fetch(`${API_URL}/api/history?lat=${userLat}&lon=${userLon}&hours=${hours}`);
-      const d = await r.json();
-      if (!r.ok || !d.success) throw new Error();
-      renderHistory(d.data);
-    } catch {
+  if (!userLat || !userLon) return;
+  const days = { '24h':1, '7d':7, '30d':30 }[currentPeriod];
+  try {
+    const r = await fetch(`${API_URL}/api/history/location?lat=${userLat}&lon=${userLon}&days=${days}`);
+    const d = await r.json();
+    if (!r.ok || !d.success) throw new Error();
+    if (d.data.readings.length) {
+      renderHistory({ readings: d.data.readings.map(r => ({
+        time: new Date(r.timestamp).toLocaleTimeString(),
+        aqi: r.aqi?.us ?? 0,
+        source: r.source
+      }))});
+    } else {
+      // No history yet — show current reading as placeholder
       if (lastStationData) {
         const aqi = Math.round(lastStationData.aqi?.us ?? lastStationData.aqi ?? 0);
         document.getElementById('hAvg').textContent = aqi;
-        ['hBest','hWorst','hTrend'].forEach(id => document.getElementById(id).textContent = '—');
         document.getElementById('hCount').textContent = '1';
+        ['hBest','hWorst','hTrend'].forEach(id => document.getElementById(id).textContent = '—');
       }
     }
+  } catch {
+    if (lastStationData) {
+      const aqi = Math.round(lastStationData.aqi?.us ?? lastStationData.aqi ?? 0);
+      document.getElementById('hAvg').textContent = aqi;
+      document.getElementById('hCount').textContent = '1';
+      ['hBest','hWorst','hTrend'].forEach(id => document.getElementById(id).textContent = '—');
+    }
   }
+}
 
   function renderHistory(data) {
     if (!data?.readings?.length) return;

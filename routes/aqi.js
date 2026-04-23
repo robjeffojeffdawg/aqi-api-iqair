@@ -25,7 +25,22 @@ router.get('/nearby', async (req, res, next) => {
     const sourcesArray = sources ? sources.split(',') : ['iqair', 'purpleair', 'openaq'];
     let allStations = [];
 
-    // IQAir
+// Auto-record top station to history
+if (allStations.length > 0) {
+  const top = allStations[0];
+  try {
+    const HistoricalReading = require('../models/HistoricalReading');
+    await new HistoricalReading({
+      location: { name: top.name, coordinates: { lat: latitude, lon: longitude } },
+      source: top.source || 'IQAir',
+      aqi: { us: top.aqi?.us ?? top.aqi ?? 0, cn: top.aqi?.cn ?? 0 },
+      pollutants: { mainPollutant: top.mainPollutant || '' },
+      weather: top.weather || {}
+    }).save();
+  } catch (e) { console.log('History record failed:', e.message); }
+}
+
+// IQAir
     if (sourcesArray.includes('iqair')) {
       try {
         const iqairStations = await iqairService.getNearbyStations(latitude, longitude, searchRadius);
