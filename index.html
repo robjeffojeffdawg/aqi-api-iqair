@@ -553,59 +553,59 @@
 
   // COMPARE
   async function fetchCityAQI(input) {
-  const q = input.trim();
-  if (!q) throw new Error('No input');
+    const q = input.trim();
+    if (!q) throw new Error('No input');
 
-  // 1. Try static index first
-  const r = await fetch(`${API_URL}/api/aqi/search?q=${encodeURIComponent(q.toLowerCase())}`);
-  const d = await r.json();
+    // 1. Try static index first
+    const r = await fetch(`${API_URL}/api/aqi/search?q=${encodeURIComponent(q.toLowerCase())}`);
+    const d = await r.json();
 
-  if (d.success && d.data.results.length) {
-    const { city, state, country } = d.data.results[0];
-    const r2 = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
-    const d2 = await r2.json();
-    if (r2.ok && d2.success) return d2.data;
+    if (d.success && d.data.results.length) {
+      const { city, state, country } = d.data.results[0];
+      const r2 = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
+      const d2 = await r2.json();
+      if (r2.ok && d2.success) return d2.data;
+    }
+
+    // 2. Fallback — try city directly against API with UK states and priority countries
+    const titled = q.replace(/\b\w/g, c => c.toUpperCase());
+    const attempts = [
+      { city: titled, state: 'England', country: 'UK' },
+      { city: titled, state: 'Scotland', country: 'UK' },
+      { city: titled, state: 'Wales', country: 'UK' },
+      { city: titled, state: titled, country: 'Thailand' },
+      { city: titled, state: titled, country: 'USA' },
+      { city: titled, state: titled, country: 'Australia' },
+      { city: titled, state: titled, country: 'India' },
+      { city: titled, state: titled, country: 'Germany' },
+      { city: titled, state: titled, country: 'France' },
+      { city: titled, state: titled, country: 'Japan' },
+      { city: titled, state: titled, country: 'China' },
+      { city: titled, state: titled, country: 'Canada' },
+      { city: titled, state: titled, country: 'Brazil' },
+      { city: titled, state: titled, country: 'Mexico' },
+      { city: titled, state: titled, country: 'South Africa' },
+      { city: titled, state: titled, country: 'Nigeria' },
+      { city: titled, state: titled, country: 'Kenya' },
+      { city: titled, state: titled, country: 'Guinea' },
+      { city: titled, state: titled, country: 'Indonesia' },
+      { city: titled, state: titled, country: 'Malaysia' },
+      { city: titled, state: titled, country: 'Philippines' },
+      { city: titled, state: titled, country: 'Vietnam' },
+      { city: titled, state: titled, country: 'Pakistan' },
+      { city: titled, state: titled, country: 'Bangladesh' },
+    ];
+
+    for (const { city, state, country } of attempts) {
+      try {
+        const r = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
+        const d = await r.json();
+        if (r.ok && d.success) return d.data;
+      } catch {}
+    }
+
+    throw new Error(`"${q}" not found — try the full city name or use Browse Cities`);
   }
-}
-
-// 2. Fallback — try city directly against API with UK states and priority countries
-  const titled = q.replace(/\b\w/g, c => c.toUpperCase());
-  const attempts = [
-    { city: titled, state: 'England', country: 'UK' },
-    { city: titled, state: 'Scotland', country: 'UK' },
-    { city: titled, state: 'Wales', country: 'UK' },
-    { city: titled, state: titled, country: 'Thailand' },
-    { city: titled, state: titled, country: 'USA' },
-    { city: titled, state: titled, country: 'Australia' },
-    { city: titled, state: titled, country: 'India' },
-    { city: titled, state: titled, country: 'Germany' },
-    { city: titled, state: titled, country: 'France' },
-    { city: titled, state: titled, country: 'Japan' },
-    { city: titled, state: titled, country: 'China' },
-    { city: titled, state: titled, country: 'Canada' },
-    { city: titled, state: titled, country: 'Brazil' },
-    { city: titled, state: titled, country: 'Mexico' },
-    { city: titled, state: titled, country: 'South Africa' },
-    { city: titled, state: titled, country: 'Nigeria' },
-    { city: titled, state: titled, country: 'Kenya' },
-    { city: titled, state: titled, country: 'Guinea' },
-    { city: titled, state: titled, country: 'Indonesia' },
-    { city: titled, state: titled, country: 'Malaysia' },
-    { city: titled, state: titled, country: 'Philippines' },
-    { city: titled, state: titled, country: 'Vietnam' },
-    { city: titled, state: titled, country: 'Pakistan' },
-    { city: titled, state: titled, country: 'Bangladesh' },
-  ];
-
-  for (const { city, state, country } of attempts) {
-    try {
-      const r = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
-      const d = await r.json();
-      if (r.ok && d.success) return d.data;
-    } catch {}
-  }
-
-  throw new Error(`"${q}" not found — try the full city name or use Browse Cities`);
 
   async function runCompare() {
     const qA = document.getElementById('compareInputA').value.trim(), qB = document.getElementById('compareInputB').value.trim();
