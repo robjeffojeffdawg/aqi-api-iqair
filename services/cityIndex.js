@@ -517,6 +517,8 @@ const CITY_INDEX = [
   { city:'Saint Petersburg', state:'Saint Petersburg', country:'Russia' },
   { city:'Novosibirsk', state:'Novosibirsk Oblast', country:'Russia' },
   { city:'Yekaterinburg', state:'Sverdlovsk Oblast', country:'Russia' },
+  // ── GUINEA ──
+  { city:'Conakry', state:'Conakry', country:'Guinea' },
 ];
 
 module.exports = CITY_INDEX.map(c => ({ ...c, search: c.city.toLowerCase() }));
