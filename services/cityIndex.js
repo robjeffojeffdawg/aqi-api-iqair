@@ -267,24 +267,25 @@ const CITY_INDEX = [
   { city:'Singapore', state:'Central Singapore', country:'Singapore' },
 
   // ── INDONESIA ──
-  { city:'Jakarta', state:'Jakarta', country:'Indonesia' },
+  { city:'Bali', state:'Bali', country:'Indonesia' },
+  { city:'Yogyakarta', state:'Yogyakarta', country:'Indonesia' },
+  { city:'Medan', state:'North Sumatra', country:'Indonesia' },
+  { city:'Makassar', state:'South Sulawesi', country:'Indonesia' },
+  { city:'Semarang', state:'Central Java', country:'Indonesia' },
   { city:'Surabaya', state:'East Java', country:'Indonesia' },
   { city:'Bandung', state:'West Java', country:'Indonesia' },
-  { city:'Bali', state:'Bali', country:'Indonesia' },
-  { city:'Medan', state:'North Sumatra', country:'Indonesia' },
-  { city:'Yogyakarta', state:'Yogyakarta', country:'Indonesia' },
-  { city:'Semarang', state:'Central Java', country:'Indonesia' },
-  { city:'Makassar', state:'South Sulawesi', country:'Indonesia' },
+  { city:'Denpasar', state:'Bali', country:'Indonesia' },
 
   // ── MALAYSIA ──
   { city:'Kuala Lumpur', state:'Kuala Lumpur', country:'Malaysia' },
-  { city:'Penang', state:'Penang', country:'Malaysia' },
+  { city:'George Town', state:'Penang', country:'Malaysia' },
   { city:'Johor Bahru', state:'Johor', country:'Malaysia' },
   { city:'Ipoh', state:'Perak', country:'Malaysia' },
   { city:'Kota Kinabalu', state:'Sabah', country:'Malaysia' },
   { city:'Kuching', state:'Sarawak', country:'Malaysia' },
   { city:'Shah Alam', state:'Selangor', country:'Malaysia' },
   { city:'Petaling Jaya', state:'Selangor', country:'Malaysia' },
+  { city:'Klang', state:'Selangor', country:'Malaysia' },
 
   // ── SPAIN ──
   { city:'Madrid', state:'Community of Madrid', country:'Spain' },
@@ -381,13 +382,13 @@ const CITY_INDEX = [
   { city:'Sharjah', state:'Sharjah', country:'United Arab Emirates' },
 
   // ── SOUTH KOREA ──
-  { city:'Seoul', state:'Seoul', country:'South Korea' },
+{ city:'Seoul', state:'Seoul', country:'South Korea' },
   { city:'Busan', state:'Busan', country:'South Korea' },
   { city:'Incheon', state:'Incheon', country:'South Korea' },
   { city:'Daegu', state:'Daegu', country:'South Korea' },
   { city:'Daejeon', state:'Daejeon', country:'South Korea' },
   { city:'Gwangju', state:'Gwangju', country:'South Korea' },
-  { city:'Jeju', state:'Jeju', country:'South Korea' },
+  { city:'Jeju', state:'Jeju-do', country:'South Korea' },
 
   // ── TAIWAN ──
   { city:'Taipei', state:'Taipei', country:'Taiwan' },
@@ -395,14 +396,14 @@ const CITY_INDEX = [
   { city:'Taichung', state:'Taichung', country:'Taiwan' },
 
   // ── VIETNAM ──
-  { city:'Ho Chi Minh City', state:'Ho Chi Minh City', country:'Vietnam' },
-  { city:'Hanoi', state:'Hanoi', country:'Vietnam' },
-  { city:'Da Nang', state:'Da Nang', country:'Vietnam' },
+{ city:'Ho Chi Minh City', state:'Ho Chi Minh city', country:'Vietnam' },
+  { city:'Hanoi', state:'Ha Noi', country:'Vietnam' },
+  { city:'Da Nang', state:'Da Nang city', country:'Vietnam' },
 
   // ── PHILIPPINES ──
-  { city:'Manila', state:'Metro Manila', country:'Philippines' },
+ { city:'Manila', state:'National Capital Region', country:'Philippines' },
   { city:'Cebu', state:'Central Visayas', country:'Philippines' },
-  { city:'Davao', state:'Davao Region', country:'Philippines' },
+  { city:'Davao', state:'Davao', country:'Philippines' },
 
   // ── SOUTH AFRICA ──
   { city:'Johannesburg', state:'Gauteng', country:'South Africa' },
