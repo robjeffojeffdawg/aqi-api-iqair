@@ -633,20 +633,45 @@
     throw new Error(`"${q}" not found — try the full city name or use Browse Cities`);
   }
 
-  async function runCompare() {
-    const qA = document.getElementById('compareInputA').value.trim(), qB = document.getElementById('compareInputB').value.trim();
+async function runCompare() {
+    const qA = document.getElementById('compareInputA').value.trim();
+    const qB = document.getElementById('compareInputB').value.trim();
     if (!qA && !qB) return;
     document.getElementById('vsDiff').textContent = '…';
     if (qA) document.getElementById('compareResultA').innerHTML = `<span class="compare-placeholder">Loading…</span>`;
     if (qB) document.getElementById('compareResultB').innerHTML = `<span class="compare-placeholder">Loading…</span>`;
+
+    const [resA, resB] = await Promise.allSettled([
+      qA ? fetchCityAQI(qA) : Promise.reject(new Error('No input')),
+      qB ? fetchCityAQI(qB) : Promise.reject(new Error('No input')),
+    ]);
+
     let aqiA = null, aqiB = null;
-    if (qA) aqiA = resA.status === 'fulfilled' ? renderCompareCard('compareResultA', resA.value) : (document.getElementById('compareResultA').innerHTML = `<span class="compare-placeholder" style="color:#fca5a5">❌ ${resA.reason?.message||'Not found'}</span>`, null);
-    if (qB) aqiB = resB.status === 'fulfilled' ? renderCompareCard('compareResultB', resB.value) : (document.getElementById('compareResultB').innerHTML = `<span class="compare-placeholder" style="color:#fca5a5">❌ ${resB.reason?.message||'Not found'}</span>`, null);
+
+    if (qA) {
+      if (resA.status === 'fulfilled') {
+        aqiA = renderCompareCard('compareResultA', resA.value);
+      } else {
+        document.getElementById('compareResultA').innerHTML = `<span class="compare-placeholder" style="color:#fca5a5">❌ ${resA.reason?.message || 'Not found'}</span>`;
+      }
+    }
+
+    if (qB) {
+      if (resB.status === 'fulfilled') {
+        aqiB = renderCompareCard('compareResultB', resB.value);
+      } else {
+        document.getElementById('compareResultB').innerHTML = `<span class="compare-placeholder" style="color:#fca5a5">❌ ${resB.reason?.message || 'Not found'}</span>`;
+      }
+    }
+
     if (aqiA !== null && aqiB !== null) {
-      const diff = aqiA - aqiB, el = document.getElementById('vsDiff');
+      const diff = aqiA - aqiB;
+      const el = document.getElementById('vsDiff');
       el.textContent = (diff > 0 ? '+' : '') + diff;
       el.style.color = diff === 0 ? 'var(--muted)' : diff > 0 ? '#ef4444' : '#22c55e';
-    } else { document.getElementById('vsDiff').textContent = '—'; }
+    } else {
+      document.getElementById('vsDiff').textContent = '—';
+    }
   }
 
   // REFRESH
