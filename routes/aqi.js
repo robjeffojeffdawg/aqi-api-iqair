@@ -25,22 +25,7 @@ router.get('/nearby', async (req, res, next) => {
     const sourcesArray = sources ? sources.split(',') : ['iqair', 'purpleair', 'openaq'];
     let allStations = [];
 
-// Auto-record top station to history
-if (allStations.length > 0) {
-  const top = allStations[0];
-  try {
-    const HistoricalReading = require('../models/HistoricalReading');
-    await new HistoricalReading({
-      location: { name: top.name, coordinates: { lat: latitude, lon: longitude } },
-      source: top.source || 'IQAir',
-      aqi: { us: top.aqi?.us ?? top.aqi ?? 0, cn: top.aqi?.cn ?? 0 },
-      pollutants: { mainPollutant: top.mainPollutant || '' },
-      weather: top.weather || {}
-    }).save();
-  } catch (e) { console.log('History record failed:', e.message); }
-}
-
-// IQAir
+    // IQAir
     if (sourcesArray.includes('iqair')) {
       try {
         const iqairStations = await iqairService.getNearbyStations(latitude, longitude, searchRadius);
@@ -228,33 +213,6 @@ router.get('/cache/stats', async (req, res, next) => {
     };
     res.json({ success: true, data: stats });
   } catch (error) { next(error); }
-});
-
-// ── CITY SEARCH INDEX ──────────────────────────────────────────
-const cityIndex = require('../services/cityIndex');
-
-router.get('/search', async (req, res, next) => {
-  try {
-    const q = (req.query.q || '').trim().toLowerCase();
-    if (!q || q.length < 2) return res.status(400).json({ error: 'Query must be at least 2 characters' });
-
-    const results = cityIndex
-      .filter(c => c.search.includes(q))
-      .sort((a, b) => {
-        const aExact = a.search === q, bExact = b.search === q;
-        const aStarts = a.search.startsWith(q), bStarts = b.search.startsWith(q);
-        if (aExact !== bExact) return aExact ? -1 : 1;
-        if (aStarts !== bStarts) return aStarts ? -1 : 1;
-        return a.city.localeCompare(b.city);
-      })
-      .slice(0, 10);
-
-    res.json({ success: true, data: { query: q, count: results.length, results } });
-  } catch (error) { next(error); }
-});
-
-router.get('/search/debug', (req, res) => {
-  res.json({ indexSize: cityIndex.length, sample: cityIndex.slice(0, 3) });
 });
 
 module.exports = router;
