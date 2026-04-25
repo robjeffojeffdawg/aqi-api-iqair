@@ -288,7 +288,7 @@ const CITY_INDEX = [
   { city:'Klang', state:'Selangor', country:'Malaysia' },
 
   // ── SPAIN ──
-  { city:'Madrid', state:'Community of Madrid', country:'Spain' },
+  { city:'Madrid', state:'Madrid', country:'Spain' },,
   { city:'Barcelona', state:'Catalonia', country:'Spain' },
   { city:'Valencia', state:'Valencia', country:'Spain' },
   { city:'Seville', state:'Andalusia', country:'Spain' },
@@ -518,8 +518,16 @@ const CITY_INDEX = [
   { city:'Saint Petersburg', state:'Saint Petersburg', country:'Russia' },
   { city:'Novosibirsk', state:'Novosibirsk Oblast', country:'Russia' },
   { city:'Yekaterinburg', state:'Sverdlovsk Oblast', country:'Russia' },
+
   // ── GUINEA ──
   { city:'Conakry', state:'Conakry', country:'Guinea' },
+
+    // ── AUSTRIA ──
+  { city:'Vienna', state:'Vienna', country:'Austria' },
+  { city:'Salzburg', state:'Salzburg', country:'Austria' },
+  { city:'Graz', state:'Styria', country:'Austria' },
+  { city:'Innsbruck', state:'Tyrol', country:'Austria' },
+  { city:'Linz', state:'Upper Austria', country:'Austria' },
 ];
 
 module.exports = CITY_INDEX.map(c => ({ ...c, search: c.city.toLowerCase() }));
