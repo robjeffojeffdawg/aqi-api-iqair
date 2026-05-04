@@ -234,6 +234,10 @@ app.use((req, res) => {
   });
 });
 
+// Start scheduled AQI recording
+const { startScheduler } = require('./services/scheduler');
+startScheduler();
+
 // Start server
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('\n🚀 ═══════════════════════════════════════════════════');
