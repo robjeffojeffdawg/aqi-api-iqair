@@ -545,8 +545,13 @@
     loadHistory();
   }
 
+  // Default location for history when user hasn't shared location
+  const DEFAULT_LAT = 14.6494;
+  const DEFAULT_LON = 101.2011;
+
   async function loadHistory() {
-    if (!userLat || !userLon) return;
+    const histLat = userLat || DEFAULT_LAT;
+    const histLon = userLon || DEFAULT_LON;
     const days = { '24h':1, '7d':7, '30d':30 }[currentPeriod];
     try {
       const r = await fetch(`${API_URL}/api/history/location?lat=${userLat}&lon=${userLon}&days=${days}`);
