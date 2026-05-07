@@ -390,14 +390,55 @@
     const btn = document.getElementById('locBtn');
     btn.disabled = true; btn.textContent = '⏳ Locating…';
     try {
+      // Check if geolocation is supported
+      if (!navigator.geolocation) {
+        throw { code: -1, message: 'not_supported' };
+      }
       const pos = await new Promise((res, rej) =>
-        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 30000, enableHighAccuracy: false })
+        navigator.geolocation.getCurrentPosition(res, rej, { timeout: 15000, enableHighAccuracy: false })
       );
       userLat = pos.coords.latitude;
       userLon = pos.coords.longitude;
       await loadNearby();
-    } catch { showError('Location access denied. Use Browse Cities instead.'); }
+    } catch (err) {
+      // err.code 1 = permission denied, 2 = unavailable, 3 = timeout
+      const denied = err.code === 1;
+      const timeout = err.code === 3;
+      const unsupported = err.code === -1;
+
+      // Show friendly contextual message
+      const el = document.getElementById('errorBar');
+      if (el) {
+        let msg = '';
+        if (denied) {
+          msg = `
+            <div class="error-bar" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+              <span>📍 Location blocked. Allow location access in your browser, or use Browse Cities to pick manually.</span>
+              <button onclick="loadMuakLek()" style="font-family:'Syne',sans-serif;font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0">
+                Load Muak Lek instead
+              </button>
+            </div>`;
+        } else if (timeout) {
+          msg = `<div class="error-bar">⏱ Location request timed out. Try again or use Browse Cities.</div>`;
+        } else if (unsupported) {
+          msg = `<div class="error-bar">⚠ Your browser doesn't support location. Use Browse Cities instead.</div>`;
+        } else {
+          msg = `<div class="error-bar">⚠ Couldn't get your location. Use Browse Cities or <button onclick="loadMuakLek()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;padding:0;text-decoration:underline">load Muak Lek</button> as default.</div>`;
+        }
+        el.innerHTML = msg;
+        // Don't auto-clear denied message — user needs to act on it
+        if (!denied) setTimeout(() => { if (el) el.innerHTML = ''; }, 8000);
+      }
+    }
     finally { btn.disabled = false; btn.textContent = '📍 My Location'; }
+  }
+
+  // Fallback — load Muak Lek as default location
+  async function loadMuakLek() {
+    document.getElementById('errorBar').innerHTML = '';
+    userLat = DEFAULT_LAT;
+    userLon = DEFAULT_LON;
+    await loadNearby();
   }
 
   async function loadNearby() {
@@ -554,7 +595,7 @@
     const histLon = userLon || DEFAULT_LON;
     const days = { '24h':1, '7d':7, '30d':30 }[currentPeriod];
     try {
-      const r = await fetch(`${API_URL}/api/history/location?lat=${userLat}&lon=${userLon}&days=${days}`);
+      const r = await fetch(`${API_URL}/api/history/location?lat=${histLat}&lon=${histLon}&days=${days}`);
       const d = await r.json();
       if (!r.ok || !d.success) throw new Error();
       if (d.data.readings.length) {
@@ -703,6 +744,8 @@
   function setLoading(id) { document.getElementById(id).innerHTML = `<div class="state-box"><div class="spinner-ring"></div><p>Loading air quality data…</p></div>`; }
   function showError(msg) { const el = document.getElementById('errorBar'); if (el) { el.innerHTML = `<div class="error-bar">⚠ ${msg}</div>`; setTimeout(()=>{ el.innerHTML=''; }, 5000); } }
   function updateTimestamp(id) { const el = document.getElementById(id); if (el) { const now = new Date(); el.textContent = `Updated ${now.toLocaleTimeString()} · ${now.toLocaleDateString()}`; } }
+// Load Muak Lek history on page load so chart is never empty
+  loadHistory();
 </script>
 </body>
 </html>
