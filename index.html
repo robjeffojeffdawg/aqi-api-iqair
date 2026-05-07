@@ -66,22 +66,6 @@
     select:focus { outline: none; border-color: var(--accent); }
     .browse-row { display: flex; gap: 10px; flex-wrap: wrap; }
 
-    /* COMPARE */
-    .compare-grid { display: grid; grid-template-columns: 1fr 52px 1fr; gap: 12px; align-items: start; }
-    .compare-col-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-    .compare-search-row { display: flex; gap: 6px; margin-bottom: 10px; }
-    .compare-input { flex: 1; font-family: 'Syne', sans-serif; font-size: 13px; padding: 8px 12px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
-    .compare-input:focus { outline: none; border-color: var(--accent); }
-    .compare-go { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 7px; border: none; background: var(--accent); color: #fff; cursor: pointer; }
-    .compare-go:hover { background: #2563eb; }
-    .compare-vs { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 28px; gap: 6px; }
-    .vs-badge { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; color: var(--muted); background: var(--border); padding: 4px 8px; border-radius: 4px; }
-    .vs-diff { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--muted); }
-    .compare-result { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; min-height: 90px; display: flex; flex-direction: column; gap: 5px; }
-    .compare-city-name { font-size: 13px; font-weight: 700; }
-    .compare-aqi-num { font-family: 'DM Mono', monospace; font-size: 36px; font-weight: 700; line-height: 1; }
-    .compare-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block; }
-    .compare-placeholder { font-size: 13px; color: var(--muted); font-family: 'DM Mono', monospace; }
 
     /* STATION CARDS */
     .station-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
@@ -167,8 +151,7 @@
       .two-col, .api-grid { grid-template-columns: 1fr; }
       .stats-row { grid-template-columns: repeat(2, 1fr); }
       .std-comparison { grid-template-columns: 1fr; }
-      .compare-grid { grid-template-columns: 1fr; }
-      .compare-vs { flex-direction: row; padding-top: 0; }
+
     }
   </style>
 </head>
@@ -198,7 +181,7 @@
     <div class="controls-bar">
       <button class="btn btn-primary" onclick="getCurrentLocation()" id="locBtn">📍 My Location</button>
       <button class="btn btn-ghost" onclick="togglePanel('browsePanel', loadCountriesOnce)">🗺 Browse Cities</button>
-      <button class="btn btn-ghost" onclick="togglePanel('comparePanel', null)">⚖️ Compare</button>
+
       <button class="btn btn-ghost" onclick="refreshData()">↺ Refresh</button>
     </div>
 
@@ -211,31 +194,6 @@
       </div>
     </div>
 
-    <div class="panel" id="comparePanel">
-      <div class="panel-label">Compare Two Cities</div>
-      <div class="compare-grid">
-        <div>
-          <div class="compare-col-label">City A</div>
-          <div class="compare-search-row">
-            <input type="text" id="compareInputA" class="compare-input" placeholder="e.g. London" onkeydown="if(event.key==='Enter') runCompare()">
-            <button class="compare-go" onclick="runCompare()">Go</button>
-          </div>
-          <div class="compare-result" id="compareResultA"><span class="compare-placeholder">Enter a city above</span></div>
-        </div>
-        <div class="compare-vs">
-          <div class="vs-badge">VS</div>
-          <div class="vs-diff" id="vsDiff">—</div>
-        </div>
-        <div>
-          <div class="compare-col-label">City B</div>
-          <div class="compare-search-row">
-            <input type="text" id="compareInputB" class="compare-input" placeholder="e.g. Bangkok" onkeydown="if(event.key==='Enter') runCompare()">
-            <button class="compare-go" onclick="runCompare()">Go</button>
-          </div>
-          <div class="compare-result" id="compareResultB"><span class="compare-placeholder">Enter a city above</span></div>
-        </div>
-      </div>
-    </div>
 
     <div id="errorBar"></div>
     <div id="liveContent">
@@ -569,122 +527,6 @@
       if (!r.ok) throw new Error(d.error || 'Failed');
       lastStationData = d.data; renderStations([d.data]); updateHealth(d.data); updateTimestamp('liveTimestamp');
     } catch (e) { showError(e.message); }
-  }
-
-  // COMPARE
-  async function fetchCityAQI(input) {
-    const q = input.trim();
-    if (!q) throw new Error('No input');
-    const titled = q.replace(/\b\w/g, c => c.toUpperCase());
-
-    // 1. Try static index first — instant, no API calls
-    try {
-      const r = await fetch(`${API_URL}/api/aqi/search?q=${encodeURIComponent(q.toLowerCase())}`);
-      const d = await r.json();
-      if (d.success && d.data.results.length) {
-        const { city, state, country } = d.data.results[0];
-        const r2 = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(city)}&state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
-        const d2 = await r2.json();
-        if (r2.ok && d2.success) return d2.data;
-      }
-    } catch {}
-
-    // 2. Try UK regions explicitly
-    for (const state of ['England', 'Scotland', 'Wales', 'Northern Ireland']) {
-      try {
-        const r = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(titled)}&state=${encodeURIComponent(state)}&country=UK`);
-        const d = await r.json();
-        if (r.ok && d.success) return d.data;
-      } catch {}
-    }
-
-    // 3. Fetch full countries list and try each
-    let countries = [];
-    try {
-      const r = await fetch(`${API_URL}/api/aqi/countries`);
-      const d = await r.json();
-      if (d.success) countries = d.data.countries.map(c => c.country).filter(c => c !== 'UK');
-    } catch {}
-
-    const priority = [
-      'Thailand','Australia','India','Germany','France','Japan','China',
-      'Singapore','Canada','Indonesia','Malaysia','Spain','Italy','Netherlands',
-      'Ireland','Poland','Sweden','Norway','Denmark','Belgium','Switzerland',
-      'Brazil','Mexico','South Africa','New Zealand','Portugal','Greece',
-      'Turkey','United Arab Emirates','South Korea','Taiwan','Vietnam',
-      'Philippines','Pakistan','Bangladesh','Sri Lanka','Nepal','Kenya',
-      'Nigeria','Ghana','Argentina','Chile','Colombia','Austria',
-      'Czech Republic','Hungary','USA','Russia','Israel','Egypt','Morocco',
-      'Saudi Arabia','Hong Kong SAR'
-    ];
-    const ordered = [...priority.filter(p => countries.includes(p)), ...countries.filter(c => !priority.includes(c))];
-
-    for (const country of ordered) {
-      try {
-        const r = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(titled)}&state=${encodeURIComponent(titled)}&country=${encodeURIComponent(country)}`);
-        const d = await r.json();
-        if (r.ok && d.success) return d.data;
-      } catch {}
-    }
-
-    // 4. Last resort — try all states for top 20 countries
-    for (const country of priority.slice(0, 20)) {
-      try {
-        const rs = await fetch(`${API_URL}/api/aqi/states?country=${encodeURIComponent(country)}`);
-        const ds = await rs.json();
-        if (!ds.success) continue;
-        for (const { state } of ds.data.states) {
-          try {
-            const r = await fetch(`${API_URL}/api/aqi/city?city=${encodeURIComponent(titled)}&state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
-            const d = await r.json();
-            if (r.ok && d.success) return d.data;
-          } catch {}
-        }
-      } catch {}
-    }
-
-    throw new Error(`"${q}" not found — try the full city name or use Browse Cities`);
-  }
-
-  function renderCompareCard(id, station) {
-    const aqi = Math.round(station.aqi?.us ?? station.aqi ?? 0), cat = getCategory(aqi);
-    document.getElementById(id).innerHTML = `
-      <div class="compare-city-name">${station.name || station.city || '—'}</div>
-      <div class="compare-aqi-num" style="color:${cat.color}">${aqi}</div>
-      <div class="compare-badge" style="background:${cat.color}22;color:${cat.color}">${cat.level}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${[station.city,station.country].filter(Boolean).join(', ')}</div>`;
-    return aqi;
-  }
-
-  async function runCompare() {
-    const qA = document.getElementById('compareInputA').value.trim();
-    const qB = document.getElementById('compareInputB').value.trim();
-    if (!qA && !qB) return;
-    document.getElementById('vsDiff').textContent = '…';
-    if (qA) document.getElementById('compareResultA').innerHTML = `<span class="compare-placeholder">Loading…</span>`;
-    if (qB) document.getElementById('compareResultB').innerHTML = `<span class="compare-placeholder">Loading…</span>`;
-
-    const [resA, resB] = await Promise.allSettled([
-      qA ? fetchCityAQI(qA) : Promise.reject(new Error('No input')),
-      qB ? fetchCityAQI(qB) : Promise.reject(new Error('No input')),
-    ]);
-
-    let aqiA = null, aqiB = null;
-    if (qA) {
-      if (resA.status === 'fulfilled') aqiA = renderCompareCard('compareResultA', resA.value);
-      else document.getElementById('compareResultA').innerHTML = `<span class="compare-placeholder" style="color:#fca5a5">❌ ${resA.reason?.message || 'Not found'}</span>`;
-    }
-    if (qB) {
-      if (resB.status === 'fulfilled') aqiB = renderCompareCard('compareResultB', resB.value);
-      else document.getElementById('compareResultB').innerHTML = `<span class="compare-placeholder" style="color:#fca5a5">❌ ${resB.reason?.message || 'Not found'}</span>`;
-    }
-    if (aqiA !== null && aqiB !== null) {
-      const diff = aqiA - aqiB, el = document.getElementById('vsDiff');
-      el.textContent = (diff > 0 ? '+' : '') + diff;
-      el.style.color = diff === 0 ? 'var(--muted)' : diff > 0 ? '#ef4444' : '#22c55e';
-    } else {
-      document.getElementById('vsDiff').textContent = '—';
-    }
   }
 
   // REFRESH
