@@ -3,9 +3,10 @@ const router = express.Router();
 const iqairService = require('../services/iqairService');
 const purpleAirService = require('../services/purpleAirService');
 const openAQService = require('../services/openAQService');
+const HistoricalReading = require('../models/HistoricalReading');
+const cityIndex = require('../services/cityIndex');
 
 // GET /api/aqi/nearby
-// Get nearest stations based on coordinates — IQAir + PurpleAir + OpenAQ
 router.get('/nearby', async (req, res, next) => {
   try {
     const { lat, lon, radius, sources } = req.query;
@@ -64,6 +65,44 @@ router.get('/nearby', async (req, res, next) => {
     }
 
     allStations.sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999));
+
+    // Auto-record top station to history (AFTER stations are fetched)
+    if (allStations.length > 0) {
+      const top = allStations[0];
+      try {
+        const source = top.source === 'PurpleAir' ? 'PurpleAir' : 'IQAir';
+        await new HistoricalReading({
+          location: {
+            name: top.name,
+            coordinates: { lat: latitude, lon: longitude },
+            city: top.city || '',
+            state: top.state || '',
+            country: top.country || ''
+          },
+          source,
+          aqi: {
+            us: top.aqi?.us ?? top.aqi ?? 0,
+            cn: top.aqi?.cn ?? 0
+          },
+          pollutants: {
+            pm25: top.pollutants?.pm25 ?? null,
+            pm10: top.pollutants?.pm10 ?? null,
+            o3:   top.pollutants?.o3   ?? null,
+            no2:  top.pollutants?.no2  ?? null,
+            so2:  top.pollutants?.so2  ?? null,
+            co:   top.pollutants?.co   ?? null
+          },
+          weather: {
+            temperature: top.weather?.temperature ?? null,
+            humidity:    top.weather?.humidity    ?? null,
+            pressure:    top.weather?.pressure    ?? null,
+            wind:        top.weather?.wind        ?? null
+          }
+        }).save();
+      } catch (e) {
+        console.log('History record failed:', e.message);
+      }
+    }
 
     res.json({
       success: true,
@@ -213,6 +252,32 @@ router.get('/cache/stats', async (req, res, next) => {
     };
     res.json({ success: true, data: stats });
   } catch (error) { next(error); }
+});
+
+// GET /api/aqi/search?q=city
+router.get('/search', async (req, res, next) => {
+  try {
+    const q = (req.query.q || '').trim().toLowerCase();
+    if (!q || q.length < 2) return res.status(400).json({ error: 'Query must be at least 2 characters' });
+
+    const results = cityIndex
+      .filter(c => c.search.includes(q))
+      .sort((a, b) => {
+        const aExact = a.search === q, bExact = b.search === q;
+        const aStarts = a.search.startsWith(q), bStarts = b.search.startsWith(q);
+        if (aExact !== bExact) return aExact ? -1 : 1;
+        if (aStarts !== bStarts) return aStarts ? -1 : 1;
+        return a.city.localeCompare(b.city);
+      })
+      .slice(0, 10);
+
+    res.json({ success: true, data: { query: q, count: results.length, results } });
+  } catch (error) { next(error); }
+});
+
+// GET /api/aqi/search/debug
+router.get('/search/debug', (req, res) => {
+  res.json({ indexSize: cityIndex.length, sample: cityIndex.slice(0, 3) });
 });
 
 module.exports = router;
