@@ -201,6 +201,10 @@ class IQAirService {
   }
 
   // Get cities with long cache
+  // NOTE: IQAir sometimes lists states in /states that then return state_not_found
+  // on /cities — this is an IQAir data inconsistency. We catch that 400 here and
+  // cache an empty array for 1 hour so we don't keep hammering the API for the
+  // same broken state.
   async getCities(state, country) {
     const cacheKey = `cities_${state}_${country}`.toLowerCase();
     
@@ -211,13 +215,24 @@ class IQAirService {
     }
     
     this.metrics.cacheMisses++;
-    
-    const data = await this.makeRequest('/cities', { state, country });
-    
-    // Cache for 24 hours
-    this.cache.set(cacheKey, data.data, 86400);
-    
-    return data.data;
+
+    try {
+      const data = await this.makeRequest('/cities', { state, country });
+      // Cache for 24 hours on success
+      this.cache.set(cacheKey, data.data, 86400);
+      return data.data;
+    } catch (error) {
+      // IQAir returns 400 / state_not_found for states it lists but doesn't
+      // actually have city data for. Cache empty result for 1 hour to avoid
+      // repeated failed API calls burning through the rate limit.
+      if (error.message && error.message.includes('400')) {
+        console.warn(`⚠️  getCities: IQAir state_not_found for state="${state}" country="${country}" — caching empty result for 1h`);
+        this.cache.set(cacheKey, [], 3600);
+        return [];
+      }
+      // Re-throw anything else (401, 429, network errors, etc.)
+      throw error;
+    }
   }
 
   // Get nearby stations (simulated - IQAir only returns nearest)
