@@ -46,6 +46,7 @@
     .aqi-badge { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 12px; font-weight: 700; margin: 10px 0; }
     .state-box { text-align: center; padding: 60px 20px; color: var(--muted); }
     .state-box h3 { font-size: 18px; color: var(--text); margin: 12px 0; }
+    .state-box p { font-size: 14px; line-height: 1.6; }
     .state-box .icon { font-size: 40px; margin-bottom: 12px; }
     .spinner-ring { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -58,6 +59,12 @@
     .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
     .health-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 640px) { .health-grid { grid-template-columns: 1fr; } }
+    .safety-label { font-size: 20px; font-weight: 800; margin: 8px 0; }
+    .advice-list { list-style: none; }
+    .advice-list li { font-size: 13px; color: var(--text); padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .advice-list li::before { content: '→ '; color: var(--accent); }
+    .contact-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 640px) { .contact-layout { grid-template-columns: 1fr; } }
     .contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
     .contact-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
     .form-group { margin-bottom: 14px; }
@@ -80,17 +87,17 @@
 
 <div class="page active" id="page-live">
   <div class="controls-bar">
-    <button class="btn btn-primary" onclick="getCurrentLocation()">📍 My Location</button>
+    <button class="btn btn-primary" onclick="getCurrentLocation()" id="locBtn">📍 My Location</button>
     <button class="btn btn-ghost" onclick="toggleBrowse()">🗺 Browse Thailand (77 Provinces)</button>
     <button class="btn btn-ghost" onclick="refreshData()">↺ Refresh</button>
   </div>
 
   <div class="browse-panel" id="browsePanel">
-    <h3 style="margin-bottom: 12px; font-size: 13px; font-weight: 700; text-transform: uppercase;">Thailand Provinces</h3>
+    <h3 style="margin-bottom: 12px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Thailand Provinces</h3>
     <div class="thailand-provinces" id="ThailandProvinces"></div>
     <div class="notice">
       <span style="font-size: 15px;">🌐</span>
-      <div><strong>Worldwide Coverage</strong>The 📍 button finds stations anywhere in the world using IQAir, PurpleAir, and OpenAQ.</div>
+      <div><strong>Worldwide Coverage via My Location</strong>The 📍 button uses three data sources (IQAir, PurpleAir, OpenAQ) to find the nearest air quality station <strong>anywhere in the world</strong> — UK, Guinea, Australia, or anywhere. Works even in countries without dedicated browse lists.</div>
     </div>
   </div>
 
@@ -99,31 +106,35 @@
     <div class="state-box">
       <div class="icon">🌍</div>
       <h3>Ready to Monitor</h3>
-      <p>Use 📍 My Location or browse all 77 Thai provinces.</p>
+      <p>Use 📍 My Location to find the nearest air quality station worldwide — works in any country. Or browse all 77 Thai provinces.</p>
     </div>
   </div>
+  <div id="timestamp" style="text-align: center; margin-top: 20px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);"></div>
 </div>
 
 <div class="page" id="page-insights">
   <div class="controls-bar">
-    <button class="btn btn-primary" onclick="getCurrentLocation()">📍 My Location</button>
+    <button class="btn btn-primary" onclick="getCurrentLocation()" id="insightsBtn">📍 My Location</button>
     <button class="btn btn-ghost" onclick="refreshData()">↺ Refresh</button>
   </div>
   <div class="insight-section">
     <div class="health-grid">
-      <div><div class="section-title">Info</div><div id="safetyContent"><div class="state-box" style="padding: 20px 0;"><p>Load a location to see insights.</p></div></div></div>
-      <div><div class="section-title">Advice</div><div id="adviceContent"><div class="state-box" style="padding: 20px 0;"><p>Recommendations will appear here.</p></div></div></div>
+      <div><div class="section-title">Outdoor Safety</div><div id="safetyContent"><div class="state-box" style="padding: 20px 0;"><p>Load a location to get your outdoor safety rating.</p></div></div></div>
+      <div><div class="section-title">Health Advice</div><div id="adviceContent"><div class="state-box" style="padding: 20px 0;"><p>Personalised recommendations will appear here.</p></div></div></div>
     </div>
   </div>
 </div>
 
 <div class="page" id="page-contact">
-  <div class="contact-card">
-    <h2>Get in Touch</h2>
-    <div class="form-group"><label>Name</label><input type="text" id="contactName" placeholder="Your name"></div>
-    <div class="form-group"><label>Email</label><input type="email" id="contactEmail" placeholder="your@email.com"></div>
-    <div class="form-group"><label>Message</label><textarea id="contactMsg" rows="5" placeholder="What's on your mind?"></textarea></div>
-    <button class="btn btn-primary" onclick="submitContact()" style="width: 100%;">Send Message</button>
+  <div class="contact-layout">
+    <div class="contact-card">
+      <h2>Get in Touch</h2>
+      <div class="form-group"><label>Name</label><input type="text" id="contactName" placeholder="Your name"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="contactEmail" placeholder="your@email.com"></div>
+      <div class="form-group"><label>Message</label><textarea id="contactMsg" rows="5" placeholder="What's on your mind?"></textarea></div>
+      <button class="btn btn-primary" onclick="submitContact()" style="width: 100%;">Send Message</button>
+      <div id="contactStatus" style="margin-top: 12px; font-size: 13px; color: var(--muted);"></div>
+    </div>
   </div>
 </div>
 
@@ -131,76 +142,103 @@
 const API = 'https://api.aqi.jeff-o-blogs.com';
 const THAILAND_PROVINCES = ['Amnat Charoen','Ang Thong','Buri Ram','Bueng Kan','Chumphon','Chaachoengsao','Chai Nat','Chaiyaburi','Chaiyaphum','Chanthaburi','Chiang Mai','Chiang Rai','Chon Buri','Kalasin','Kamphaengphet','Kanchanaburi','Khon Kaen','Krabi','Lampang','Lamphun','Loei','Lop Buri','Mae Hong Son','Maha Sarakham','Mukdahan','Nakhon Nayok','Nakhon Pathom','Nakhon Phanom','Nakhon Ratchasima','Nakhon Sawan','Nakhon Si Thammarat','Nan','Narathiwat','Nong Bua Lamphu','Nong Khai','Nonthaburi','Pathum Thani','Pattani','Phang Nga','Phatthalung','Phayao','Phetchabun','Phetchaburi','Phichit','Phisanulok','Phrae','Phuket','Prachuap Khiri Khan','Pran Buri','Ratchaburi','Ranong','Rayong','Roi Et','Samut Prakan','Samut Sakhon','Samut Songkhram','Saraburi','Satun','Sisaket','Sing Buri','Songkhla','Sukhothai','Suphanburi','Surat Thani','Surin','Tak','Trad','Ubon Ratchathani','Udon Thani','Uthai Thani','Uttaradit','Yasothon','Yala'].sort();
 
-let lat = null, lon = null;
+let lat = null, lon = null, last = null;
 
-function showPage(name, btn) {
+function showPage(pageName, button) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  btn.classList.add('active');
+  document.getElementById('page-' + pageName).classList.add('active');
+  button.classList.add('active');
 }
 
-function getCat(aqi) {
-  if (aqi <= 50) return '#22c55e';
-  if (aqi <= 100) return '#eab308';
-  if (aqi <= 150) return '#f97316';
-  if (aqi <= 200) return '#ef4444';
-  if (aqi <= 300) return '#a855f7';
-  return '#7f1d1d';
+function getCategory(aqi) {
+  if (aqi <= 50) return { c: '#22c55e' };
+  if (aqi <= 100) return { c: '#eab308' };
+  if (aqi <= 150) return { c: '#f97316' };
+  if (aqi <= 200) return { c: '#ef4444' };
+  if (aqi <= 300) return { c: '#a855f7' };
+  return { c: '#7f1d1d' };
 }
 
-function getCurrentLocation() {
-  navigator.geolocation.getCurrentPosition(
-    function(pos) {
-      lat = pos.coords.latitude;
-      lon = pos.coords.longitude;
-      loadNearby();
-    },
-    function(err) {
-      showError('Could not access location. Try browsing provinces.');
-    }
-  );
+async function getCurrentLocation() {
+  const btn = document.getElementById('locBtn');
+  const inBtn = document.getElementById('insightsBtn');
+  
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Locating…'; }
+  if (inBtn) { inBtn.disabled = true; inBtn.textContent = '⏳ Locating…'; }
+  
+  try {
+    const pos = await new Promise((resolve, reject) =>
+      navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 30000, enableHighAccuracy: false })
+    );
+    lat = pos.coords.latitude;
+    lon = pos.coords.longitude;
+    await loadNearby();
+  } catch (e) {
+    showFriendlyError('Location access denied', 'We couldn\'t access your location. Please enable location permission or try browsing Thailand provinces instead.', 'Browse Provinces', toggleBrowse);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📍 My Location'; }
+    if (inBtn) { inBtn.disabled = false; inBtn.textContent = '📍 My Location'; }
+  }
 }
 
 async function loadNearby() {
-  document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
+  setLoad('liveContent');
   try {
-    const res = await fetch(`${API}/api/aqi/nearby?lat=${lat}&lon=${lon}`);
-    const data = await res.json();
-    if (!data.data?.stations) throw new Error('No data');
-    renderStations(data.data.stations);
+    const r = await fetch(`${API}/api/aqi/nearby?lat=${lat}&lon=${lon}`);
+    const d = await r.json();
+    if (!r.ok || !d.data?.stations?.length) throw new Error('no_stations');
+    last = d.data.stations[0] || null;
+    renderStations(d.data.stations);
+    showSuccess(`Found ${d.data.stations.length} station(s) worldwide`);
+    updateTimestamp();
   } catch (e) {
-    showError('Could not load data. Please try again.');
+    if (e.message === 'no_stations') {
+      showFriendlyError('No Stations Nearby', 'We couldn\'t find air quality monitoring stations within 50km of your location. This can happen in rural areas.', 'Try My Location Again', getCurrentLocation, 'Browse Thailand', toggleBrowse);
+    } else {
+      showFriendlyError('Connection Issue', 'We encountered a temporary issue fetching data. Please check your connection and try again.', 'Retry', loadNearby, 'Browse Thailand', toggleBrowse);
+    }
+    document.getElementById('liveContent').innerHTML = '';
   }
 }
 
 function renderStations(stations) {
-  if (!stations || stations.length === 0) {
-    document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="icon">📡</div><h3>No Stations</h3></div>';
+  const el = document.getElementById('liveContent');
+  if (!stations || !stations.length) {
+    el.innerHTML = '<div class="state-box"><div class="icon">📡</div><h3>No Data Available</h3><p>Try adjusting your location or browsing a specific province.</p></div>';
     return;
   }
   
   let html = '<div class="station-grid">';
   stations.forEach(s => {
     const aqi = Math.round(s.aqi?.us || 0);
-    html += `<div class="station-card"><div class="station-name">${s.name}</div><span class="station-source">${s.source || 'IQAir'}</span><div style="margin: 12px 0; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);">${s.distance ? s.distance.toFixed(1) + ' km' : ''}</div><div class="aqi-number" style="color: ${getCat(aqi)};">${aqi}</div><div class="aqi-badge" style="background: ${getCat(aqi)};">AQI</div></div>`;
+    const cat = getCategory(aqi);
+    html += `
+      <div class="station-card">
+        <div class="station-name">${s.name}</div>
+        <span class="station-source">${s.source || 'IQAir'}</span>
+        <div style="margin: 12px 0; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);">${s.distance ? s.distance.toFixed(1) + ' km away' : ''}</div>
+        <div class="aqi-number" style="color: ${cat.c};">${aqi}</div>
+        <div class="aqi-badge" style="background: ${cat.c};">AQI</div>
+      </div>
+    `;
   });
   html += '</div>';
-  document.getElementById('liveContent').innerHTML = html;
+  el.innerHTML = html;
 }
 
 function toggleBrowse() {
-  const panel = document.getElementById('browsePanel');
-  panel.classList.toggle('open');
-  
-  if (panel.classList.contains('open')) {
+  const p = document.getElementById('browsePanel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) {
+    clearMessages();
     const container = document.getElementById('ThailandProvinces');
-    if (container.children.length === 0) {
-      THAILAND_PROVINCES.forEach(p => {
+    if (!container.children.length) {
+      THAILAND_PROVINCES.forEach(province => {
         const btn = document.createElement('button');
         btn.className = 'province-btn';
-        btn.textContent = p;
-        btn.onclick = function() { loadThailandProvince(p); };
+        btn.textContent = province;
+        btn.onclick = () => loadThailandProvince(province);
         container.appendChild(btn);
       });
     }
@@ -208,41 +246,83 @@ function toggleBrowse() {
 }
 
 async function loadThailandProvince(province) {
-  document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
+  setLoad('liveContent');
+  clearMessages();
   try {
-    const res = await fetch(`${API}/api/aqi/city?city=${encodeURIComponent(province)}&country=Thailand`);
-    const data = await res.json();
-    if (!data.data) throw new Error('No data');
-    renderStations([data.data]);
+    const r = await fetch(`${API}/api/aqi/city?city=${encodeURIComponent(province)}&country=Thailand`);
+    const d = await r.json();
+    if (!r.ok || !d.data) throw new Error('not_found');
+    last = d.data;
+    renderStations([d.data]);
+    showSuccess(`Loaded: ${province}, Thailand`);
+    updateTimestamp();
   } catch (e) {
-    document.getElementById('liveContent').innerHTML = `<div class="state-box"><div class="icon">📡</div><h3>No Data for ${province}</h3><p>Try another province.</p></div>`;
+    showFriendlyError(`No Data for ${province}`, 'We couldn\'t find air quality data for this province. It may not have monitoring stations yet.', 'Try Different Province', toggleBrowse, 'Use My Location', () => { lat && lon ? loadNearby() : getCurrentLocation(); });
   }
 }
 
-function refreshData() {
+async function refreshData() {
+  clearMessages();
   if (lat && lon) {
-    loadNearby();
-  } else {
-    showError('Select a location first.');
+    await loadNearby();
+    return;
   }
+  document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="icon">🌍</div><h3>No Location Selected</h3><p>Use 📍 My Location to find stations worldwide, or browse Thailand provinces.</p></div>';
 }
 
 function submitContact() {
-  const name = document.getElementById('contactName').value.trim();
-  const email = document.getElementById('contactEmail').value.trim();
-  const msg = document.getElementById('contactMsg').value.trim();
+  const n = document.getElementById('contactName').value.trim();
+  const e = document.getElementById('contactEmail').value.trim();
+  const m = document.getElementById('contactMsg').value.trim();
+  const st = document.getElementById('contactStatus');
   
-  if (!name || !email || !msg) {
-    alert('Please fill in all fields');
+  if (!n || !e || !m) {
+    st.textContent = 'Please fill in all fields';
+    st.style.color = '#ef4444';
     return;
   }
   
-  window.location.href = `mailto:contact@jeff-o-blogs.com?subject=AQI Feedback&body=${encodeURIComponent(name + '\n' + email + '\n\n' + msg)}`;
+  window.location.href = `mailto:contact@jeff-o-blogs.com?subject=${encodeURIComponent('AQI Feedback')}&body=${encodeURIComponent(n + '\n' + e + '\n\n' + m)}`;
 }
 
-function showError(msg) {
-  document.getElementById('errorBar').innerHTML = `<div class="error-bar">⚠ ${msg}</div>`;
-  setTimeout(() => document.getElementById('errorBar').innerHTML = '', 5000);
+function setLoad(id) {
+  document.getElementById(id).innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading air quality data…</p></div>';
+}
+
+function showSuccess(msg) {
+  clearMessages();
+  const bar = document.getElementById('errorBar');
+  bar.innerHTML = `<div class="success-bar">✓ ${msg}</div>`;
+  setTimeout(() => bar.innerHTML = '', 6000);
+}
+
+function showFriendlyError(title, desc, ...args) {
+  clearMessages();
+  const bar = document.getElementById('errorBar');
+  let html = `<div class="helpful-box"><strong>${title}</strong>${desc}<div class="action-buttons">`;
+  
+  for (let i = 0; i < args.length; i += 2) {
+    const label = args[i];
+    const action = args[i + 1];
+    if (label && action) {
+      html += `<button class="btn btn-small btn-ghost" onclick="${typeof action === 'function' ? action.name || 'action' : action}()">${label}</button>`;
+    }
+  }
+  
+  html += '</div></div>';
+  bar.innerHTML = html;
+}
+
+function clearMessages() {
+  document.getElementById('errorBar').innerHTML = '';
+}
+
+function updateTimestamp() {
+  const t = document.getElementById('timestamp');
+  if (t) {
+    const now = new Date();
+    t.textContent = `Last updated: ${now.toLocaleTimeString()} · ${now.toLocaleDateString()}`;
+  }
 }
 </script>
 </body>
