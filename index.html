@@ -30,13 +30,20 @@
     .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
     .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
     .btn-small { padding: 6px 12px; font-size: 12px; }
-    .browse-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 20px; display: none; }
-    .browse-panel.open { display: block; }
-    .thailand-provinces { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+    .browse-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 20px; display: none; }
+    .browse-section.open { display: block; }
+    .browse-section h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; }
+    .thailand-provinces { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 20px; }
     .province-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 7px; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 13px; transition: all 0.15s; }
     .province-btn:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.1); }
+    .global-browse { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    select { font-family: 'Syne', sans-serif; font-size: 13px; padding: 8px 12px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; }
+    select:disabled { opacity: 0.5; }
     .notice { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0; padding: 14px; background: rgba(59, 130, 246, 0.07); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; font-size: 12px; color: var(--muted); line-height: 1.6; }
     .notice strong { color: var(--text); display: block; margin-bottom: 6px; font-size: 13px; }
+    .helpful-box { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); color: #fed7aa; padding: 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
+    .helpful-box strong { color: #fbbf24; display: block; margin-bottom: 10px; }
+    .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
     .station-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
     .station-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
     .station-card:hover { border-color: var(--accent); transform: translateY(-2px); }
@@ -51,13 +58,14 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .error-bar { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
     .success-bar { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #86efac; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
-    .helpful-box { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); color: #fed7aa; padding: 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
-    .helpful-box strong { color: #fbbf24; display: block; margin-bottom: 10px; }
-    .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-    .insight-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .insight-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
     .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
     .health-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 640px) { .health-grid { grid-template-columns: 1fr; } }
+    .safety-label { font-size: 20px; font-weight: 800; margin: 8px 0; }
+    .advice-list { list-style: none; }
+    .advice-list li { font-size: 13px; color: var(--text); padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .advice-list li::before { content: '→ '; color: var(--accent); }
     .contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
     .contact-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
     .form-group { margin-bottom: 14px; }
@@ -81,16 +89,26 @@
 <div class="page active" id="page-live">
   <div class="controls-bar">
     <button class="btn btn-primary" onclick="getCurrentLocation()">📍 My Location</button>
-    <button class="btn btn-ghost" onclick="toggleBrowse()">🗺 Browse Thailand (77 Provinces)</button>
+    <button class="btn btn-ghost" onclick="toggleBrowse()">🗺 Browse Locations</button>
     <button class="btn btn-ghost" onclick="refreshData()">↺ Refresh</button>
   </div>
 
-  <div class="browse-panel" id="browsePanel">
-    <h3 style="margin-bottom: 12px; font-size: 13px; font-weight: 700; text-transform: uppercase;">Thailand Provinces</h3>
+  <div class="browse-section" id="browseSection">
+    <h3>Thailand (Recommended)</h3>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">All 77 provinces with reliable data:</p>
     <div class="thailand-provinces" id="ThailandProvinces"></div>
+
+    <h3 style="margin-top: 24px;">Search Global Locations</h3>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Search for any city worldwide:</p>
+    <div class="global-browse">
+      <select id="countrySelect" onchange="loadStates()"><option value="">Country…</option></select>
+      <select id="stateSelect" onchange="loadCities()" disabled><option value="">State/Region…</option></select>
+      <select id="citySelect" onchange="loadCityData()" disabled><option value="">City…</option></select>
+    </div>
+
     <div class="notice">
       <span style="font-size: 15px;">🌐</span>
-      <div><strong>Worldwide Coverage</strong>The 📍 button finds stations anywhere in the world using IQAir, PurpleAir, and OpenAQ.</div>
+      <div><strong>Best Experience:</strong>Use 📍 My Location for worldwide coverage. Browse Thailand for guaranteed fast results.</div>
     </div>
   </div>
 
@@ -99,7 +117,7 @@
     <div class="state-box">
       <div class="icon">🌍</div>
       <h3>Ready to Monitor</h3>
-      <p>Use 📍 My Location or browse all 77 Thai provinces.</p>
+      <p>Use 📍 My Location or browse locations below.</p>
     </div>
   </div>
 </div>
@@ -109,10 +127,20 @@
     <button class="btn btn-primary" onclick="getCurrentLocation()">📍 My Location</button>
     <button class="btn btn-ghost" onclick="refreshData()">↺ Refresh</button>
   </div>
+
   <div class="insight-section">
+    <div class="section-title">Safety & Health</div>
     <div class="health-grid">
-      <div><div class="section-title">Info</div><div id="safetyContent"><div class="state-box" style="padding: 20px 0;"><p>Load a location to see insights.</p></div></div></div>
-      <div><div class="section-title">Advice</div><div id="adviceContent"><div class="state-box" style="padding: 20px 0;"><p>Recommendations will appear here.</p></div></div></div>
+      <div id="safetyContent">
+        <div class="state-box" style="padding: 20px 0;">
+          <p>Load a location to see safety information.</p>
+        </div>
+      </div>
+      <div id="adviceContent">
+        <div class="state-box" style="padding: 20px 0;">
+          <p>Health recommendations will appear here.</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -131,7 +159,7 @@
 const API = 'https://api.aqi.jeff-o-blogs.com';
 const THAILAND_PROVINCES = ['Amnat Charoen','Ang Thong','Buri Ram','Bueng Kan','Chumphon','Chaachoengsao','Chai Nat','Chaiyaburi','Chaiyaphum','Chanthaburi','Chiang Mai','Chiang Rai','Chon Buri','Kalasin','Kamphaengphet','Kanchanaburi','Khon Kaen','Krabi','Lampang','Lamphun','Loei','Lop Buri','Mae Hong Son','Maha Sarakham','Mukdahan','Nakhon Nayok','Nakhon Pathom','Nakhon Phanom','Nakhon Ratchasima','Nakhon Sawan','Nakhon Si Thammarat','Nan','Narathiwat','Nong Bua Lamphu','Nong Khai','Nonthaburi','Pathum Thani','Pattani','Phang Nga','Phatthalung','Phayao','Phetchabun','Phetchaburi','Phichit','Phisanulok','Phrae','Phuket','Prachuap Khiri Khan','Pran Buri','Ratchaburi','Ranong','Rayong','Roi Et','Samut Prakan','Samut Sakhon','Samut Songkhram','Saraburi','Satun','Sisaket','Sing Buri','Songkhla','Sukhothai','Suphanburi','Surat Thani','Surin','Tak','Trad','Ubon Ratchathani','Udon Thani','Uthai Thani','Uttaradit','Yasothon','Yala'].sort();
 
-let lat = null, lon = null;
+let lat = null, lon = null, lastData = null;
 
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -149,6 +177,15 @@ function getCat(aqi) {
   return '#7f1d1d';
 }
 
+function getHealth(aqi) {
+  if (aqi <= 50) return 'Air quality is good. Safe for outdoor activities.';
+  if (aqi <= 100) return 'Acceptable air quality. Sensitive individuals may experience minor symptoms.';
+  if (aqi <= 150) return 'Sensitive groups should reduce outdoor exertion.';
+  if (aqi <= 200) return 'Everyone may experience health effects. Reduce outdoor activities.';
+  if (aqi <= 300) return 'Health alert. Avoid outdoor activities if possible.';
+  return 'Emergency conditions. Stay indoors.';
+}
+
 function getCurrentLocation() {
   navigator.geolocation.getCurrentPosition(
     function(pos) {
@@ -157,7 +194,7 @@ function getCurrentLocation() {
       loadNearby();
     },
     function(err) {
-      showError('Could not access location. Try browsing provinces.');
+      showFriendlyError('Location access denied', 'Enable location permission or browse locations manually.', 'Browse Locations', 'toggleBrowse');
     }
   );
 }
@@ -167,10 +204,12 @@ async function loadNearby() {
   try {
     const res = await fetch(`${API}/api/aqi/nearby?lat=${lat}&lon=${lon}`);
     const data = await res.json();
-    if (!data.data?.stations) throw new Error('No data');
+    if (!data.data?.stations || data.data.stations.length === 0) throw new Error('no_stations');
+    lastData = data.data.stations[0];
     renderStations(data.data.stations);
+    updateInsights();
   } catch (e) {
-    showError('Could not load data. Please try again.');
+    showFriendlyError('No Stations Found', 'We couldn\'t find stations near your location. This can happen in remote areas.', 'Find Different Location', 'getCurrentLocation', 'Browse Locations', 'toggleBrowse');
   }
 }
 
@@ -189,11 +228,26 @@ function renderStations(stations) {
   document.getElementById('liveContent').innerHTML = html;
 }
 
-function toggleBrowse() {
-  const panel = document.getElementById('browsePanel');
-  panel.classList.toggle('open');
+function updateInsights() {
+  if (!lastData) return;
+  const aqi = Math.round(lastData.aqi?.us || 0);
+  const cat = getCat(aqi);
   
-  if (panel.classList.contains('open')) {
+  let emoji = '🟢';
+  if (aqi > 150) emoji = '🔴';
+  else if (aqi > 100) emoji = '🟠';
+  else if (aqi > 50) emoji = '🟡';
+  
+  document.getElementById('safetyContent').innerHTML = `<div style="text-align: center; padding: 20px 0;"><div style="font-size: 40px; margin-bottom: 12px;">${emoji}</div><div style="font-size: 18px; font-weight: 800; color: ${cat}; margin-bottom: 8px;">${aqi > 150 ? 'Unsafe' : aqi > 100 ? 'Caution' : aqi > 50 ? 'Moderate' : 'Safe'}</div></div>`;
+  
+  document.getElementById('adviceContent').innerHTML = `<div style="padding: 20px 0;"><div style="font-size: 13px; line-height: 1.6;">${getHealth(aqi)}</div></div>`;
+}
+
+function toggleBrowse() {
+  const section = document.getElementById('browseSection');
+  section.classList.toggle('open');
+  
+  if (section.classList.contains('open')) {
     const container = document.getElementById('ThailandProvinces');
     if (container.children.length === 0) {
       THAILAND_PROVINCES.forEach(p => {
@@ -213,9 +267,102 @@ async function loadThailandProvince(province) {
     const res = await fetch(`${API}/api/aqi/city?city=${encodeURIComponent(province)}&country=Thailand`);
     const data = await res.json();
     if (!data.data) throw new Error('No data');
+    lastData = data.data;
     renderStations([data.data]);
+    updateInsights();
   } catch (e) {
-    document.getElementById('liveContent').innerHTML = `<div class="state-box"><div class="icon">📡</div><h3>No Data for ${province}</h3><p>Try another province.</p></div>`;
+    showFriendlyError(`No Data for ${province}`, 'This province may not have monitoring stations yet.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another Province', 'toggleBrowse');
+  }
+}
+
+async function loadStates() {
+  const country = document.getElementById('countrySelect').value;
+  const stateSelect = document.getElementById('stateSelect');
+  const citySelect = document.getElementById('citySelect');
+  
+  citySelect.innerHTML = '<option value="">City…</option>';
+  citySelect.disabled = true;
+  
+  if (!country) {
+    stateSelect.innerHTML = '<option value="">State/Region…</option>';
+    stateSelect.disabled = true;
+    return;
+  }
+  
+  stateSelect.disabled = true;
+  stateSelect.innerHTML = '<option value="">Loading…</option>';
+  
+  try {
+    const res = await fetch(`${API}/api/aqi/states?country=${encodeURIComponent(country)}`);
+    const data = await res.json();
+    stateSelect.innerHTML = '<option value="">State/Region…</option>';
+    if (data.data?.states) {
+      data.data.states.forEach(s => {
+        const o = document.createElement('option');
+        o.value = s.state;
+        o.textContent = s.state;
+        stateSelect.appendChild(o);
+      });
+      stateSelect.disabled = false;
+    }
+  } catch (e) {
+    stateSelect.innerHTML = '<option value="">Error loading</option>';
+  }
+}
+
+async function loadCities() {
+  const country = document.getElementById('countrySelect').value;
+  const state = document.getElementById('stateSelect').value;
+  const citySelect = document.getElementById('citySelect');
+  
+  if (!state) {
+    citySelect.innerHTML = '<option value="">City…</option>';
+    citySelect.disabled = true;
+    return;
+  }
+  
+  citySelect.disabled = true;
+  citySelect.innerHTML = '<option value="">Loading…</option>';
+  
+  try {
+    const res = await fetch(`${API}/api/aqi/cities?state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
+    const data = await res.json();
+    citySelect.innerHTML = '<option value="">City…</option>';
+    if (data.data?.cities) {
+      data.data.cities.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.city;
+        o.textContent = c.city;
+        citySelect.appendChild(o);
+      });
+      citySelect.disabled = false;
+    }
+  } catch (e) {
+    citySelect.innerHTML = '<option value="">Error loading</option>';
+  }
+}
+
+async function loadCityData() {
+  const city = document.getElementById('citySelect').value;
+  const state = document.getElementById('stateSelect').value;
+  const country = document.getElementById('countrySelect').value;
+  
+  if (!city) return;
+  
+  document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
+  
+  try {
+    let url = `${API}/api/aqi/city?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`;
+    if (state) url += `&state=${encodeURIComponent(state)}`;
+    
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data.data) throw new Error('No data');
+    lastData = data.data;
+    renderStations([data.data]);
+    updateInsights();
+  } catch (e) {
+    showFriendlyError(`No Data for ${city}`, 'This location may not have monitoring stations.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another Location', 'toggleBrowse');
   }
 }
 
@@ -223,7 +370,7 @@ function refreshData() {
   if (lat && lon) {
     loadNearby();
   } else {
-    showError('Select a location first.');
+    showFriendlyError('No Location Set', 'Use My Location or browse to select a location first.', 'Use My Location', 'getCurrentLocation', 'Browse Locations', 'toggleBrowse');
   }
 }
 
@@ -240,9 +387,9 @@ function submitContact() {
   window.location.href = `mailto:contact@jeff-o-blogs.com?subject=AQI Feedback&body=${encodeURIComponent(name + '\n' + email + '\n\n' + msg)}`;
 }
 
-function showError(msg) {
-  document.getElementById('errorBar').innerHTML = `<div class="error-bar">⚠ ${msg}</div>`;
-  setTimeout(() => document.getElementById('errorBar').innerHTML = '', 5000);
+function showFriendlyError(title, desc, btn1Text, btn1Action, btn2Text, btn2Action) {
+  const bar = document.getElementById('errorBar');
+  bar.innerHTML = `<div class="helpful-box"><strong>${title}</strong>${desc}<div class="action-buttons"><button class="btn btn-small btn-ghost" onclick="${btn1Action}()">${btn1Text}</button><button class="btn btn-small btn-ghost" onclick="${btn2Action}()">${btn2Text}</button></div></div>`;
 }
 </script>
 </body>
