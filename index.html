@@ -35,11 +35,13 @@
     .thailand-provinces { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 20px; }
     .province-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 7px; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 13px; transition: all 0.15s; }
     .province-btn:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.1); }
-    .global-browse { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-    select { font-family: 'Syne', sans-serif; font-size: 13px; padding: 8px 12px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; }
-    select:disabled { opacity: 0.5; }
     .notice { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0; padding: 14px; background: rgba(59, 130, 246, 0.07); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; font-size: 12px; color: var(--muted); line-height: 1.6; }
     .notice strong { color: var(--text); display: block; margin-bottom: 6px; font-size: 13px; }
+    .global-browse { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end; }
+    .browse-group { display: flex; flex-direction: column; gap: 6px; }
+    .browse-group label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--muted); }
+    select { font-family: 'Syne', sans-serif; font-size: 13px; padding: 8px 12px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; min-width: 160px; }
+    select:disabled { opacity: 0.4; cursor: not-allowed; }
     .helpful-box { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); color: #fed7aa; padding: 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
     .helpful-box strong { color: #fbbf24; display: block; margin-bottom: 10px; }
     .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
@@ -107,21 +109,30 @@
   </div>
 
   <div class="browse-section" id="browseSection">
-    <h3>Thailand (Recommended)</h3>
-    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">All 77 provinces with reliable data:</p>
+    <h3>Thailand (Recommended — 77 Provinces)</h3>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">All provinces with reliable data:</p>
     <div class="thailand-provinces" id="ThailandProvinces"></div>
 
-    <h3 style="margin-top: 24px;">Search Global Locations</h3>
-    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Search for any city worldwide:</p>
+    <h3 style="margin-top: 24px;">Search Worldwide</h3>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Find any city globally:</p>
     <div class="global-browse">
-      <select id="countrySelect" onchange="loadStates()"><option value="">Country…</option></select>
-      <select id="stateSelect" onchange="loadCities()" disabled><option value="">State/Region…</option></select>
-      <select id="citySelect" onchange="loadCityData()" disabled><option value="">City…</option></select>
+      <div class="browse-group">
+        <label>Country</label>
+        <select id="countrySelect" onchange="loadStates()"><option value="">Select…</option></select>
+      </div>
+      <div class="browse-group">
+        <label>State/Region</label>
+        <select id="stateSelect" onchange="loadCities()" disabled><option value="">Select…</option></select>
+      </div>
+      <div class="browse-group">
+        <label>City</label>
+        <select id="citySelect" onchange="loadCityData()" disabled><option value="">Select…</option></select>
+      </div>
     </div>
 
     <div class="notice">
       <span style="font-size: 15px;">🌐</span>
-      <div><strong>Best Experience:</strong>Use 📍 My Location for worldwide coverage. Browse Thailand for guaranteed fast results.</div>
+      <div><strong>Pro Tip:</strong>For fastest results, use 📍 My Location worldwide. Browse global locations for manual search.</div>
     </div>
   </div>
 
@@ -142,24 +153,18 @@
     <button class="btn btn-ghost" onclick="refreshData()">↺ Refresh</button>
   </div>
 
-  <!-- Safety & Health -->
   <div class="insight-section">
     <div class="section-title">Outdoor Safety & Health Recommendation</div>
     <div class="health-grid">
       <div class="safety-card" id="safetyContent">
-        <div class="state-box" style="padding: 20px 0;">
-          <p>Load a location to see safety rating.</p>
-        </div>
+        <div class="state-box" style="padding: 20px 0;"><p>Load a location to see safety rating.</p></div>
       </div>
       <div id="adviceContent">
-        <div class="state-box" style="padding: 20px 0;">
-          <p>Health recommendations will appear here.</p>
-        </div>
+        <div class="state-box" style="padding: 20px 0;"><p>Health recommendations will appear here.</p></div>
       </div>
     </div>
   </div>
 
-  <!-- Current Readings -->
   <div class="insight-section">
     <div class="section-title">Current Readings</div>
     <div class="stats-grid">
@@ -178,7 +183,6 @@
     </div>
   </div>
 
-  <!-- AQI Scale Reference -->
   <div class="insight-section">
     <div class="section-title">AQI Scale Reference (US Standard)</div>
     <div class="aqi-scale">
@@ -195,7 +199,7 @@
       <div class="scale-row">
         <div class="scale-swatch" style="background: var(--sensitive)"></div>
         <div class="scale-range">101–150</div>
-        <div class="scale-label"><strong>Unhealthy for Sensitive Groups</strong> — Sensitive individuals should limit exertion</div>
+        <div class="scale-label"><strong>Unhealthy for Sensitive Groups</strong> — Reduce outdoor exertion</div>
       </div>
       <div class="scale-row">
         <div class="scale-swatch" style="background: var(--unhealthy)"></div>
@@ -205,7 +209,7 @@
       <div class="scale-row">
         <div class="scale-swatch" style="background: var(--vunhealthy)"></div>
         <div class="scale-range">201–300</div>
-        <div class="scale-label"><strong>Very Unhealthy</strong> — Health alert; avoid outdoor activity</div>
+        <div class="scale-label"><strong>Very Unhealthy</strong> — Health alert; avoid outdoors</div>
       </div>
       <div class="scale-row">
         <div class="scale-swatch" style="background: var(--hazardous)"></div>
@@ -311,17 +315,14 @@ function updateInsights() {
   const cat = getCat(aqi);
   const advice = getAdvice(aqi);
 
-  // Safety card
   document.getElementById('safetyContent').innerHTML = `
     <div class="safety-emoji">${cat.emoji}</div>
     <div class="safety-label" style="color: ${cat.color};">${cat.label}</div>
     <div class="safety-desc">${cat.health}</div>
   `;
 
-  // Advice list
   document.getElementById('adviceContent').innerHTML = `<ul class="advice-list">${advice.map(a => `<li>${a}</li>`).join('')}</ul>`;
 
-  // Current readings
   document.getElementById('readingUS').textContent = aqi;
   document.getElementById('readingUS').style.color = cat.color;
   document.getElementById('readingPollutant').textContent = lastData.mainPollutant ? getPollutantName(lastData.mainPollutant) : '—';
@@ -336,8 +337,11 @@ function getPollutantName(code) {
 function toggleBrowse() {
   const section = document.getElementById('browseSection');
   section.classList.toggle('open');
-  if (section.classList.contains('open') && !document.getElementById('ThailandProvinces').children.length) {
-    loadProvinces();
+  if (section.classList.contains('open')) {
+    const provincesContainer = document.getElementById('ThailandProvinces');
+    const countrySelect = document.getElementById('countrySelect');
+    if (!provincesContainer.children.length) loadProvinces();
+    if (countrySelect.options.length <= 1) loadCountries();
   }
 }
 
@@ -352,17 +356,25 @@ function loadProvinces() {
   });
 }
 
-async function loadThailandProvince(province) {
-  document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
+async function loadCountries() {
+  const select = document.getElementById('countrySelect');
+  select.disabled = true;
+  select.innerHTML = '<option value="">Loading…</option>';
   try {
-    const res = await fetch(`${API}/api/aqi/city?city=${encodeURIComponent(province)}&country=Thailand`);
+    const res = await fetch(`${API}/api/aqi/countries`);
     const data = await res.json();
-    if (!data.data) throw new Error('No data');
-    lastData = data.data;
-    renderStations([data.data]);
-    updateInsights();
+    select.innerHTML = '<option value="">Select Country…</option>';
+    if (data.data?.countries?.length) {
+      data.data.countries.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.country;
+        o.textContent = c.country;
+        select.appendChild(o);
+      });
+      select.disabled = false;
+    }
   } catch (e) {
-    showFriendlyError(`No Data for ${province}`, 'Try another province or use My Location.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another', 'toggleBrowse');
+    select.innerHTML = '<option value="">Error loading</option>';
   }
 }
 
@@ -370,16 +382,16 @@ async function loadStates() {
   const country = document.getElementById('countrySelect').value;
   const stateSelect = document.getElementById('stateSelect');
   const citySelect = document.getElementById('citySelect');
-  citySelect.innerHTML = '<option value="">City…</option>';
+  citySelect.innerHTML = '<option value="">Select City…</option>';
   citySelect.disabled = true;
-  if (!country) { stateSelect.innerHTML = '<option value="">State/Region…</option>'; stateSelect.disabled = true; return; }
+  if (!country) { stateSelect.innerHTML = '<option value="">Select State/Region…</option>'; stateSelect.disabled = true; return; }
   stateSelect.disabled = true;
   stateSelect.innerHTML = '<option value="">Loading…</option>';
   try {
     const res = await fetch(`${API}/api/aqi/states?country=${encodeURIComponent(country)}`);
     const data = await res.json();
-    stateSelect.innerHTML = '<option value="">State/Region…</option>';
-    if (data.data?.states) {
+    stateSelect.innerHTML = '<option value="">Select State/Region…</option>';
+    if (data.data?.states?.length) {
       data.data.states.forEach(s => {
         const o = document.createElement('option');
         o.value = s.state;
@@ -388,21 +400,23 @@ async function loadStates() {
       });
       stateSelect.disabled = false;
     }
-  } catch (e) { stateSelect.innerHTML = '<option value="">Error</option>'; }
+  } catch (e) {
+    stateSelect.innerHTML = '<option value="">Error loading</option>';
+  }
 }
 
 async function loadCities() {
   const country = document.getElementById('countrySelect').value;
   const state = document.getElementById('stateSelect').value;
   const citySelect = document.getElementById('citySelect');
-  if (!state) { citySelect.innerHTML = '<option value="">City…</option>'; citySelect.disabled = true; return; }
+  if (!state) { citySelect.innerHTML = '<option value="">Select City…</option>'; citySelect.disabled = true; return; }
   citySelect.disabled = true;
   citySelect.innerHTML = '<option value="">Loading…</option>';
   try {
     const res = await fetch(`${API}/api/aqi/cities?state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
     const data = await res.json();
-    citySelect.innerHTML = '<option value="">City…</option>';
-    if (data.data?.cities) {
+    citySelect.innerHTML = '<option value="">Select City…</option>';
+    if (data.data?.cities?.length) {
       data.data.cities.forEach(c => {
         const o = document.createElement('option');
         o.value = c.city;
@@ -411,7 +425,9 @@ async function loadCities() {
       });
       citySelect.disabled = false;
     }
-  } catch (e) { citySelect.innerHTML = '<option value="">Error</option>'; }
+  } catch (e) {
+    citySelect.innerHTML = '<option value="">Error loading</option>';
+  }
 }
 
 async function loadCityData() {
@@ -431,6 +447,20 @@ async function loadCityData() {
     updateInsights();
   } catch (e) {
     showFriendlyError(`No Data for ${city}`, 'Try another location.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another', 'toggleBrowse');
+  }
+}
+
+async function loadThailandProvince(province) {
+  document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
+  try {
+    const res = await fetch(`${API}/api/aqi/city?city=${encodeURIComponent(province)}&country=Thailand`);
+    const data = await res.json();
+    if (!data.data) throw new Error('No data');
+    lastData = data.data;
+    renderStations([data.data]);
+    updateInsights();
+  } catch (e) {
+    showFriendlyError(`No Data for ${province}`, 'Try another province or use My Location.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another', 'toggleBrowse');
   }
 }
 
