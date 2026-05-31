@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    :root { --bg: #080e1a; --surface: #0d1526; --border: #1a2a42; --accent: #3b82f6; --text: #e2e8f0; --muted: #64748b; --good: #22c55e; }
+    :root { --bg: #080e1a; --surface: #0d1526; --border: #1a2a42; --accent: #3b82f6; --text: #e2e8f0; --muted: #64748b; --good: #22c55e; --moderate: #eab308; --sensitive: #f97316; --unhealthy: #ef4444; --vunhealthy: #a855f7; --hazardous: #7f1d1d; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
     nav { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 60px; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
@@ -29,7 +29,6 @@
     .btn-primary:hover { background: #2563eb; }
     .btn-ghost { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
     .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-small { padding: 6px 12px; font-size: 12px; }
     .browse-section { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 20px; display: none; }
     .browse-section.open { display: block; }
     .browse-section h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px; }
@@ -57,15 +56,28 @@
     .spinner-ring { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .error-bar { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
-    .success-bar { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #86efac; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
     .insight-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
     .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
+    .safety-card { text-align: center; }
+    .safety-emoji { font-size: 60px; margin-bottom: 12px; }
+    .safety-label { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .safety-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+    .advice-list { list-style: none; }
+    .advice-list li { font-size: 13px; color: var(--text); padding: 8px 0; border-bottom: 1px solid var(--border); line-height: 1.5; }
+    .advice-list li:last-child { border-bottom: none; }
+    .advice-list li::before { content: '→ '; color: var(--accent); margin-right: 6px; }
+    .aqi-scale { display: grid; grid-template-columns: 1fr; gap: 8px; }
+    .scale-row { display: flex; align-items: center; gap: 12px; padding: 8px; background: var(--bg); border-radius: 6px; font-size: 12px; }
+    .scale-swatch { width: 24px; height: 24px; border-radius: 4px; flex-shrink: 0; }
+    .scale-range { font-family: 'DM Mono', monospace; color: var(--muted); width: 60px; flex-shrink: 0; }
+    .scale-label { color: var(--text); flex-grow: 1; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: 1fr; } }
+    .stat-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+    .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+    .stat-value { font-size: 24px; font-weight: 700; font-family: 'DM Mono', monospace; }
     .health-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     @media (max-width: 640px) { .health-grid { grid-template-columns: 1fr; } }
-    .safety-label { font-size: 20px; font-weight: 800; margin: 8px 0; }
-    .advice-list { list-style: none; }
-    .advice-list li { font-size: 13px; color: var(--text); padding: 6px 0; border-bottom: 1px solid var(--border); }
-    .advice-list li::before { content: '→ '; color: var(--accent); }
     .contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
     .contact-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
     .form-group { margin-bottom: 14px; }
@@ -86,6 +98,7 @@
   <a class="nav-api" href="api.html">API ↗</a>
 </nav>
 
+<!-- LIVE PAGE -->
 <div class="page active" id="page-live">
   <div class="controls-bar">
     <button class="btn btn-primary" onclick="getCurrentLocation()">📍 My Location</button>
@@ -122,18 +135,20 @@
   </div>
 </div>
 
+<!-- INSIGHTS PAGE -->
 <div class="page" id="page-insights">
   <div class="controls-bar">
     <button class="btn btn-primary" onclick="getCurrentLocation()">📍 My Location</button>
     <button class="btn btn-ghost" onclick="refreshData()">↺ Refresh</button>
   </div>
 
+  <!-- Safety & Health -->
   <div class="insight-section">
-    <div class="section-title">Safety & Health</div>
+    <div class="section-title">Outdoor Safety & Health Recommendation</div>
     <div class="health-grid">
-      <div id="safetyContent">
+      <div class="safety-card" id="safetyContent">
         <div class="state-box" style="padding: 20px 0;">
-          <p>Load a location to see safety information.</p>
+          <p>Load a location to see safety rating.</p>
         </div>
       </div>
       <div id="adviceContent">
@@ -143,11 +158,69 @@
       </div>
     </div>
   </div>
+
+  <!-- Current Readings -->
+  <div class="insight-section">
+    <div class="section-title">Current Readings</div>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-label">US AQI</div>
+        <div class="stat-value" id="readingUS">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Main Pollutant</div>
+        <div class="stat-value" id="readingPollutant" style="font-size: 14px;">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Temperature</div>
+        <div class="stat-value" id="readingTemp" style="font-size: 16px;">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AQI Scale Reference -->
+  <div class="insight-section">
+    <div class="section-title">AQI Scale Reference (US Standard)</div>
+    <div class="aqi-scale">
+      <div class="scale-row">
+        <div class="scale-swatch" style="background: var(--good)"></div>
+        <div class="scale-range">0–50</div>
+        <div class="scale-label"><strong>Good</strong> — Air quality is satisfactory</div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-swatch" style="background: var(--moderate)"></div>
+        <div class="scale-range">51–100</div>
+        <div class="scale-label"><strong>Moderate</strong> — Acceptable; some may be affected</div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-swatch" style="background: var(--sensitive)"></div>
+        <div class="scale-range">101–150</div>
+        <div class="scale-label"><strong>Unhealthy for Sensitive Groups</strong> — Sensitive individuals should limit exertion</div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-swatch" style="background: var(--unhealthy)"></div>
+        <div class="scale-range">151–200</div>
+        <div class="scale-label"><strong>Unhealthy</strong> — Everyone may experience effects</div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-swatch" style="background: var(--vunhealthy)"></div>
+        <div class="scale-range">201–300</div>
+        <div class="scale-label"><strong>Very Unhealthy</strong> — Health alert; avoid outdoor activity</div>
+      </div>
+      <div class="scale-row">
+        <div class="scale-swatch" style="background: var(--hazardous)"></div>
+        <div class="scale-range">301+</div>
+        <div class="scale-label"><strong>Hazardous</strong> — Emergency; stay indoors</div>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- CONTACT PAGE -->
 <div class="page" id="page-contact">
   <div class="contact-card">
     <h2>Get in Touch</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">Questions, feedback, or data corrections — let us know.</p>
     <div class="form-group"><label>Name</label><input type="text" id="contactName" placeholder="Your name"></div>
     <div class="form-group"><label>Email</label><input type="email" id="contactEmail" placeholder="your@email.com"></div>
     <div class="form-group"><label>Message</label><textarea id="contactMsg" rows="5" placeholder="What's on your mind?"></textarea></div>
@@ -169,34 +242,38 @@ function showPage(name, btn) {
 }
 
 function getCat(aqi) {
-  if (aqi <= 50) return '#22c55e';
-  if (aqi <= 100) return '#eab308';
-  if (aqi <= 150) return '#f97316';
-  if (aqi <= 200) return '#ef4444';
-  if (aqi <= 300) return '#a855f7';
-  return '#7f1d1d';
+  if (aqi <= 50) return { emoji: '🟢', label: 'Good', color: '#22c55e', health: 'Air quality is satisfactory. Enjoy outdoor activities freely.' };
+  if (aqi <= 100) return { emoji: '🟡', label: 'Moderate', color: '#eab308', health: 'Generally acceptable. Very sensitive individuals should monitor symptoms.' };
+  if (aqi <= 150) return { emoji: '🟠', label: 'Unhealthy for Sensitive Groups', color: '#f97316', health: 'Sensitive groups should reduce prolonged outdoor exertion.' };
+  if (aqi <= 200) return { emoji: '🔴', label: 'Unhealthy', color: '#ef4444', health: 'Everyone may experience health effects. Limit outdoor activities.' };
+  if (aqi <= 300) return { emoji: '🟣', label: 'Very Unhealthy', color: '#a855f7', health: 'Health alert. Avoid prolonged outdoor exposure.' };
+  return { emoji: '⚫', label: 'Hazardous', color: '#7f1d1d', health: 'Emergency conditions. Stay indoors. Seek medical help if symptoms occur.' };
 }
 
-function getHealth(aqi) {
-  if (aqi <= 50) return 'Air quality is good. Safe for outdoor activities.';
-  if (aqi <= 100) return 'Acceptable air quality. Sensitive individuals may experience minor symptoms.';
-  if (aqi <= 150) return 'Sensitive groups should reduce outdoor exertion.';
-  if (aqi <= 200) return 'Everyone may experience health effects. Reduce outdoor activities.';
-  if (aqi <= 300) return 'Health alert. Avoid outdoor activities if possible.';
-  return 'Emergency conditions. Stay indoors.';
+function getAdvice(aqi) {
+  if (aqi <= 50) return ['Enjoy outdoor activities freely.', 'All windows can be opened for fresh air.', 'No special precautions needed.'];
+  if (aqi <= 100) return ['Generally safe for most outdoor activities.', 'Highly sensitive people should monitor symptoms.', 'Standard activities are fine.'];
+  if (aqi <= 150) return ['Children and elderly should reduce outdoor exertion.', 'Keep windows closed during peak hours.', 'Consider using an air purifier indoors if available.'];
+  if (aqi <= 200) return ['Reduce prolonged outdoor activities for everyone.', 'Wear a mask (N95/KN95) if you must go outside.', 'Keep windows and doors sealed. Run air purifier on high if available.'];
+  if (aqi <= 300) return ['Avoid all unnecessary outdoor exposure.', 'Wear N95 mask if you must go outside.', 'Seal gaps under doors. Limit physical exertion indoors.', 'Monitor for symptoms: coughing, shortness of breath, chest pain.'];
+  return ['Do not go outside unless absolutely necessary.', 'Wear N95/KN95 masks at all times outdoors.', 'Seal your home (windows, doors, vents).', 'Use HEPA air filtration if available.', 'Call emergency if you experience chest pain or difficulty breathing.'];
 }
 
-function getCurrentLocation() {
-  navigator.geolocation.getCurrentPosition(
-    function(pos) {
-      lat = pos.coords.latitude;
-      lon = pos.coords.longitude;
-      loadNearby();
-    },
-    function(err) {
-      showFriendlyError('Location access denied', 'Enable location permission or browse locations manually.', 'Browse Locations', 'toggleBrowse');
-    }
-  );
+async function getCurrentLocation() {
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳ Locating…';
+  try {
+    const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 30000 }));
+    lat = pos.coords.latitude;
+    lon = pos.coords.longitude;
+    await loadNearby();
+  } catch (e) {
+    showFriendlyError('Location Denied', 'Allow location access or use Browse Locations.', 'Browse Locations', 'toggleBrowse');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📍 My Location';
+  }
 }
 
 async function loadNearby() {
@@ -204,25 +281,25 @@ async function loadNearby() {
   try {
     const res = await fetch(`${API}/api/aqi/nearby?lat=${lat}&lon=${lon}`);
     const data = await res.json();
-    if (!data.data?.stations || data.data.stations.length === 0) throw new Error('no_stations');
+    if (!data.data?.stations?.length) throw new Error('No stations found');
     lastData = data.data.stations[0];
     renderStations(data.data.stations);
     updateInsights();
   } catch (e) {
-    showFriendlyError('No Stations Found', 'We couldn\'t find stations near your location. This can happen in remote areas.', 'Find Different Location', 'getCurrentLocation', 'Browse Locations', 'toggleBrowse');
+    showFriendlyError('No Data Found', 'No stations nearby. Try browsing locations.', 'Browse Locations', 'toggleBrowse');
   }
 }
 
 function renderStations(stations) {
-  if (!stations || stations.length === 0) {
-    document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="icon">📡</div><h3>No Stations</h3></div>';
+  if (!stations?.length) {
+    document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="icon">📡</div><h3>No Stations</h3><p>No data available for this location.</p></div>';
     return;
   }
-  
   let html = '<div class="station-grid">';
   stations.forEach(s => {
     const aqi = Math.round(s.aqi?.us || 0);
-    html += `<div class="station-card"><div class="station-name">${s.name}</div><span class="station-source">${s.source || 'IQAir'}</span><div style="margin: 12px 0; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);">${s.distance ? s.distance.toFixed(1) + ' km' : ''}</div><div class="aqi-number" style="color: ${getCat(aqi)};">${aqi}</div><div class="aqi-badge" style="background: ${getCat(aqi)};">AQI</div></div>`;
+    const cat = getCat(aqi);
+    html += `<div class="station-card"><div class="station-name">${s.name}</div><span class="station-source">${s.source || 'IQAir'}</span>${s.distance ? `<div style="margin: 12px 0; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted);">${s.distance.toFixed(1)} km away</div>` : ''}<div class="aqi-number" style="color: ${cat.color};">${aqi}</div><div class="aqi-badge" style="background: ${cat.color}; color: white;">${cat.label}</div></div>`;
   });
   html += '</div>';
   document.getElementById('liveContent').innerHTML = html;
@@ -232,33 +309,47 @@ function updateInsights() {
   if (!lastData) return;
   const aqi = Math.round(lastData.aqi?.us || 0);
   const cat = getCat(aqi);
-  
-  let emoji = '🟢';
-  if (aqi > 150) emoji = '🔴';
-  else if (aqi > 100) emoji = '🟠';
-  else if (aqi > 50) emoji = '🟡';
-  
-  document.getElementById('safetyContent').innerHTML = `<div style="text-align: center; padding: 20px 0;"><div style="font-size: 40px; margin-bottom: 12px;">${emoji}</div><div style="font-size: 18px; font-weight: 800; color: ${cat}; margin-bottom: 8px;">${aqi > 150 ? 'Unsafe' : aqi > 100 ? 'Caution' : aqi > 50 ? 'Moderate' : 'Safe'}</div></div>`;
-  
-  document.getElementById('adviceContent').innerHTML = `<div style="padding: 20px 0;"><div style="font-size: 13px; line-height: 1.6;">${getHealth(aqi)}</div></div>`;
+  const advice = getAdvice(aqi);
+
+  // Safety card
+  document.getElementById('safetyContent').innerHTML = `
+    <div class="safety-emoji">${cat.emoji}</div>
+    <div class="safety-label" style="color: ${cat.color};">${cat.label}</div>
+    <div class="safety-desc">${cat.health}</div>
+  `;
+
+  // Advice list
+  document.getElementById('adviceContent').innerHTML = `<ul class="advice-list">${advice.map(a => `<li>${a}</li>`).join('')}</ul>`;
+
+  // Current readings
+  document.getElementById('readingUS').textContent = aqi;
+  document.getElementById('readingUS').style.color = cat.color;
+  document.getElementById('readingPollutant').textContent = lastData.mainPollutant ? getPollutantName(lastData.mainPollutant) : '—';
+  document.getElementById('readingTemp').textContent = lastData.weather?.temperature ? lastData.weather.temperature + '°C' : '—';
+}
+
+function getPollutantName(code) {
+  const map = { p1: 'PM10', p2: 'PM2.5', o3: 'Ozone', n2: 'NO₂', s2: 'SO₂', co: 'CO' };
+  return map[code] || code;
 }
 
 function toggleBrowse() {
   const section = document.getElementById('browseSection');
   section.classList.toggle('open');
-  
-  if (section.classList.contains('open')) {
-    const container = document.getElementById('ThailandProvinces');
-    if (container.children.length === 0) {
-      THAILAND_PROVINCES.forEach(p => {
-        const btn = document.createElement('button');
-        btn.className = 'province-btn';
-        btn.textContent = p;
-        btn.onclick = function() { loadThailandProvince(p); };
-        container.appendChild(btn);
-      });
-    }
+  if (section.classList.contains('open') && !document.getElementById('ThailandProvinces').children.length) {
+    loadProvinces();
   }
+}
+
+function loadProvinces() {
+  const container = document.getElementById('ThailandProvinces');
+  THAILAND_PROVINCES.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'province-btn';
+    btn.textContent = p;
+    btn.onclick = () => loadThailandProvince(p);
+    container.appendChild(btn);
+  });
 }
 
 async function loadThailandProvince(province) {
@@ -271,7 +362,7 @@ async function loadThailandProvince(province) {
     renderStations([data.data]);
     updateInsights();
   } catch (e) {
-    showFriendlyError(`No Data for ${province}`, 'This province may not have monitoring stations yet.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another Province', 'toggleBrowse');
+    showFriendlyError(`No Data for ${province}`, 'Try another province or use My Location.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another', 'toggleBrowse');
   }
 }
 
@@ -279,19 +370,11 @@ async function loadStates() {
   const country = document.getElementById('countrySelect').value;
   const stateSelect = document.getElementById('stateSelect');
   const citySelect = document.getElementById('citySelect');
-  
   citySelect.innerHTML = '<option value="">City…</option>';
   citySelect.disabled = true;
-  
-  if (!country) {
-    stateSelect.innerHTML = '<option value="">State/Region…</option>';
-    stateSelect.disabled = true;
-    return;
-  }
-  
+  if (!country) { stateSelect.innerHTML = '<option value="">State/Region…</option>'; stateSelect.disabled = true; return; }
   stateSelect.disabled = true;
   stateSelect.innerHTML = '<option value="">Loading…</option>';
-  
   try {
     const res = await fetch(`${API}/api/aqi/states?country=${encodeURIComponent(country)}`);
     const data = await res.json();
@@ -305,25 +388,16 @@ async function loadStates() {
       });
       stateSelect.disabled = false;
     }
-  } catch (e) {
-    stateSelect.innerHTML = '<option value="">Error loading</option>';
-  }
+  } catch (e) { stateSelect.innerHTML = '<option value="">Error</option>'; }
 }
 
 async function loadCities() {
   const country = document.getElementById('countrySelect').value;
   const state = document.getElementById('stateSelect').value;
   const citySelect = document.getElementById('citySelect');
-  
-  if (!state) {
-    citySelect.innerHTML = '<option value="">City…</option>';
-    citySelect.disabled = true;
-    return;
-  }
-  
+  if (!state) { citySelect.innerHTML = '<option value="">City…</option>'; citySelect.disabled = true; return; }
   citySelect.disabled = true;
   citySelect.innerHTML = '<option value="">Loading…</option>';
-  
   try {
     const res = await fetch(`${API}/api/aqi/cities?state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
     const data = await res.json();
@@ -337,24 +411,18 @@ async function loadCities() {
       });
       citySelect.disabled = false;
     }
-  } catch (e) {
-    citySelect.innerHTML = '<option value="">Error loading</option>';
-  }
+  } catch (e) { citySelect.innerHTML = '<option value="">Error</option>'; }
 }
 
 async function loadCityData() {
   const city = document.getElementById('citySelect').value;
   const state = document.getElementById('stateSelect').value;
   const country = document.getElementById('countrySelect').value;
-  
   if (!city) return;
-  
   document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
-  
   try {
     let url = `${API}/api/aqi/city?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`;
     if (state) url += `&state=${encodeURIComponent(state)}`;
-    
     const res = await fetch(url);
     const data = await res.json();
     if (!data.data) throw new Error('No data');
@@ -362,34 +430,26 @@ async function loadCityData() {
     renderStations([data.data]);
     updateInsights();
   } catch (e) {
-    showFriendlyError(`No Data for ${city}`, 'This location may not have monitoring stations.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another Location', 'toggleBrowse');
+    showFriendlyError(`No Data for ${city}`, 'Try another location.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another', 'toggleBrowse');
   }
 }
 
 function refreshData() {
-  if (lat && lon) {
-    loadNearby();
-  } else {
-    showFriendlyError('No Location Set', 'Use My Location or browse to select a location first.', 'Use My Location', 'getCurrentLocation', 'Browse Locations', 'toggleBrowse');
-  }
+  if (lat && lon) loadNearby();
+  else showFriendlyError('No Location', 'Use My Location or browse first.', 'Use My Location', 'getCurrentLocation', 'Browse', 'toggleBrowse');
 }
 
 function submitContact() {
   const name = document.getElementById('contactName').value.trim();
   const email = document.getElementById('contactEmail').value.trim();
   const msg = document.getElementById('contactMsg').value.trim();
-  
-  if (!name || !email || !msg) {
-    alert('Please fill in all fields');
-    return;
-  }
-  
-  window.location.href = `mailto:contact@jeff-o-blogs.com?subject=AQI Feedback&body=${encodeURIComponent(name + '\n' + email + '\n\n' + msg)}`;
+  if (!name || !email || !msg) { alert('Fill all fields'); return; }
+  window.location.href = `mailto:contact@jeff-o-blogs.com?subject=${encodeURIComponent('AQI Feedback')}&body=${encodeURIComponent(name + '\n' + email + '\n\n' + msg)}`;
 }
 
 function showFriendlyError(title, desc, btn1Text, btn1Action, btn2Text, btn2Action) {
   const bar = document.getElementById('errorBar');
-  bar.innerHTML = `<div class="helpful-box"><strong>${title}</strong>${desc}<div class="action-buttons"><button class="btn btn-small btn-ghost" onclick="${btn1Action}()">${btn1Text}</button><button class="btn btn-small btn-ghost" onclick="${btn2Action}()">${btn2Text}</button></div></div>`;
+  bar.innerHTML = `<div class="helpful-box"><strong>${title}</strong>${desc}<div class="action-buttons"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="${btn1Action}()">${btn1Text}</button><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="${btn2Action}()">${btn2Text}</button></div></div>`;
 }
 </script>
 </body>
