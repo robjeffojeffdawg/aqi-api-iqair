@@ -35,13 +35,17 @@
     .thailand-provinces { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 20px; }
     .province-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 14px; border-radius: 7px; cursor: pointer; font-family: 'Syne', sans-serif; font-size: 13px; transition: all 0.15s; }
     .province-btn:hover { border-color: var(--accent); background: rgba(59, 130, 246, 0.1); }
-    .notice { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0; padding: 14px; background: rgba(59, 130, 246, 0.07); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; font-size: 12px; color: var(--muted); line-height: 1.6; }
-    .notice strong { color: var(--text); display: block; margin-bottom: 6px; font-size: 13px; }
-    .global-browse { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end; }
+    .province-btn.active { border-color: var(--accent); background: rgba(59, 130, 246, 0.2); }
+    .districts-section { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 20px; display: none; }
+    .districts-section.open { display: block; }
+    .districts-dropdown { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
     .browse-group { display: flex; flex-direction: column; gap: 6px; }
     .browse-group label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--muted); }
     select { font-family: 'Syne', sans-serif; font-size: 13px; padding: 8px 12px; border-radius: 7px; border: 1px solid var(--border); background: var(--bg); color: var(--text); cursor: pointer; min-width: 160px; }
     select:disabled { opacity: 0.4; cursor: not-allowed; }
+    .notice { display: flex; align-items: flex-start; gap: 10px; margin: 16px 0; padding: 14px; background: rgba(59, 130, 246, 0.07); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 8px; font-size: 12px; color: var(--muted); line-height: 1.6; }
+    .notice strong { color: var(--text); display: block; margin-bottom: 6px; font-size: 13px; }
+    .global-browse { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: flex-end; }
     .helpful-box { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); color: #fed7aa; padding: 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
     .helpful-box strong { color: #fbbf24; display: block; margin-bottom: 10px; }
     .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
@@ -110,8 +114,18 @@
 
   <div class="browse-section" id="browseSection">
     <h3>Thailand (Recommended — 77 Provinces)</h3>
-    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">All provinces with reliable data:</p>
+    <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Click a province, then select a district:</p>
     <div class="thailand-provinces" id="ThailandProvinces"></div>
+
+    <!-- Districts Dropdown (appears after selecting province) -->
+    <div class="districts-section" id="districtsSection">
+      <div class="districts-dropdown">
+        <div class="browse-group">
+          <label>Districts in <span id="selectedProvince"></span></label>
+          <select id="districtSelect" onchange="loadDistrictData()" disabled><option value="">Select District…</option></select>
+        </div>
+      </div>
+    </div>
 
     <h3 style="margin-top: 24px;">Search Worldwide</h3>
     <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Find any city globally:</p>
@@ -132,7 +146,7 @@
 
     <div class="notice">
       <span style="font-size: 15px;">🌐</span>
-      <div><strong>Pro Tip:</strong>For fastest results, use 📍 My Location worldwide. Browse global locations for manual search.</div>
+      <div><strong>Pro Tip:</strong>For fastest results, use 📍 My Location worldwide. Browse locations for manual search.</div>
     </div>
   </div>
 
@@ -236,7 +250,7 @@
 const API = 'https://api.aqi.jeff-o-blogs.com';
 const THAILAND_PROVINCES = ['Amnat Charoen','Ang Thong','Buri Ram','Bueng Kan','Chumphon','Chaachoengsao','Chai Nat','Chaiyaburi','Chaiyaphum','Chanthaburi','Chiang Mai','Chiang Rai','Chon Buri','Kalasin','Kamphaengphet','Kanchanaburi','Khon Kaen','Krabi','Lampang','Lamphun','Loei','Lop Buri','Mae Hong Son','Maha Sarakham','Mukdahan','Nakhon Nayok','Nakhon Pathom','Nakhon Phanom','Nakhon Ratchasima','Nakhon Sawan','Nakhon Si Thammarat','Nan','Narathiwat','Nong Bua Lamphu','Nong Khai','Nonthaburi','Pathum Thani','Pattani','Phang Nga','Phatthalung','Phayao','Phetchabun','Phetchaburi','Phichit','Phisanulok','Phrae','Phuket','Prachuap Khiri Khan','Pran Buri','Ratchaburi','Ranong','Rayong','Roi Et','Samut Prakan','Samut Sakhon','Samut Songkhram','Saraburi','Satun','Sisaket','Sing Buri','Songkhla','Sukhothai','Suphanburi','Surat Thani','Surin','Tak','Trad','Ubon Ratchathani','Udon Thani','Uthai Thani','Uttaradit','Yasothon','Yala'].sort();
 
-let lat = null, lon = null, lastData = null;
+let lat = null, lon = null, lastData = null, currentProvince = null;
 
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -351,30 +365,61 @@ function loadProvinces() {
     const btn = document.createElement('button');
     btn.className = 'province-btn';
     btn.textContent = p;
-    btn.onclick = () => loadThailandProvince(p);
+    btn.onclick = () => selectProvince(p);
     container.appendChild(btn);
   });
 }
 
-async function loadCountries() {
-  const select = document.getElementById('countrySelect');
-  select.disabled = true;
-  select.innerHTML = '<option value="">Loading…</option>';
+function selectProvince(province) {
+  currentProvince = province;
+  document.getElementById('selectedProvince').textContent = province;
+  loadThailandDistricts(province);
+  document.querySelectorAll('.province-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+async function loadThailandDistricts(province) {
+  const districtSelect = document.getElementById('districtSelect');
+  districtSelect.innerHTML = '<option value="">Loading districts…</option>';
+  districtSelect.disabled = true;
+  
   try {
-    const res = await fetch(`${API}/api/aqi/countries`);
+    const res = await fetch(`${API}/api/aqi/cities?state=${encodeURIComponent(province)}&country=Thailand`);
     const data = await res.json();
-    select.innerHTML = '<option value="">Select Country…</option>';
-    if (data.data?.countries?.length) {
-      data.data.countries.forEach(c => {
+    
+    districtSelect.innerHTML = '<option value="">Select District…</option>';
+    
+    if (data.data?.cities?.length) {
+      data.data.cities.forEach(c => {
         const o = document.createElement('option');
-        o.value = c.country;
-        o.textContent = c.country;
-        select.appendChild(o);
+        o.value = c.city;
+        o.textContent = c.city;
+        districtSelect.appendChild(o);
       });
-      select.disabled = false;
+      districtSelect.disabled = false;
+      document.getElementById('districtsSection').classList.add('open');
+    } else {
+      districtSelect.innerHTML = '<option value="">No districts found</option>';
     }
   } catch (e) {
-    select.innerHTML = '<option value="">Error loading</option>';
+    districtSelect.innerHTML = '<option value="">Error loading districts</option>';
+  }
+}
+
+async function loadDistrictData() {
+  const district = document.getElementById('districtSelect').value;
+  if (!district) return;
+  
+  document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
+  try {
+    const res = await fetch(`${API}/api/aqi/city?city=${encodeURIComponent(district)}&state=${encodeURIComponent(currentProvince)}&country=Thailand`);
+    const data = await res.json();
+    if (!data.data) throw new Error('No data');
+    lastData = data.data;
+    renderStations([data.data]);
+    updateInsights();
+  } catch (e) {
+    showFriendlyError(`No Data for ${district}`, 'Try another district or use My Location.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another', 'toggleBrowse');
   }
 }
 
@@ -400,9 +445,7 @@ async function loadStates() {
       });
       stateSelect.disabled = false;
     }
-  } catch (e) {
-    stateSelect.innerHTML = '<option value="">Error loading</option>';
-  }
+  } catch (e) { stateSelect.innerHTML = '<option value="">Error loading</option>'; }
 }
 
 async function loadCities() {
@@ -425,9 +468,7 @@ async function loadCities() {
       });
       citySelect.disabled = false;
     }
-  } catch (e) {
-    citySelect.innerHTML = '<option value="">Error loading</option>';
-  }
+  } catch (e) { citySelect.innerHTML = '<option value="">Error loading</option>'; }
 }
 
 async function loadCityData() {
@@ -450,18 +491,24 @@ async function loadCityData() {
   }
 }
 
-async function loadThailandProvince(province) {
-  document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
+async function loadCountries() {
+  const select = document.getElementById('countrySelect');
+  select.disabled = true;
+  select.innerHTML = '<option value="">Loading…</option>';
   try {
-    const res = await fetch(`${API}/api/aqi/city?city=${encodeURIComponent(province)}&country=Thailand`);
+    const res = await fetch(`${API}/api/aqi/countries`);
     const data = await res.json();
-    if (!data.data) throw new Error('No data');
-    lastData = data.data;
-    renderStations([data.data]);
-    updateInsights();
-  } catch (e) {
-    showFriendlyError(`No Data for ${province}`, 'Try another province or use My Location.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another', 'toggleBrowse');
-  }
+    select.innerHTML = '<option value="">Select Country…</option>';
+    if (data.data?.countries?.length) {
+      data.data.countries.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.country;
+        o.textContent = c.country;
+        select.appendChild(o);
+      });
+      select.disabled = false;
+    }
+  } catch (e) { select.innerHTML = '<option value="">Error loading</option>'; }
 }
 
 function refreshData() {
