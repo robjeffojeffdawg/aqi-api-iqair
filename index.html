@@ -113,7 +113,7 @@
   </div>
 
   <div class="browse-section" id="browseSection">
-    <h3>Thailand (Recommended — 77 Provinces)</h3>
+    <h3>Thailand (Recommended — 77 Provinces with Major Districts)</h3>
     <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Click a province, then select a district:</p>
     <div class="thailand-provinces" id="ThailandProvinces"></div>
 
@@ -250,6 +250,82 @@
 const API = 'https://api.aqi.jeff-o-blogs.com';
 const THAILAND_PROVINCES = ['Amnat Charoen','Ang Thong','Buri Ram','Bueng Kan','Chumphon','Chaachoengsao','Chai Nat','Chaiyaburi','Chaiyaphum','Chanthaburi','Chiang Mai','Chiang Rai','Chon Buri','Kalasin','Kamphaengphet','Kanchanaburi','Khon Kaen','Krabi','Lampang','Lamphun','Loei','Lop Buri','Mae Hong Son','Maha Sarakham','Mukdahan','Nakhon Nayok','Nakhon Pathom','Nakhon Phanom','Nakhon Ratchasima','Nakhon Sawan','Nakhon Si Thammarat','Nan','Narathiwat','Nong Bua Lamphu','Nong Khai','Nonthaburi','Pathum Thani','Pattani','Phang Nga','Phatthalung','Phayao','Phetchabun','Phetchaburi','Phichit','Phisanulok','Phrae','Phuket','Prachuap Khiri Khan','Pran Buri','Ratchaburi','Ranong','Rayong','Roi Et','Samut Prakan','Samut Sakhon','Samut Songkhram','Saraburi','Satun','Sisaket','Sing Buri','Songkhla','Sukhothai','Suphanburi','Surat Thani','Surin','Tak','Trad','Ubon Ratchathani','Udon Thani','Uthai Thani','Uttaradit','Yasothon','Yala'].sort();
 
+const THAI_DISTRICTS = {
+  'Amnat Charoen': ['Muang Amnat Charoen','Lue','Senangkhanikhom'],
+  'Ang Thong': ['Muang Ang Thong','Pho Noi','Wiset Chai Si'],
+  'Buri Ram': ['Muang Buri Ram','Nang Rong','Prakhon Chai','Chakkarat'],
+  'Bueng Kan': ['Muang Bueng Kan','Sakhon Nakhon','Bueng Khong'],
+  'Chumphon': ['Muang Chumphon','Tha Sai','Lang Suan','Pathio'],
+  'Chaachoengsao': ['Muang Chaachoengsao','Bang Pakong','Phanom Sarakham'],
+  'Chai Nat': ['Muang Chai Nat','Nong Mamong','Sahaburi'],
+  'Chaiyaburi': ['Muang Chaiyaburi','Mueang','Petchabun'],
+  'Chaiyaphum': ['Muang Chaiyaphum','Khon Buri','Petchabun'],
+  'Chanthaburi': ['Muang Chanthaburi','Khao Khitchakut','Soi Dao'],
+  'Chiang Mai': ['Muang Chiang Mai','San Sai','Chiang Rai','Mae Rim','Doi Saket'],
+  'Chiang Rai': ['Muang Chiang Rai','Thoeng','Chiang Khong','Mae Sai'],
+  'Chon Buri': ['Muang Chon Buri','Bang Saen','Sattahip','Pattaya'],
+  'Kalasin': ['Muang Kalasin','Somer Sak','Sahatsakhan'],
+  'Kamphaengphet': ['Muang Kamphaengphet','Khlong Lan','Phran Kratai'],
+  'Kanchanaburi': ['Muang Kanchanaburi','Erawan','River Kwai','Sai Yok'],
+  'Khon Kaen': ['Muang Khon Kaen','Nongkhai','Mueang','Phu Viang'],
+  'Krabi': ['Muang Krabi','Ao Nang','Klong Thom','Lanta'],
+  'Lampang': ['Muang Lampang','Ko Kha','Wiang Papao'],
+  'Lamphun': ['Muang Lamphun','Tha Wang Pha','Sansai'],
+  'Loei': ['Muang Loei','Chiang Khan','Nong Khai'],
+  'Lop Buri': ['Muang Lop Buri','Ban Mi','Tha Luang'],
+  'Mae Hong Son': ['Muang Mae Hong Son','Khun Yuam','Pai'],
+  'Maha Sarakham': ['Muang Maha Sarakham','Khuean Nai','Phayakhumphon'],
+  'Mukdahan': ['Muang Mukdahan','Nong Sung','Don Tan'],
+  'Nakhon Nayok': ['Muang Nakhon Nayok','Pak Phli','Ongkharak'],
+  'Nakhon Pathom': ['Muang Nakhon Pathom','Phutthamonthon','Ratchaburan'],
+  'Nakhon Phanom': ['Muang Nakhon Phanom','Renu Nakhon','That Phanom'],
+  'Nakhon Ratchasima': ['Muang Nakhon Ratchasima','Pak Chong','Phimai','Sikhiu'],
+  'Nakhon Sawan': ['Muang Nakhon Sawan','Phichit','Tak Fa'],
+  'Nakhon Si Thammarat': ['Muang Nakhon Si Thammarat','Sichon','Khanom','Pak Phanang'],
+  'Nan': ['Muang Nan','Wieng Sa','Tha Wang Pha'],
+  'Narathiwat': ['Muang Narathiwat','Bacho','Sungai Kolok'],
+  'Nong Bua Lamphu': ['Muang Nong Bua','Nong Sung','Suwannakuha'],
+  'Nong Khai': ['Muang Nong Khai','Udon Thani','Sakon Nakhon'],
+  'Nonthaburi': ['Muang Nonthaburi','Pak Kret','Bang Yai','Ban Bueng'],
+  'Pathum Thani': ['Muang Pathum Thani','Lad Lum Kaew','Nong Suea'],
+  'Pattani': ['Muang Pattani','Yarang','Nong Chik'],
+  'Phang Nga': ['Muang Phang Nga','Takua Pa','Kuraburi'],
+  'Phatthalung': ['Muang Phatthalung','Khao Chum','Song Khla'],
+  'Phayao': ['Muang Phayao','Chiang Kham','Dok Khamtai'],
+  'Phetchabun': ['Muang Phetchabun','Lom Sak','Wichian Buri'],
+  'Phetchaburi': ['Muang Phetchaburi','Cha-am','Kaeng Krachan'],
+  'Phichit': ['Muang Phichit','Bang Mun','Wat Tha Luang'],
+  'Phisanulok': ['Muang Phisanulok','Sukhothai','Si Satchanalai'],
+  'Phrae': ['Muang Phrae','Long','Den Chai'],
+  'Phuket': ['Muang Phuket','Kathu','Karon','Patong'],
+  'Prachuap Khiri Khan': ['Muang Prachuap','Hua Hin','Pranburi'],
+  'Pran Buri': ['Muang Pran Buri','Ban Pran','Nong Plab'],
+  'Ratchaburi': ['Muang Ratchaburi','Phetchaburi','Huai Kratip'],
+  'Ranong': ['Muang Ranong','Kra Buri','Takua Pa'],
+  'Rayong': ['Muang Rayong','Ban Chang','Pluak Daeng'],
+  'Roi Et': ['Muang Roi Et','Suwannaphum','Kham Muang'],
+  'Samut Prakan': ['Muang Samut Prakan','Bang Saomdej','Bang Pu'],
+  'Samut Sakhon': ['Muang Samut Sakhon','Amphawa','Bang Khonthi'],
+  'Samut Songkhram': ['Muang Samut Songkhram','Amphawa','Bang Kaew'],
+  'Saraburi': ['Muang Saraburi','Muak Lek','Phetchabun'],
+  'Satun': ['Muang Satun','La-ngu','Mueang Satun'],
+  'Sisaket': ['Muang Sisaket','Kantharawichai','Khun Han'],
+  'Sing Buri': ['Muang Sing Buri','Inburi','Tha Chin'],
+  'Songkhla': ['Muang Songkhla','Hat Yai','Na Thawi','Satingpra'],
+  'Sukhothai': ['Muang Sukhothai','Si Satchanalai','Phisanulok'],
+  'Suphanburi': ['Muang Suphanburi','Sam Chuk','Damnoen Saduak'],
+  'Surat Thani': ['Muang Surat Thani','Khanom','Ko Samui','Ko Pha-Ngan'],
+  'Surin': ['Muang Surin','Sangha Manee','Tha Tum'],
+  'Tak': ['Muang Tak','Mae Sot','Sukhothai'],
+  'Trad': ['Muang Trad','Khlong Yai','Kood'],
+  'Ubon Ratchathani': ['Muang Ubon','Amnat Charoen','Khong Chiam','Phibun Mangsahan'],
+  'Udon Thani': ['Muang Udon Thani','Nong Khai','Ban Nong Bua'],
+  'Uthai Thani': ['Muang Uthai Thani','Tha Muang','Phetchabun'],
+  'Uttaradit': ['Muang Uttaradit','Tap Khlong','Phisanulok'],
+  'Yasothon': ['Muang Yasothon','Maha Sarakham','Kham Muang'],
+  'Yala': ['Muang Yala','Betong','Kabang']
+};
+
 let lat = null, lon = null, lastData = null, currentProvince = null;
 
 function showPage(name, btn) {
@@ -378,31 +454,25 @@ function selectProvince(province) {
   event.target.classList.add('active');
 }
 
-async function loadThailandDistricts(province) {
+function loadThailandDistricts(province) {
   const districtSelect = document.getElementById('districtSelect');
-  districtSelect.innerHTML = '<option value="">Loading districts…</option>';
-  districtSelect.disabled = true;
+  districtSelect.innerHTML = '<option value="">Select District…</option>';
   
-  try {
-    const res = await fetch(`${API}/api/aqi/cities?state=${encodeURIComponent(province)}&country=Thailand`);
-    const data = await res.json();
-    
-    districtSelect.innerHTML = '<option value="">Select District…</option>';
-    
-    if (data.data?.cities?.length) {
-      data.data.cities.forEach(c => {
-        const o = document.createElement('option');
-        o.value = c.city;
-        o.textContent = c.city;
-        districtSelect.appendChild(o);
-      });
-      districtSelect.disabled = false;
-      document.getElementById('districtsSection').classList.add('open');
-    } else {
-      districtSelect.innerHTML = '<option value="">No districts found</option>';
-    }
-  } catch (e) {
-    districtSelect.innerHTML = '<option value="">Error loading districts</option>';
+  // Get districts from static mapping
+  const districts = THAI_DISTRICTS[province] || [];
+  
+  if (districts.length > 0) {
+    districts.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d;
+      o.textContent = d;
+      districtSelect.appendChild(o);
+    });
+    districtSelect.disabled = false;
+    document.getElementById('districtsSection').classList.add('open');
+  } else {
+    districtSelect.innerHTML = '<option value="">No districts available</option>';
+    districtSelect.disabled = true;
   }
 }
 
