@@ -1,300 +1,272 @@
+// server.js
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-require('dotenv').config();
+const mongoose = require('mongoose');
 
-const connectDB = require('./config/database');
+// Services & Middleware
+const APIAuth = require('./middleware/apiAuth');
+
+// Routes
 const aqiRoutes = require('./routes/aqi');
+const billingRoutes = require('./routes/billing');
 const historyRoutes = require('./routes/history');
 const analyticsRoutes = require('./routes/analytics');
-const openAQService = require('./services/openAQService');
-const cityPagesRoutes = require('./routes/city-pages');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// CRITICAL: Trust Railway proxy (required for rate limiting)
-app.set('trust proxy', 1);
+// ═══════════════════════════════════════════════════════════
+// MIDDLEWARE
+// ═══════════════════════════════════════════════════════════
 
-// Connect to MongoDB
-connectDB().catch(err => {
-  console.error('Failed to connect to MongoDB:', err);
-});
-
-// Security Headers
+// Security
 app.use(helmet());
 
-// CORS Configuration
+// Logging
+app.use(morgan('combined'));
+
+// CORS
 app.use(cors({
   origin: [
-    'http://localhost:5500',
-    'http://127.0.0.1:5500',
-    'https://robjeffojeffdawg.github.io',
-    'https://aqi.jeff-o-blogs.com'
+    'http://localhost:3000',
+    'https://aqi.jeff-o-blogs.com',
+    'https://www.aqi.jeff-o-blogs.com'
   ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  credentials: true
 }));
 
-// Body Parser
+// Body parsing (except webhook which needs raw)
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Logging
-if (process.env.NODE_ENV === 'production') {
-  app.use(morgan('combined'));
-} else {
-  app.use(morgan('dev'));
-}
+// Trust proxy (for Railway)
+app.set('trust proxy', 1);
 
-// Custom logging middleware
-app.use((req, res, next) => {
-  const start = Date.now();
-  
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    if (duration > 2000) {
-      console.warn(`⚠️  Slow request: ${req.method} ${req.path} took ${duration}ms`);
-    }
-    if (res.statusCode >= 400) {
-      console.error(`❌ Error ${res.statusCode}: ${req.method} ${req.path}`);
-    }
-  });
-  
-  next();
+// ═══════════════════════════════════════════════════════════
+// DATABASE CONNECTION
+// ═══════════════════════════════════════════════════════════
+
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log('✅ Connected to MongoDB');
+}).catch((error) => {
+  console.error('❌ MongoDB connection error:', error);
+  process.exit(1);
 });
 
-// Rate Limiting
-const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: {
-    error: 'Too many requests from this IP, please try again later.',
-    retryAfter: '15 minutes'
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-  skip: (req) => req.path === '/health'
-});
+// ═══════════════════════════════════════════════════════════
+// PUBLIC ROUTES (No Auth Required)
+// ═══════════════════════════════════════════════════════════
 
-const apiLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 20,
-  message: {
-    error: 'API rate limit exceeded. Please slow down.',
-    retryAfter: '1 minute'
-  },
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-app.use('/api/', apiLimiter);
-app.use(generalLimiter);
-
-// ==============================================
-// ROUTES - ORDER MATTERS!
-// ==============================================
-
-// 1. API Routes (with /api prefix)
-app.use('/api/aqi', aqiRoutes);
-app.use('/api/history', historyRoutes);
-app.use('/api/analytics', analyticsRoutes);
-
-// 2. Metrics endpoint
-app.get('/api/metrics', (req, res) => {
-  try {
-    const iqairService = require('./services/iqairService');
-    
-    let purpleairMetrics = null;
-    try {
-      const purpleAirService = require('./services/purpleAirService');
-      if (purpleAirService.isAvailable && purpleAirService.isAvailable()) {
-        purpleairMetrics = purpleAirService.getMetrics();
-      }
-    } catch (err) {
-      console.log('PurpleAir service not available');
-    }
-    
-    res.json({
-      success: true,
-      data: {
-        iqair: iqairService.getMetrics(),
-        purpleair: purpleairMetrics,
-        server: {
-          uptime: process.uptime(),
-          memory: process.memoryUsage(),
-          nodeVersion: process.version
-        }
-      }
-    });
-  } catch (error) {
-    console.error('Metrics error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retrieve metrics',
-      message: error.message
-    });
-  }
-});
-
-// 3. Health check - No rate limiting
+/**
+ * Health check
+ */
 app.get('/health', (req, res) => {
-  const iqairService = require('./services/iqairService');
-  
-  let purpleairAvailable = false;
-  try {
-    const purpleAirService = require('./services/purpleAirService');
-    purpleairAvailable = purpleAirService.isAvailable();
-  } catch (err) {
-    // PurpleAir not available
-  }
-  
-  res.json({ 
-    status: 'ok', 
-    timestamp: new Date().toISOString(),
-    uptime: Math.floor(process.uptime()),
-    environment: process.env.NODE_ENV || 'development',
-    services: {
-      iqair: iqairService.isAvailable(),
-      purpleair: purpleairAvailable,
-      openaq: openAQService.isAvailable(),
-      mongodb: require('mongoose').connection.readyState === 1
-    }
-  });
-});
-
-// 4. Root route
-app.get('/', (req, res) => {
   res.json({
-    name: "AQI Monitor API",
-    version: "2.0.0",
-    status: "running",
-    endpoints: {
-      health: "/health",
-      metrics: "/api/metrics",
-      nearbyAQI: "/api/aqi/nearby?lat=LAT&lon=LON",
-      countries: "/api/aqi/countries",
-      states: "/api/aqi/states?country=COUNTRY",
-      cities: "/api/aqi/cities?state=STATE&country=COUNTRY",
-      sources: "/api/aqi/sources",
-      history: "/api/history/location?lat=LAT&lon=LON&days=7",
-      stats: "/api/history/stats?lat=LAT&lon=LON&days=30",
-      analytics: "/api/analytics/overview",
-      cityPages: "/{city}-aqi (e.g., /bangkok-aqi)"
-    },
-    dataSources: {
-      iqair: "Professional monitoring stations",
-      purpleair: "Community sensors"
-    },
-    rateLimit: {
-      general: "100 requests per 15 minutes",
-      api: "20 requests per minute"
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    services: {
+      database: 'ok',
+      stripe: process.env.STRIPE_SECRET_KEY ? 'configured' : 'missing'
     }
   });
 });
 
-// 5. City Pages - MUST come after specific routes but before error handlers
-app.use('/', cityPagesRoutes);
-
-// ==============================================
-// ERROR HANDLERS - MUST BE LAST
-// ==============================================
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('❌ Error occurred:');
-  console.error(`   Path: ${req.method} ${req.path}`);
-  console.error(`   Error: ${err.message}`);
-  console.error(`   Stack: ${err.stack}`);
-  
-  const isProduction = process.env.NODE_ENV === 'production';
-  
-  res.status(err.status || 500).json({
-    error: {
-      message: isProduction ? 'An error occurred' : err.message,
-      status: err.status || 500,
-      ...(isProduction ? {} : { stack: err.stack })
+/**
+ * API Info
+ */
+app.get('/api/aqi/sources', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      sources: [
+        {
+          name: 'IQAir',
+          available: true,
+          description: 'Professional air quality monitoring stations worldwide',
+          features: ['City lookup', 'Countries/States/Cities', 'Weather data']
+        },
+        {
+          name: 'PurpleAir',
+          available: !!process.env.PURPLEAIR_API_KEY,
+          description: 'Community-operated air quality sensors',
+          features: ['Real-time PM2.5', 'High sensor density', 'Neighborhood-level data']
+        },
+        {
+          name: 'OpenAQ',
+          available: !!process.env.OPENAQ_API_KEY,
+          description: 'DEFRA + global government monitoring networks',
+          features: ['UK/Europe coverage', 'DEFRA stations', 'Fallback coverage']
+        }
+      ]
     }
   });
 });
 
-// 404 handler - MUST BE ABSOLUTE LAST
-app.use((req, res) => {
-  console.warn(`⚠️  404 Not Found: ${req.method} ${req.path}`);
-  
-  res.status(404).json({
-    error: {
-      message: 'Route not found',
-      status: 404,
-      path: req.path,
-      suggestion: 'Check API documentation at /'
-    }
+/**
+ * Billing routes (public - for checkout, plans info)
+ */
+app.use('/billing', billingRoutes);
+
+/**
+ * Pricing page data
+ */
+app.get('/pricing', (req, res) => {
+  res.json({
+    plans: [
+      {
+        id: 'free',
+        name: 'Free',
+        price: '$0/month',
+        requests: '100/month',
+        rateLimit: '1 req/s',
+        features: ['100 requests/month', '1 request/second', 'Email support']
+      },
+      {
+        id: 'pro',
+        name: 'Pro',
+        price: '$9.99/month',
+        requests: '10,000/month',
+        rateLimit: '10 req/s',
+        features: ['10,000 requests/month', '10 requests/second', 'Priority support', '90-day retention']
+      },
+      {
+        id: 'enterprise',
+        name: 'Enterprise',
+        price: 'Custom',
+        requests: 'Unlimited',
+        rateLimit: '100 req/s',
+        features: ['Unlimited requests', '100 requests/second', 'Dedicated support', 'SLA guarantee']
+      }
+    ]
   });
 });
 
-// Start scheduled AQI recording
-const { startScheduler } = require('./services/scheduler');
-startScheduler();
+// ═══════════════════════════════════════════════════════════
+// PROTECTED ROUTES (API Key Required)
+// ═══════════════════════════════════════════════════════════
 
-// Start server
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log('\n🚀 ═══════════════════════════════════════════════════');
-  console.log(`   AQI API Server v2.0.0`);
-  console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`   Port: ${PORT}`);
-  console.log(`   Health: http://localhost:${PORT}/health`);
-  console.log(`   Metrics: http://localhost:${PORT}/api/metrics`);
-  console.log('═══════════════════════════════════════════════════\n');
+// Apply authentication to all /api routes
+app.use('/api', APIAuth.validateAPIKey);
+app.use('/api', APIAuth.checkRateLimit);
+app.use('/api', APIAuth.checkSubscriptionStatus);
+
+// AQI routes
+app.use('/api/aqi', aqiRoutes);
+
+// History routes
+app.use('/api', historyRoutes);
+
+// Analytics routes
+app.use('/api', analyticsRoutes);
+
+/**
+ * GET /api/account
+ * Get account info
+ */
+app.get('/api/account', (req, res) => {
+  const subscription = req.subscription;
   
-  const iqairService = require('./services/iqairService');
-  
-  let purpleairAvailable = false;
+  res.json({
+    email: subscription.email,
+    plan: subscription.plan,
+    status: subscription.status,
+    apiKey: subscription.apiKey,
+    requestsUsedThisMonth: subscription.requestsUsedThisMonth,
+    requestsLimit: subscription.rateLimit.requestsPerMonth,
+    rateLimit: subscription.rateLimit,
+    createdAt: subscription.createdAt,
+    currentPeriodEnd: subscription.currentPeriodEnd,
+    stripeCustomerId: subscription.stripeCustomerId
+  });
+});
+
+/**
+ * POST /api/reset-usage (Admin only - optional)
+ */
+app.post('/api/reset-usage', async (req, res) => {
   try {
-    const purpleAirService = require('./services/purpleAirService');
-    purpleairAvailable = purpleAirService.isAvailable();
-  } catch (err) {
-    // PurpleAir not available
+    const subscription = req.subscription;
+    
+    // Only allow if monthly period has reset
+    const now = new Date();
+    if (now >= subscription.monthResetDate) {
+      subscription.requestsUsedThisMonth = 0;
+      subscription.monthResetDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      await subscription.save();
+      
+      res.json({ message: 'Usage reset' });
+    } else {
+      res.status(400).json({ error: 'Cannot reset usage mid-month' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
+});
+
+// ═══════════════════════════════════════════════════════════
+// ERROR HANDLING
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * 404 handler
+ */
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not found',
+    path: req.path,
+    method: req.method,
+    message: 'Check documentation at aqi.jeff-o-blogs.com/api'
+  });
+});
+
+/**
+ * Global error handler
+ */
+app.use((error, req, res, next) => {
+  console.error('Error:', error);
   
-  console.log('📡 Services:');
-  console.log(`   IQAir: ${iqairService.isAvailable() ? '✅ Active' : '❌ Disabled (no API key)'}`);
-  console.log(`   PurpleAir: ${purpleairAvailable ? '✅ Active' : '❌ Disabled (no API key)'}`);
-  console.log(`   MongoDB: ${require('mongoose').connection.readyState === 1 ? '✅ Connected' : '⚠️  Connecting...'}`);
-  console.log('\n');
+  res.status(error.status || 500).json({
+    success: false,
+    error: error.message || 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// START SERVER
+// ═══════════════════════════════════════════════════════════
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`
+╔════════════════════════════════════════════╗
+║  🌍 AQI Monitor API                        ║
+║  💰 Powered by Stripe                      ║
+║  🚀 Server running on port ${PORT}             ║
+╚════════════════════════════════════════════╝
+
+📚 Documentation: https://aqi.jeff-o-blogs.com/api
+💳 Billing: https://dashboard.stripe.com
+🔑 Webhook: POST /billing/webhook
+
+NODE_ENV: ${process.env.NODE_ENV || 'development'}
+Database: ${process.env.MONGODB_URI ? 'Connected' : 'Disconnected'}
+Stripe: ${process.env.STRIPE_SECRET_KEY ? '✅ Configured' : '❌ Missing'}
+  `);
 });
 
 // Graceful shutdown
-const gracefulShutdown = (signal) => {
-  console.log(`\n${signal} received. Shutting down gracefully...`);
-  
-  server.close(() => {
-    console.log('✅ HTTP server closed');
-    
-    require('mongoose').connection.close(false, () => {
-      console.log('✅ MongoDB connection closed');
-      process.exit(0);
-    });
-  });
-  
-  setTimeout(() => {
-    console.error('⚠️  Forced shutdown after timeout');
-    process.exit(1);
-  }, 10000);
-};
-
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-process.on('uncaughtException', (err) => {
-  console.error('💥 Uncaught Exception:', err);
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (err) => {
-  console.error('💥 Unhandled Rejection:', err);
-  process.exit(1);
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  process.exit(0);
 });
 
 module.exports = app;
