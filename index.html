@@ -90,6 +90,39 @@
     .form-group label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
     .form-group input, .form-group textarea { width: 100%; font-family: 'Syne', sans-serif; font-size: 13px; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; color: var(--text); }
     .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
+
+    /* ── PRICING PAGE ── */
+    .pricing-hero { text-align: center; padding: 48px 0 40px; }
+    .pricing-hero .eyebrow { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 14px; }
+    .pricing-hero h1 { font-size: 36px; font-weight: 800; line-height: 1.15; margin-bottom: 12px; }
+    .pricing-hero p { font-size: 14px; color: var(--muted); max-width: 440px; margin: 0 auto; line-height: 1.7; }
+    .pricing-card-wrap { display: flex; justify-content: center; margin-bottom: 48px; }
+    .pricing-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 36px 40px; max-width: 420px; width: 100%; position: relative; overflow: hidden; }
+    .pricing-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), #06b6d4); }
+    .pricing-card .plan-label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+    .pricing-card .plan-name { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
+    .pricing-card .price-row { display: flex; align-items: flex-end; gap: 6px; margin-bottom: 6px; }
+    .pricing-card .price-amount { font-family: 'DM Mono', monospace; font-size: 52px; font-weight: 500; line-height: 1; color: var(--text); }
+    .pricing-card .price-currency { font-family: 'DM Mono', monospace; font-size: 20px; color: var(--muted); margin-bottom: 10px; }
+    .pricing-card .price-period { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+    .feature-list { list-style: none; margin-bottom: 32px; }
+    .feature-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--text); padding: 9px 0; border-bottom: 1px solid var(--border); line-height: 1.5; }
+    .feature-list li:last-child { border-bottom: none; }
+    .feature-list li .tick { color: var(--good); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+    .checkout-btn { display: block; width: 100%; padding: 14px; background: var(--accent); color: #fff; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; border: none; border-radius: 9px; cursor: pointer; text-align: center; text-decoration: none; transition: background 0.15s, transform 0.1s; }
+    .checkout-btn:hover { background: #2563eb; transform: translateY(-1px); }
+    .checkout-note { text-align: center; font-size: 11px; color: var(--muted); margin-top: 12px; font-family: 'DM Mono', monospace; }
+    .pricing-faq { max-width: 560px; margin: 0 auto 48px; }
+    .pricing-faq h2 { font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 20px; letter-spacing: 0.08em; }
+    .faq-item { border-top: 1px solid var(--border); padding: 16px 0; }
+    .faq-item:last-child { border-bottom: 1px solid var(--border); }
+    .faq-q { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .faq-a { font-size: 13px; color: var(--muted); line-height: 1.7; }
+    @media (max-width: 480px) {
+      .pricing-hero h1 { font-size: 26px; }
+      .pricing-card { padding: 28px 22px; }
+      .pricing-card .price-amount { font-size: 42px; }
+    }
   </style>
 </head>
 <body>
@@ -99,6 +132,7 @@
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showPage('live', this)">Live</button>
     <button class="nav-tab" onclick="showPage('insights', this)">Insights</button>
+    <button class="nav-tab" onclick="showPage('pricing', this)">API Access</button>
     <button class="nav-tab" onclick="showPage('contact', this)">Contact</button>
   </div>
   <a class="nav-api" href="api.html">API ↗</a>
@@ -117,7 +151,6 @@
     <p style="font-size: 12px; color: var(--muted); margin-bottom: 12px;">Click a province, then select a district:</p>
     <div class="thailand-provinces" id="ThailandProvinces"></div>
 
-    <!-- Districts Dropdown (appears after selecting province) -->
     <div class="districts-section" id="districtsSection">
       <div class="districts-dropdown">
         <div class="browse-group">
@@ -200,36 +233,69 @@
   <div class="insight-section">
     <div class="section-title">AQI Scale Reference (US Standard)</div>
     <div class="aqi-scale">
-      <div class="scale-row">
-        <div class="scale-swatch" style="background: var(--good)"></div>
-        <div class="scale-range">0–50</div>
-        <div class="scale-label"><strong>Good</strong> — Air quality is satisfactory</div>
+      <div class="scale-row"><div class="scale-swatch" style="background: var(--good)"></div><div class="scale-range">0–50</div><div class="scale-label"><strong>Good</strong> — Air quality is satisfactory</div></div>
+      <div class="scale-row"><div class="scale-swatch" style="background: var(--moderate)"></div><div class="scale-range">51–100</div><div class="scale-label"><strong>Moderate</strong> — Acceptable; some may be affected</div></div>
+      <div class="scale-row"><div class="scale-swatch" style="background: var(--sensitive)"></div><div class="scale-range">101–150</div><div class="scale-label"><strong>Unhealthy for Sensitive Groups</strong> — Reduce outdoor exertion</div></div>
+      <div class="scale-row"><div class="scale-swatch" style="background: var(--unhealthy)"></div><div class="scale-range">151–200</div><div class="scale-label"><strong>Unhealthy</strong> — Everyone may experience effects</div></div>
+      <div class="scale-row"><div class="scale-swatch" style="background: var(--vunhealthy)"></div><div class="scale-range">201–300</div><div class="scale-label"><strong>Very Unhealthy</strong> — Health alert; avoid outdoors</div></div>
+      <div class="scale-row"><div class="scale-swatch" style="background: var(--hazardous)"></div><div class="scale-range">301+</div><div class="scale-label"><strong>Hazardous</strong> — Emergency; stay indoors</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING PAGE -->
+<div class="page" id="page-pricing">
+  <div class="pricing-hero">
+    <div class="eyebrow">API Access</div>
+    <h1>Real-time air quality data,<br>ready to build with</h1>
+    <p>Powered by IQAir, PurpleAir, and OpenAQ — one simple endpoint, global coverage.</p>
+  </div>
+
+  <div class="pricing-card-wrap">
+    <div class="pricing-card">
+      <div class="plan-label">Monthly Plan</div>
+      <div class="plan-name">AQI Monitor API</div>
+      <div class="price-row">
+        <span class="price-currency">$</span>
+        <span class="price-amount">19</span>
       </div>
-      <div class="scale-row">
-        <div class="scale-swatch" style="background: var(--moderate)"></div>
-        <div class="scale-range">51–100</div>
-        <div class="scale-label"><strong>Moderate</strong> — Acceptable; some may be affected</div>
-      </div>
-      <div class="scale-row">
-        <div class="scale-swatch" style="background: var(--sensitive)"></div>
-        <div class="scale-range">101–150</div>
-        <div class="scale-label"><strong>Unhealthy for Sensitive Groups</strong> — Reduce outdoor exertion</div>
-      </div>
-      <div class="scale-row">
-        <div class="scale-swatch" style="background: var(--unhealthy)"></div>
-        <div class="scale-range">151–200</div>
-        <div class="scale-label"><strong>Unhealthy</strong> — Everyone may experience effects</div>
-      </div>
-      <div class="scale-row">
-        <div class="scale-swatch" style="background: var(--vunhealthy)"></div>
-        <div class="scale-range">201–300</div>
-        <div class="scale-label"><strong>Very Unhealthy</strong> — Health alert; avoid outdoors</div>
-      </div>
-      <div class="scale-row">
-        <div class="scale-swatch" style="background: var(--hazardous)"></div>
-        <div class="scale-range">301+</div>
-        <div class="scale-label"><strong>Hazardous</strong> — Emergency; stay indoors</div>
-      </div>
+      <div class="price-period">per month · cancel anytime</div>
+
+      <ul class="feature-list">
+        <li><span class="tick">✓</span> Nearby stations by GPS coordinates</li>
+        <li><span class="tick">✓</span> City, state &amp; country lookups</li>
+        <li><span class="tick">✓</span> Real-time US AQI + pollutant data</li>
+        <li><span class="tick">✓</span> Weather data (temp, humidity, wind)</li>
+        <li><span class="tick">✓</span> Thailand province &amp; district coverage</li>
+        <li><span class="tick">✓</span> JSON responses, simple REST endpoints</li>
+        <li><span class="tick">✓</span> Email support</li>
+      </ul>
+
+      <!-- ↓ REPLACE href WITH YOUR REAL STRIPE PAYMENT LINK -->
+      <a class="checkout-btn" href="https://buy.stripe.com/4gM3cucigaMA7LM7qa3sI0h" target="_blank">
+        Get API Access — $19/month
+      </a>
+      <p class="checkout-note">Secure checkout via Stripe &nbsp;·&nbsp; No hidden fees</p>
+    </div>
+  </div>
+
+  <div class="pricing-faq">
+    <h2>Common questions</h2>
+    <div class="faq-item">
+      <div class="faq-q">How do I get my API key after paying?</div>
+      <div class="faq-a">You'll receive an email with your API key and documentation link within a few hours of your payment being confirmed.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Can I cancel anytime?</div>
+      <div class="faq-a">Yes — cancel from your Stripe billing portal at any time. You keep access until the end of your billing period.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What's the base URL for the API?</div>
+      <div class="faq-a">All endpoints are at <span style="font-family: 'DM Mono', monospace; color: #06b6d4;">api.aqi.jeff-o-blogs.com</span> — full docs are included with your key.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Need a custom plan or higher limits?</div>
+      <div class="faq-a">Get in touch via the Contact tab and we can discuss what you need.</div>
     </div>
   </div>
 </div>
@@ -302,7 +368,7 @@ const THAI_DISTRICTS = {
   'Pran Buri': ['Muang Pran Buri','Ban Pran','Nong Plab'],
   'Ratchaburi': ['Muang Ratchaburi','Phetchaburi','Huai Kratip'],
   'Ranong': ['Muang Ranong','Kra Buri','Takua Pa'],
-  'Rayong': ['Muang Rayong','Ban Chang','Pluak Daeng'],
+  'Rayong': ['Muang Rayong','Bang Chang','Pluak Daeng'],
   'Roi Et': ['Muang Roi Et','Suwannaphum','Kham Muang'],
   'Samut Prakan': ['Muang Samut Prakan','Bang Saomdej','Bang Pu'],
   'Samut Sakhon': ['Muang Samut Sakhon','Amphawa','Bang Khonthi'],
@@ -404,15 +470,8 @@ function updateInsights() {
   const aqi = Math.round(lastData.aqi?.us || 0);
   const cat = getCat(aqi);
   const advice = getAdvice(aqi);
-
-  document.getElementById('safetyContent').innerHTML = `
-    <div class="safety-emoji">${cat.emoji}</div>
-    <div class="safety-label" style="color: ${cat.color};">${cat.label}</div>
-    <div class="safety-desc">${cat.health}</div>
-  `;
-
+  document.getElementById('safetyContent').innerHTML = `<div class="safety-emoji">${cat.emoji}</div><div class="safety-label" style="color: ${cat.color};">${cat.label}</div><div class="safety-desc">${cat.health}</div>`;
   document.getElementById('adviceContent').innerHTML = `<ul class="advice-list">${advice.map(a => `<li>${a}</li>`).join('')}</ul>`;
-
   document.getElementById('readingUS').textContent = aqi;
   document.getElementById('readingUS').style.color = cat.color;
   document.getElementById('readingPollutant').textContent = lastData.mainPollutant ? getPollutantName(lastData.mainPollutant) : '—';
@@ -457,10 +516,7 @@ function selectProvince(province) {
 function loadThailandDistricts(province) {
   const districtSelect = document.getElementById('districtSelect');
   districtSelect.innerHTML = '<option value="">Select District…</option>';
-  
-  // Get districts from static mapping
   const districts = THAI_DISTRICTS[province] || [];
-  
   if (districts.length > 0) {
     districts.forEach(d => {
       const o = document.createElement('option');
@@ -479,7 +535,6 @@ function loadThailandDistricts(province) {
 async function loadDistrictData() {
   const district = document.getElementById('districtSelect').value;
   if (!district) return;
-  
   document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
   try {
     const res = await fetch(`${API}/api/aqi/city?city=${encodeURIComponent(district)}&state=${encodeURIComponent(currentProvince)}&country=Thailand`);
@@ -507,12 +562,7 @@ async function loadStates() {
     const data = await res.json();
     stateSelect.innerHTML = '<option value="">Select State/Region…</option>';
     if (data.data?.states?.length) {
-      data.data.states.forEach(s => {
-        const o = document.createElement('option');
-        o.value = s.state;
-        o.textContent = s.state;
-        stateSelect.appendChild(o);
-      });
+      data.data.states.forEach(s => { const o = document.createElement('option'); o.value = s.state; o.textContent = s.state; stateSelect.appendChild(o); });
       stateSelect.disabled = false;
     }
   } catch (e) { stateSelect.innerHTML = '<option value="">Error loading</option>'; }
@@ -530,12 +580,7 @@ async function loadCities() {
     const data = await res.json();
     citySelect.innerHTML = '<option value="">Select City…</option>';
     if (data.data?.cities?.length) {
-      data.data.cities.forEach(c => {
-        const o = document.createElement('option');
-        o.value = c.city;
-        o.textContent = c.city;
-        citySelect.appendChild(o);
-      });
+      data.data.cities.forEach(c => { const o = document.createElement('option'); o.value = c.city; o.textContent = c.city; citySelect.appendChild(o); });
       citySelect.disabled = false;
     }
   } catch (e) { citySelect.innerHTML = '<option value="">Error loading</option>'; }
@@ -570,12 +615,7 @@ async function loadCountries() {
     const data = await res.json();
     select.innerHTML = '<option value="">Select Country…</option>';
     if (data.data?.countries?.length) {
-      data.data.countries.forEach(c => {
-        const o = document.createElement('option');
-        o.value = c.country;
-        o.textContent = c.country;
-        select.appendChild(o);
-      });
+      data.data.countries.forEach(c => { const o = document.createElement('option'); o.value = c.country; o.textContent = c.country; select.appendChild(o); });
       select.disabled = false;
     }
   } catch (e) { select.innerHTML = '<option value="">Error loading</option>'; }

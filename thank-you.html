@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You're in — Jeffo Blogs' AQI API</title>
+  <meta name="description" content="Your API access is confirmed. Check your email for your key.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🌍</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg: #080e1a; --surface: #0d1526; --border: #1a2a42; --accent: #3b82f6; --text: #e2e8f0; --muted: #64748b; --good: #22c55e; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Syne', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 60px; background: var(--surface); border-bottom: 1px solid var(--border); }
+    .nav-brand { font-size: 15px; font-weight: 700; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .nav-brand .live-dot { width: 7px; height: 7px; background: var(--good); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .nav-api { font-family: 'DM Mono', monospace; font-size: 12px; color: #06b6d4; text-decoration: none; padding: 5px 12px; border: 1px solid #06b6d4; border-radius: 5px; }
+
+    main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 48px 44px; max-width: 520px; width: 100%; position: relative; overflow: hidden; text-align: center; }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--good), #06b6d4); }
+
+    .check-circle { width: 64px; height: 64px; border-radius: 50%; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.3); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 28px; animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+    @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 10px; }
+    .subtitle { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 36px; }
+
+    .steps { text-align: left; margin-bottom: 36px; }
+    .step { display: flex; gap: 16px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .step:last-child { border-bottom: none; }
+    .step-num { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 5px; padding: 3px 8px; flex-shrink: 0; margin-top: 1px; }
+    .step-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+    .step-text strong { display: block; margin-bottom: 2px; font-size: 14px; }
+    .step-text span { color: var(--muted); }
+
+    .endpoint-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 32px; text-align: left; }
+    .endpoint-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 8px; }
+    .endpoint-url { font-family: 'DM Mono', monospace; font-size: 12px; color: #06b6d4; }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .btn { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 7px; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    footer { text-align: center; padding: 20px; font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; border-top: 1px solid var(--border); }
+
+    @media (max-width: 480px) { .card { padding: 32px 20px; } h1 { font-size: 22px; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html"><div class="live-dot"></div>🌍 Jeffo's AQI</a>
+  <a class="nav-api" href="api.html">API Docs ↗</a>
+</nav>
+
+<main>
+  <div class="card">
+    <div class="check-circle">✓</div>
+    <h1>You're all set!</h1>
+    <p class="subtitle">Payment confirmed. Your API key is on its way — check your inbox within the next few hours.</p>
+
+    <div class="steps">
+      <div class="step">
+        <span class="step-num">01</span>
+        <div class="step-text">
+          <strong>Check your email</strong>
+          <span>Your API key and a link to the full documentation will arrive shortly.</span>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">02</span>
+        <div class="step-text">
+          <strong>Add your key to requests</strong>
+          <span>Pass it as an <code style="font-family:'DM Mono',monospace; color:#06b6d4;">x-api-key</code> header on every API call.</span>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">03</span>
+        <div class="step-text">
+          <strong>Start building</strong>
+          <span>Query nearby stations, cities, or countries — all from one base URL.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="endpoint-box">
+      <div class="endpoint-label">Your API base URL</div>
+      <div class="endpoint-url">https://api.aqi.jeff-o-blogs.com</div>
+    </div>
+
+    <div class="btn-row">
+      <a class="btn btn-primary" href="api.html">View API Docs</a>
+      <a class="btn btn-ghost" href="index.html">Back to Monitor</a>
+    </div>
+  </div>
+</main>
+
+<footer>aqi.jeff-o-blogs.com &nbsp;·&nbsp; Questions? contact@jeff-o-blogs.com</footer>
+
+</body>
+</html>
