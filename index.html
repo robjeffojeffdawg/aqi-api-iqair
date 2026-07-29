@@ -548,6 +548,14 @@ async function loadDistrictData() {
   }
 }
 
+// Normalize country names for IQAir API
+function normalizeCountry(country) {
+  const map = {
+    'UK': 'United Kingdom',
+    'US': 'United States'
+  };
+  return map[country] || country;
+}
 async function loadStates() {
   const country = document.getElementById('countrySelect').value;
   const stateSelect = document.getElementById('stateSelect');
@@ -558,7 +566,7 @@ async function loadStates() {
   stateSelect.disabled = true;
   stateSelect.innerHTML = '<option value="">Loading…</option>';
   try {
-    const res = await fetch(`${API}/api/aqi/states?country=${encodeURIComponent(country)}`);
+    const res = await fetch(`${API}/api/aqi/states?country=${encodeURIComponent(normalizeCountry(country))}`);
     const data = await res.json();
     stateSelect.innerHTML = '<option value="">Select State/Region…</option>';
     if (data.data?.states?.length) {
@@ -576,7 +584,7 @@ async function loadCities() {
   citySelect.disabled = true;
   citySelect.innerHTML = '<option value="">Loading…</option>';
   try {
-    const res = await fetch(`${API}/api/aqi/cities?state=${encodeURIComponent(state)}&country=${encodeURIComponent(country)}`);
+    const res = await fetch(`${API}/api/aqi/cities?state=${encodeURIComponent(state)}&country=${encodeURIComponent(normalizeCountry(country))}`);
     const data = await res.json();
     citySelect.innerHTML = '<option value="">Select City…</option>';
     if (data.data?.cities?.length) {
