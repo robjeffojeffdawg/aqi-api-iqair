@@ -439,7 +439,7 @@ async function getCurrentLocation() {
 async function loadNearby() {
   document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
   try {
-    const res = await fetch(`${API}/api/aqi/nearby?lat=${lat}&lon=${lon}`);
+    const res = await fetch('https://api.aqi.jeff-o-blogs.com/api/aqi/nearby?lat=51.5074&lon=-0.1278&api_key=e1ea943e-860f-41e2-a350-5b6ef731482d')
     const data = await res.json();
     if (!data.data?.stations?.length) throw new Error('No stations found');
     lastData = data.data.stations[0];
