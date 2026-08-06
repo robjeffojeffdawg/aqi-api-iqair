@@ -153,6 +153,7 @@ app.get('/pricing', (req, res) => {
 // ═══════════════════════════════════════════════════════════
 
 // Apply authentication to all /api routes
+app.use('/api/aqi/nearby', (req, res, next) => next());
 app.use('/api', APIAuth.validateAPIKey);
 app.use('/api', APIAuth.checkRateLimit);
 app.use('/api', APIAuth.checkSubscriptionStatus);
