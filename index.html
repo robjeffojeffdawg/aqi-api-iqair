@@ -429,7 +429,7 @@ async function getCurrentLocation() {
     lon = pos.coords.longitude;
     await loadNearby();
   } catch (e) {
-    showFriendlyError('Location Denied', 'Allow location access or use Browse Locations.', 'Browse Locations', 'toggleBrowse');
+    showFriendlyError('Location Denied', 'Allow location access or use Browse Locations.', 'Browse Locations', 'toggleBrowse', 'Close', 'clearNotice');
   } finally {
     btn.disabled = false;
     btn.textContent = '📍 My Location';
@@ -439,14 +439,14 @@ async function getCurrentLocation() {
 async function loadNearby() {
   document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
   try {
-    const res = await fetch('https://api.aqi.jeff-o-blogs.com/api/aqi/nearby?lat=51.5074&lon=-0.1278&api_key=e1ea943e-860f-41e2-a350-5b6ef731482d')
+    const res = await fetch(`https://api.aqi.jeff-o-blogs.com/api/aqi/nearby?lat=${lat}&lon=${lon}&api_key=e1ea943e-860f-41e2-a350-5b6ef731482d`)
     const data = await res.json();
     if (!data.data?.stations?.length) throw new Error('No stations found');
     lastData = data.data.stations[0];
     renderStations(data.data.stations);
     updateInsights();
   } catch (e) {
-    showFriendlyError('No Data Found', 'No stations nearby. Try browsing locations.', 'Browse Locations', 'toggleBrowse');
+    showFriendlyError('No Data Found', 'No stations nearby. Try browsing locations.', 'Browse Locations', 'toggleBrowse', 'Close', 'clearNotice');
   }
 }
 
