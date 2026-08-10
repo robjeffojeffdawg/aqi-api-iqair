@@ -439,8 +439,8 @@ async function getCurrentLocation() {
 async function loadNearby() {
   document.getElementById('liveContent').innerHTML = '<div class="state-box"><div class="spinner-ring"></div><p>Loading…</p></div>';
   try {
-   const apiKey = localStorage.getItem('apiKey') || 'free';
-const res = await fetch(`https://api.aqi.jeff-o-blogs.com/api/aqi/nearby?lat=${lat}&lon=${lon}&api_key=${apiKey}`)
+    const res = await fetch(`${API}/api/aqi/nearby?lat=${lat}&lon=${lon}`);
+    const data = await res.json();
     if (!data.data?.stations?.length) throw new Error('No stations found');
     lastData = data.data.stations[0];
     renderStations(data.data.stations);
@@ -556,6 +556,7 @@ function normalizeCountry(country) {
   };
   return map[country] || country;
 }
+
 async function loadStates() {
   const country = document.getElementById('countrySelect').value;
   const stateSelect = document.getElementById('stateSelect');
