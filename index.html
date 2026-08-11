@@ -135,7 +135,8 @@
     <button class="nav-tab" onclick="showPage('pricing', this)">API Access</button>
     <button class="nav-tab" onclick="showPage('contact', this)">Contact</button>
   </div>
-  <a class="nav-api" href="api.html">API ↗</a>
+<a class="nav-api" href="api.html">API ↗</a>
+  <button onclick="openAccessModal()" style="font-family:'Syne',sans-serif; font-size:12px; font-weight:600; color:#fff; background:#3b82f6; border:none; padding:6px 14px; border-radius:5px; cursor:pointer; margin-left:8px;">Request API Access</button>
 </nav>
 
 <!-- LIVE PAGE -->
@@ -647,6 +648,82 @@ function showFriendlyError(title, desc, btn1Text, btn1Action, btn2Text, btn2Acti
   const bar = document.getElementById('errorBar');
   bar.innerHTML = `<div class="helpful-box"><strong>${title}</strong>${desc}<div class="action-buttons"><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="${btn1Action}()">${btn1Text}</button><button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="${btn2Action}()">${btn2Text}</button></div></div>`;
 }
+</script>
+<div id="accessModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#0d1526; border:1px solid #1a2a42; border-radius:12px; padding:32px; max-width:440px; width:90%;">
+    <h2 style="font-size:18px; margin-bottom:6px; color:#e2e8f0;">Request API Access</h2>
+    <p style="color:#64748b; font-size:13px; margin-bottom:20px;">Tell us a bit about your use case and we'll get back to you.</p>
+
+    <label for="accessName" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b; margin-bottom:6px;">Name</label>
+    <input id="accessName" type="text" placeholder="Your name" style="width:100%; padding:10px 14px; margin-bottom:14px; background:#080e1a; border:1px solid #1a2a42; border-radius:7px; color:#e2e8f0; font-family:inherit; font-size:13px;">
+
+    <label for="accessEmail" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b; margin-bottom:6px;">Email</label>
+    <input id="accessEmail" type="email" placeholder="your@email.com" style="width:100%; padding:10px 14px; margin-bottom:14px; background:#080e1a; border:1px solid #1a2a42; border-radius:7px; color:#e2e8f0; font-family:inherit; font-size:13px;">
+
+    <label for="accessUseCase" style="display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b; margin-bottom:6px;">Use case</label>
+    <textarea id="accessUseCase" placeholder="What are you building?" style="width:100%; padding:10px 14px; margin-bottom:20px; background:#080e1a; border:1px solid #1a2a42; border-radius:7px; color:#e2e8f0; font-family:inherit; font-size:13px; min-height:70px; resize:vertical;"></textarea>
+
+    <div style="display:flex; gap:10px;">
+      <button onclick="submitAccessRequest()" style="flex:1; padding:10px; background:#3b82f6; color:#fff; border:none; border-radius:7px; font-weight:600; cursor:pointer; font-family:inherit;">Submit</button>
+      <button onclick="closeAccessModal()" style="flex:1; padding:10px; background:#1a2a42; color:#e2e8f0; border:1px solid #1a2a42; border-radius:7px; font-weight:600; cursor:pointer; font-family:inherit;">Cancel</button>
+    </div>
+
+    <div id="accessStatus" style="display:none; margin-top:14px; padding:10px; border-radius:6px; text-align:center; font-size:12px;"></div>
+  </div>
+</div>
+
+<script>
+  function openAccessModal() {
+    document.getElementById('accessModal').style.display = 'flex';
+  }
+  function closeAccessModal() {
+    document.getElementById('accessModal').style.display = 'none';
+    document.getElementById('accessName').value = '';
+    document.getElementById('accessEmail').value = '';
+    document.getElementById('accessUseCase').value = '';
+    document.getElementById('accessStatus').style.display = 'none';
+  }
+  async function submitAccessRequest() {
+    const name = document.getElementById('accessName').value.trim();
+    const email = document.getElementById('accessEmail').value.trim();
+    const useCase = document.getElementById('accessUseCase').value.trim();
+    const statusDiv = document.getElementById('accessStatus');
+
+    if (!name || !email || !useCase) {
+      statusDiv.style.display = 'block';
+      statusDiv.style.background = 'rgba(239,68,68,0.1)';
+      statusDiv.style.color = '#fca5a5';
+      statusDiv.textContent = 'Please fill all fields';
+      return;
+    }
+
+    statusDiv.style.display = 'block';
+    statusDiv.style.background = 'rgba(59,130,246,0.1)';
+    statusDiv.style.color = '#93c5fd';
+    statusDiv.textContent = 'Submitting…';
+
+    try {
+      const res = await fetch(`${API}/contact/request-access`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, useCase })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Submission failed');
+
+      statusDiv.style.background = 'rgba(34,197,94,0.1)';
+      statusDiv.style.color = '#86efac';
+      statusDiv.textContent = 'Request submitted! We\'ll be in touch.';
+      setTimeout(closeAccessModal, 2500);
+    } catch (e) {
+      statusDiv.style.background = 'rgba(239,68,68,0.1)';
+      statusDiv.style.color = '#fca5a5';
+      statusDiv.textContent = e.message;
+    }
+  }
+  document.getElementById('accessModal').addEventListener('click', (e) => {
+    if (e.target.id === 'accessModal') closeAccessModal();
+  });
 </script>
 </body>
 </html>
