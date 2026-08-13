@@ -8,6 +8,7 @@ const HistoricalReading = require('../models/HistoricalReading');
 // Locations to track automatically
 const TRACKED_LOCATIONS = [
   { name: 'Muak Lek, Saraburi', lat: 14.6494, lon: 101.2011 },
+  { name: 'London, UK', lat: 51.5074, lon: -0.1278 },
 ];
 
 async function recordLocation(location) {

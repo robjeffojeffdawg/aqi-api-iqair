@@ -14,6 +14,7 @@ const openAQService = require('./services/openAQService');
 const AccessRequest = require('./models/AccessRequest');
 const ApiKey = require('./models/ApiKey');
 const HistoricalReading = require('./models/HistoricalReading');
+const { startScheduler } = require('./services/scheduler');
 
 const app = express();
 
@@ -28,8 +29,9 @@ mongoose.connect(process.env.MONGODB_URI, {
   useUnifiedTopology: true
 }).then(() => {
   console.log('✅ MongoDB connected');
+  startScheduler();
 }).catch(err => {
-  console.error('❌ MongoDB error:', err);
+  console.error('❌ MongoDB connection failed:', err.message);
 });
 
 // ═══════════════════════════════════════════════════════════
