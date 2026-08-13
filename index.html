@@ -232,6 +232,17 @@
   </div>
 
   <div class="insight-section">
+    <div class="section-title">24-Hour Trend</div>
+    <div class="stats-grid" id="trendStats" style="display:none;">
+      <div class="stat-box"><div class="stat-label">Min</div><div class="stat-value" id="trendMin">—</div></div>
+      <div class="stat-box"><div class="stat-label">Avg</div><div class="stat-value" id="trendAvg">—</div></div>
+      <div class="stat-box"><div class="stat-label">Max</div><div class="stat-value" id="trendMax">—</div></div>
+    </div>
+    <div id="trendChart">
+      <div class="state-box" style="padding:20px 0;"><p>Load a location to see the 24h trend.</p></div>
+    </div>
+  </div>
+  <div class="insight-section">
     <div class="section-title">AQI Scale Reference (US Standard)</div>
     <div class="aqi-scale">
       <div class="scale-row"><div class="scale-swatch" style="background: var(--good)"></div><div class="scale-range">0–50</div><div class="scale-label"><strong>Good</strong> — Air quality is satisfactory</div></div>
@@ -446,6 +457,7 @@ async function loadNearby() {
     lastData = data.data.stations[0];
     renderStations(data.data.stations);
     updateInsights();
+    loadTrendChart();
   } catch (e) {
     showFriendlyError('No Data Found', 'No stations nearby. Try browsing locations.', 'Browse Locations', 'toggleBrowse', 'Close', 'clearNotice');
   }
@@ -477,6 +489,59 @@ function updateInsights() {
   document.getElementById('readingUS').style.color = cat.color;
   document.getElementById('readingPollutant').textContent = lastData.mainPollutant ? getPollutantName(lastData.mainPollutant) : '—';
   document.getElementById('readingTemp').textContent = lastData.weather?.temperature ? lastData.weather.temperature + '°C' : '—';
+}
+async function loadTrendChart() {
+  const coords = lastData?.coordinates;
+  const container = document.getElementById('trendChart');
+  const statsBox = document.getElementById('trendStats');
+  if (!coords) { container.innerHTML = '<div class="state-box" style="padding:20px 0;"><p>No coordinates available.</p></div>'; statsBox.style.display = 'none'; return; }
+
+  container.innerHTML = '<div class="state-box" style="padding:20px 0;"><div class="spinner-ring"></div><p>Loading trend…</p></div>';
+  statsBox.style.display = 'none';
+
+  try {
+    const res = await fetch(`${API}/api/history?lat=${coords.lat}&lon=${coords.lon}&hours=24`);
+    const data = await res.json();
+
+    if (!data.data?.readings?.length || data.data.readings.length < 2) {
+      container.innerHTML = '<div class="state-box" style="padding:20px 0;"><p>Not enough history yet — check back later as data builds up.</p></div>';
+      return;
+    }
+
+    const { stats, readings } = data.data;
+    document.getElementById('trendMin').textContent = stats.min;
+    document.getElementById('trendMax').textContent = stats.max;
+    document.getElementById('trendAvg').textContent = stats.avg;
+    statsBox.style.display = 'grid';
+
+    const W = 600, H = 160, pad = 20;
+    const values = readings.map(r => r.aqi);
+    const min = Math.min(...values), max = Math.max(...values) || 1;
+    const range = (max - min) || 1;
+
+    const points = readings.map((r, i) => {
+      const x = pad + (i / (readings.length - 1)) * (W - pad * 2);
+      const y = H - pad - ((r.aqi - min) / range) * (H - pad * 2);
+      return `${x},${y}`;
+    }).join(' ');
+
+    const lastPoint = readings[readings.length - 1];
+    const lastCat = getCat(lastPoint.aqi);
+
+    container.innerHTML = `
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto;">
+        <polyline points="${points}" fill="none" stroke="${lastCat.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+        ${readings.map((r, i) => {
+          const x = pad + (i / (readings.length - 1)) * (W - pad * 2);
+          const y = H - pad - ((r.aqi - min) / range) * (H - pad * 2);
+          return i === readings.length - 1 ? `<circle cx="${x}" cy="${y}" r="4" fill="${lastCat.color}"/>` : '';
+        }).join('')}
+      </svg>
+      <div style="text-align:center; font-size:11px; color:var(--muted); margin-top:8px;">${readings.length} readings over the last 24h</div>
+    `;
+  } catch (e) {
+    container.innerHTML = '<div class="state-box" style="padding:20px 0;"><p>Could not load trend data.</p></div>';
+  }
 }
 
 function getPollutantName(code) {
@@ -544,6 +609,7 @@ async function loadDistrictData() {
     lastData = data.data;
     renderStations([data.data]);
     updateInsights();
+    loadTrendChart();
   } catch (e) {
     showFriendlyError(`No Data for ${district}`, 'Try another district or use My Location.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another', 'toggleBrowse');
   }
@@ -611,6 +677,7 @@ async function loadCityData() {
     lastData = data.data;
     renderStations([data.data]);
     updateInsights();
+    loadTrendChart();
   } catch (e) {
     showFriendlyError(`No Data for ${city}`, 'Try another location.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another', 'toggleBrowse');
   }
