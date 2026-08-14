@@ -49,6 +49,17 @@
     .helpful-box { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); color: #fed7aa; padding: 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
     .helpful-box strong { color: #fbbf24; display: block; margin-bottom: 10px; }
     .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .live-layout { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .live-layout.has-data { grid-template-columns: 1fr 320px; }
+    @media (max-width: 800px) { .live-layout.has-data { grid-template-columns: 1fr; } }
+    #quickPanel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    #quickPanel .qp-emoji { font-size: 40px; margin-bottom: 8px; }
+    #quickPanel .qp-label { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+    #quickPanel .qp-tip { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+    #quickPanel .qp-stats { display: flex; gap: 8px; }
+    #quickPanel .qp-stat { flex: 1; background: var(--bg); border-radius: 6px; padding: 8px; text-align: center; }
+    #quickPanel .qp-stat .lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; }
+    #quickPanel .qp-stat .val { font-size: 16px; font-weight: 700; font-family: 'DM Mono', monospace; }
     .station-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
     .station-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
     .station-card:hover { border-color: var(--accent); transform: translateY(-2px); }
@@ -184,15 +195,17 @@
     </div>
   </div>
 
-  <div id="errorBar"></div>
+ <div id="errorBar"></div>
+  <div class="live-layout" id="liveLayout">
   <div id="liveContent">
     <div class="state-box">
       <div class="icon">🌍</div>
       <h3>Ready to Monitor</h3>
-      <p>Use 📍 My Location or browse locations below.</p>
+    <p>Use 📍 My Location or browse locations below.</p>
     </div>
   </div>
-</div>
+  <div id="quickPanel" style="display:none;"></div>
+  </div>
 
 <!-- INSIGHTS PAGE -->
 <div class="page" id="page-insights">
@@ -464,6 +477,7 @@ async function loadNearby() {
     renderStations(data.data.stations);
     updateInsights();
     loadTrendChart();
+    updateQuickPanel();
   } catch (e) {
     showFriendlyError('No Data Found', 'No stations nearby. Try browsing locations.', 'Browse Locations', 'toggleBrowse', 'Close', 'clearNotice');
   }
@@ -482,6 +496,28 @@ function renderStations(stations) {
   });
   html += '</div>';
   document.getElementById('liveContent').innerHTML = html;
+}
+
+function updateQuickPanel() {
+  const panel = document.getElementById('quickPanel');
+  const layout = document.getElementById('liveLayout');
+  if (!lastData) { panel.style.display = 'none'; layout.classList.remove('has-data'); return; }
+
+  const aqi = Math.round(lastData.aqi?.us || 0);
+  const cat = getCat(aqi);
+  const advice = getAdvice(aqi);
+
+  panel.innerHTML = `
+    <div class="qp-emoji">${cat.emoji}</div>
+    <div class="qp-label" style="color:${cat.color};">${cat.label}</div>
+    <div class="qp-tip">${advice[0]}</div>
+    <div class="qp-stats">
+      <div class="qp-stat"><div class="lbl">Pollutant</div><div class="val">${lastData.mainPollutant ? getPollutantName(lastData.mainPollutant) : '—'}</div></div>
+      <div class="qp-stat"><div class="lbl">Temp</div><div class="val">${lastData.weather?.temperature != null ? lastData.weather.temperature + '°C' : '—'}</div></div>
+    </div>
+  `;
+  panel.style.display = 'block';
+  layout.classList.add('has-data');
 }
 
 function updateInsights() {
@@ -635,6 +671,7 @@ async function loadDistrictData() {
     renderStations([data.data]);
     updateInsights();
     loadTrendChart();
+    updateQuickPanel();
   } catch (e) {
     showFriendlyError(`No Data for ${district}`, 'Try another district or use My Location.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another', 'toggleBrowse');
   }
@@ -703,6 +740,7 @@ async function loadCityData() {
     renderStations([data.data]);
     updateInsights();
     loadTrendChart();
+    updateQuickPanel();
   } catch (e) {
     showFriendlyError(`No Data for ${city}`, 'Try another location.', 'Find Nearest Station', 'getCurrentLocation', 'Try Another', 'toggleBrowse');
   }
