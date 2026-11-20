@@ -26,6 +26,20 @@ app.set('trust proxy', 1);
 
 console.log('DB user in use:', (process.env.MONGODB_URI || '').split('//')[1]?.split(':')[0] || 'MONGODB_URI NOT SET');
 
+const uri = process.env.MONGODB_URI || '';
+const creds = uri.split('//')[1]?.split('@')[0] || '';
+console.log('URI check:', {
+  set: !!uri,
+  length: uri.length,
+  startsOk: uri.startsWith('mongodb+srv://'),
+  user: creds.split(':')[0],
+  passwordLength: creds.split(':')[1]?.length,
+  hasQuotes: /["']/.test(uri),
+  hasWhitespace: /\s/.test(uri),
+  host: uri.split('@')[1]?.split('/')[0],
+  db: uri.split('mongodb.net/')[1]?.split('?')[0]
+});
+
 mongoose.connect(process.env.MONGODB_URI, {
   serverSelectionTimeoutMS: 5000,
   bufferTimeoutMS: 3000
