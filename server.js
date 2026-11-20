@@ -24,9 +24,11 @@ app.use(morgan('combined'));
 app.use(express.json());
 app.set('trust proxy', 1);
 
+console.log('DB user in use:', (process.env.MONGODB_URI || '').split('//')[1]?.split(':')[0] || 'MONGODB_URI NOT SET');
+
 mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
+  serverSelectionTimeoutMS: 5000,
+  bufferTimeoutMS: 3000
 }).then(() => {
   console.log('✅ MongoDB connected');
   startScheduler();
