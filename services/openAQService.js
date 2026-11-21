@@ -1,6 +1,7 @@
 // services/openAQService.js
-// OpenAQ v3 API integration — provides DEFRA + global station coverage
-// Especially strong for UK, Europe, and areas with thin IQAir coverage
+// OpenAQ v3 API integration - station coverage for Europe and the rest of the world.
+// Fixed: removed unsupported order_by=distance (caused HTTP 422), maps /latest values
+// via sensorsId, makes far fewer calls, throttles to stay under rate limits.
 
 const NodeCache = require('node-cache');
 
@@ -9,13 +10,16 @@ const cache = new NodeCache({ stdTTL: 600 }); // 10 min cache
 const OPENAQ_BASE = 'https://api.openaq.org/v3';
 const API_KEY     = process.env.OPENAQ_API_KEY || '';
 
-// ── PM2.5 → US AQI conversion (EPA breakpoints) ──────────────
-// OpenAQ returns raw µg/m³ — we convert to AQI so it matches IQAir format
+const MAX_STATIONS     = 3;                 // stations returned per lookup
+const MAX_CANDIDATES   = 4;                 // locations we will query /latest for
+const MAX_AGE_MS       = 6 * 60 * 60 * 1000; // ignore readings older than 6 h
+const MIN_GAP_MS       = 1100;              // free tier: 60 req/min, so ~1 per second
+
+// ── PM2.5 → US AQI (EPA breakpoints) ──────────────────────────
 function pm25ToAQI(pm25) {
     if (pm25 === null || pm25 === undefined || isNaN(pm25)) return null;
-    const c = Math.round(pm25 * 10) / 10; // truncate to 1dp per EPA spec
-
-    const breakpoints = [
+    const c = Math.round(pm25 * 10) / 10;
+    const bps = [
         { cLow: 0.0,   cHigh: 12.0,  iLow: 0,   iHigh: 50  },
         { cLow: 12.1,  cHigh: 35.4,  iLow: 51,  iHigh: 100 },
         { cLow: 35.5,  cHigh: 55.4,  iLow: 101, iHigh: 150 },
@@ -24,18 +28,14 @@ function pm25ToAQI(pm25) {
         { cLow: 250.5, cHigh: 350.4, iLow: 301, iHigh: 400 },
         { cLow: 350.5, cHigh: 500.4, iLow: 401, iHigh: 500 },
     ];
-
-    for (const bp of breakpoints) {
+    for (const bp of bps) {
         if (c >= bp.cLow && c <= bp.cHigh) {
-            return Math.round(
-                ((bp.iHigh - bp.iLow) / (bp.cHigh - bp.cLow)) * (c - bp.cLow) + bp.iLow
-            );
+            return Math.round(((bp.iHigh - bp.iLow) / (bp.cHigh - bp.cLow)) * (c - bp.cLow) + bp.iLow);
         }
     }
     return c > 500 ? 500 : 0;
 }
 
-// ── AQI category ──────────────────────────────────────────────
 function getCategory(aqi) {
     if (aqi <= 50)  return { level: 'Good',                          color: '#00e400', textColor: '#000' };
     if (aqi <= 100) return { level: 'Moderate',                      color: '#ffff00', textColor: '#000' };
@@ -45,128 +45,160 @@ function getCategory(aqi) {
     return                 { level: 'Hazardous',                     color: '#7e0023', textColor: '#fff' };
 }
 
-// ── Haversine distance (km) ───────────────────────────────────
 function distanceKm(lat1, lon1, lat2, lon2) {
     const R = 6371;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) ** 2 +
-        Math.cos(lat1 * Math.PI / 180) *
-        Math.cos(lat2 * Math.PI / 180) *
-        Math.sin(dLon / 2) ** 2;
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// ── Fetch with API key header ─────────────────────────────────
+// ── Throttled fetch (shared by every call in this process) ────
+let nextSlot = 0;
+async function throttle() {
+    const now = Date.now();
+    const wait = Math.max(0, nextSlot - now);
+    nextSlot = Math.max(now, nextSlot) + MIN_GAP_MS;
+    if (wait > 0) await new Promise(r => setTimeout(r, wait));
+}
+
 async function openAQFetch(url) {
+    await throttle();
     const headers = { 'Accept': 'application/json' };
     if (API_KEY) headers['X-API-Key'] = API_KEY;
 
     const res = await fetch(url, { headers });
-    if (!res.ok) throw new Error(`OpenAQ HTTP ${res.status}: ${res.statusText}`);
+    if (!res.ok) {
+        let detail = '';
+        try { detail = (await res.text()).slice(0, 300); } catch (_) {}
+        throw new Error(`OpenAQ HTTP ${res.status} ${res.statusText} ${detail}`.trim());
+    }
     return res.json();
 }
 
-// ── Get nearby sensors ────────────────────────────────────────
-// Returns stations in the same format as IQAir/PurpleAir so they
-// slot directly into the existing /api/aqi/nearby response
+// ── Helpers ───────────────────────────────────────────────────
+function paramName(sensor) {
+    const n = sensor?.parameter?.name || '';
+    return String(n).toLowerCase().replace('.', '');   // "pm2.5" -> "pm25"
+}
+
+function lastSeenMs(loc) {
+    const s = loc?.datetimeLast?.utc;
+    const t = s ? Date.parse(s) : NaN;
+    return isNaN(t) ? null : t;
+}
+
+// ── Get nearby stations ───────────────────────────────────────
 async function getNearbySensors(lat, lon, radiusKm = 25) {
+    lat = Number(lat); lon = Number(lon);
     const cacheKey = `openaq_nearby_${lat.toFixed(3)}_${lon.toFixed(3)}_${radiusKm}`;
     const cached = cache.get(cacheKey);
-    if (cached) {
-        console.log(`💾 Cache hit: OpenAQ nearby ${lat.toFixed(3)},${lon.toFixed(3)}`);
-        return cached;
-    }
+    if (cached) return cached;
 
-    const radiusM = Math.min(radiusKm * 1000, 25000); // OpenAQ max is 25km
-    const url = `${OPENAQ_BASE}/locations?coordinates=${lat},${lon}&radius=${radiusM}&limit=20&order_by=distance`;
+    const radiusM = Math.max(1, Math.min(Math.round(radiusKm * 1000), 25000)); // API max 25 km
+    const url = `${OPENAQ_BASE}/locations?coordinates=${lat.toFixed(4)},${lon.toFixed(4)}&radius=${radiusM}&limit=100`;
 
     console.log(`📡 OpenAQ API call: nearby ${lat.toFixed(3)},${lon.toFixed(3)} r=${radiusKm}km`);
     const data = await openAQFetch(url);
+    const locations = Array.isArray(data.results) ? data.results : [];
 
-    if (!data.results || data.results.length === 0) return [];
+    // Keep locations with a PM2.5 or PM10 sensor and a recent reading, nearest first
+    const now = Date.now();
+    const candidates = locations
+        .map(loc => {
+            const c = loc.coordinates || {};
+            const d = (c.latitude != null && c.longitude != null)
+                ? distanceKm(lat, lon, c.latitude, c.longitude) : Infinity;
+            return { loc, d };
+        })
+        .filter(({ loc }) => {
+            const names = (loc.sensors || []).map(paramName);
+            if (!names.includes('pm25') && !names.includes('pm10')) return false;
+            const seen = lastSeenMs(loc);
+            return seen === null || now - seen <= MAX_AGE_MS;
+        })
+        .sort((a, b) => a.d - b.d)
+        .slice(0, MAX_CANDIDATES);
 
-    // For each location, get its latest readings
     const stations = [];
 
-    for (const loc of data.results.slice(0, 10)) {
+    for (const { loc, d } of candidates) {
+        if (stations.length >= MAX_STATIONS) break;
         try {
-            const latestUrl = `${OPENAQ_BASE}/locations/${loc.id}/latest`;
-            const latest = await openAQFetch(latestUrl);
+            const latest = await openAQFetch(`${OPENAQ_BASE}/locations/${loc.id}/latest`);
 
-            if (!latest.results || latest.results.length === 0) continue;
-
-            // Extract pollutant readings
-            const readings = {};
-            for (const r of latest.results) {
-                if (r.parameter) readings[r.parameter] = r.value;
+            // sensorsId -> { name, unit }
+            const sensorMap = {};
+            for (const s of (loc.sensors || [])) {
+                sensorMap[s.id] = { name: paramName(s), unit: s.parameter?.units || '' };
             }
 
-            const pm25 = readings['pm25'] ?? readings['pm2.5'] ?? null;
-            const pm10 = readings['pm10'] ?? null;
-            const o3   = readings['o3']   ?? null;
-            const no2  = readings['no2']  ?? null;
-            const so2  = readings['so2']  ?? null;
-            const co   = readings['co']   ?? null;
+            const vals = {};
+            const units = {};
+            for (const r of (latest.results || [])) {
+                const s = sensorMap[r.sensorsId];
+                if (!s || typeof r.value !== 'number' || r.value < 0) continue;
+                const t = Date.parse(r.datetime?.utc || '');
+                if (!isNaN(t) && now - t > MAX_AGE_MS) continue;   // stale
+                vals[s.name] = r.value;
+                units[s.name] = s.unit;
+            }
 
-            if (pm25 === null && pm10 === null) continue; // no useful data
+            const pm25 = vals.pm25 ?? null;
+            const pm10 = vals.pm10 ?? null;
+            const o3   = vals.o3   ?? null;
+            const no2  = vals.no2  ?? null;
+            const so2  = vals.so2  ?? null;
+            const co   = vals.co   ?? null;
 
-            const aqi = pm25ToAQI(pm25) ?? pm25ToAQI((pm10 ?? 0) * 0.6) ?? 0;
-            const cat = getCategory(aqi);
+            if (pm25 === null && pm10 === null) continue;
 
-            // Determine main pollutant
-            let mainPollutant = 'p2';
-            if (pm25 !== null) mainPollutant = 'p2';
-            else if (pm10 !== null) mainPollutant = 'p1';
-
-            const stationLat = loc.coordinates?.latitude  ?? lat;
-            const stationLon = loc.coordinates?.longitude ?? lon;
+            const aqi = pm25 !== null ? pm25ToAQI(pm25) : pm25ToAQI(pm10 * 0.6);
+            const cat = getCategory(aqi ?? 0);
+            const sLat = loc.coordinates?.latitude  ?? lat;
+            const sLon = loc.coordinates?.longitude ?? lon;
+            const pObj = (v, k, fallbackUnit) =>
+                v !== null ? { concentration: v, unit: units[k] || fallbackUnit } : null;
 
             stations.push({
                 name:          loc.name || loc.locality || 'OpenAQ Station',
                 city:          loc.locality || loc.name || '',
                 state:         loc.country?.name || '',
                 country:       loc.country?.name || '',
-                distance:      distanceKm(lat, lon, stationLat, stationLon),
+                distance:      d,
                 source:        'OpenAQ',
-                aqi:           { us: aqi, cn: Math.round(aqi * 0.9) },
-                mainPollutant,
+                aqi:           { us: aqi ?? 0, cn: Math.round((aqi ?? 0) * 0.9) },
+                mainPollutant: pm25 !== null ? 'p2' : 'p1',
                 category:      cat,
-                coordinates:   { lat: stationLat, lon: stationLon },
+                coordinates:   { lat: sLat, lon: sLon },
                 pollutants: {
-                    p2: pm25 !== null ? { concentration: pm25, unit: 'µg/m³' } : null,
-                    p1: pm10 !== null ? { concentration: pm10, unit: 'µg/m³' } : null,
-                    o3: o3  !== null ? { concentration: o3,  unit: 'ppb'    } : null,
-                    n2: no2 !== null ? { concentration: no2, unit: 'ppb'    } : null,
-                    s2: so2 !== null ? { concentration: so2, unit: 'ppb'    } : null,
-                    co: co  !== null ? { concentration: co,  unit: 'ppm'    } : null,
+                    // flat numbers (used by the scheduler / history)
+                    pm25, pm10, o3, no2, so2, co,
+                    // object form (IQAir-style shape)
+                    p2: pObj(pm25, 'pm25', 'µg/m³'),
+                    p1: pObj(pm10, 'pm10', 'µg/m³'),
+                    n2: pObj(no2, 'no2', 'ppb'),
+                    s2: pObj(so2, 'so2', 'ppb'),
                 },
-                weather: {}, // OpenAQ doesn't provide weather data
+                weather: {},
             });
         } catch (err) {
             console.warn(`⚠️  OpenAQ: failed to get latest for location ${loc.id}:`, err.message);
+            if (/ 429 /.test(err.message)) break;   // rate-limited: stop making calls
         }
     }
 
-    // Sort by distance
     stations.sort((a, b) => a.distance - b.distance);
-
-    cache.set(cacheKey, stations);
+    cache.set(cacheKey, stations, stations.length ? 600 : 300);
     console.log(`✅ OpenAQ returned ${stations.length} stations`);
     return stations;
 }
 
-// ── Service availability check ────────────────────────────────
-function isAvailable() {
-    return !!API_KEY;
-}
+function isAvailable() { return !!API_KEY; }
 
 function getMetrics() {
-    return {
-        available: isAvailable(),
-        cacheKeys: cache.keys().length,
-        apiKeySet: !!API_KEY,
-    };
+    return { available: isAvailable(), cacheKeys: cache.keys().length, apiKeySet: !!API_KEY };
 }
 
 function clearCache() {
@@ -174,10 +206,4 @@ function clearCache() {
     console.log('🗑️  OpenAQ cache cleared');
 }
 
-module.exports = {
-    getNearbySensors,
-    isAvailable,
-    getMetrics,
-    clearCache,
-    pm25ToAQI,
-};
+module.exports = { getNearbySensors, isAvailable, getMetrics, clearCache, pm25ToAQI };
