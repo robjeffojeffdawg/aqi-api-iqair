@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Access – Jeffo Blogs' AQI Monitor</title>
-    <meta name="description" content="Real-time air quality data API. Access live AQI, PM2.5, historical trends and health data for 100+ cities worldwide. Free and paid tiers available.">
+    <meta name="description" content="Real-time air quality data API. Live AQI and PM2.5 from IQAir, PurpleAir and OpenAQ, plus up to 90 days of recorded history for 200+ places worldwide.">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🌍</text></svg>">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -590,107 +590,15 @@
         </div>
         <h1>Air Quality Data<br>for Developers</h1>
         <p class="hero-sub">
-            Live AQI, PM2.5, historical trends and health data for cities worldwide.
-            Simple REST API. JSON responses. Up and running in minutes.
+            Live AQI, PM2.5 and recorded history for cities worldwide.
+            Simple REST API. JSON responses. Currently free to use while in early access.
         </p>
         <div class="hero-stats">
-            <div class="hero-stat">
-                <span class="hero-stat-num">100+</span>
-                <span class="hero-stat-label">Cities covered</span>
-            </div>
-            <div class="hero-stat">
-                <span class="hero-stat-num">6</span>
-                <span class="hero-stat-label">Pollutants tracked</span>
-            </div>
-            <div class="hero-stat">
-                <span class="hero-stat-num">30d</span>
-                <span class="hero-stat-label">Historical data</span>
-            </div>
-            <div class="hero-stat">
-                <span class="hero-stat-num">99%</span>
-                <span class="hero-stat-label">Uptime target</span>
-            </div>
+            <div class="hero-stat"><span class="hero-stat-num">200+</span><span class="hero-stat-label">Places recorded</span></div>
+            <div class="hero-stat"><span class="hero-stat-num">3</span><span class="hero-stat-label">Data sources</span></div>
+            <div class="hero-stat"><span class="hero-stat-num">90d</span><span class="hero-stat-label">History kept</span></div>
+            <div class="hero-stat"><span class="hero-stat-num">Free</span><span class="hero-stat-label">Early access</span></div>
         </div>
-    </div>
-
-    <!-- ── PRICING ── -->
-    <div class="section-head">
-        <div class="section-label">Pricing</div>
-        <div class="section-title">Simple, transparent plans</div>
-    </div>
-
-    <div class="pricing-grid">
-
-        <!-- FREE -->
-        <div class="pricing-card">
-            <div class="plan-name">Free</div>
-            <div class="plan-price">
-                <span class="plan-price-currency">£</span>
-                <span class="plan-price-num">0</span>
-            </div>
-            <div class="plan-price-period">forever</div>
-            <div class="plan-desc">Perfect for side projects, prototyping, and personal use.</div>
-            <div class="plan-limit">100 requests / day</div>
-            <ul class="plan-features">
-                <li class="has"><span class="check">✓</span> Live AQI by city name</li>
-                <li class="has"><span class="check">✓</span> Current weather data</li>
-                <li class="has"><span class="check">✓</span> US + China AQI standards</li>
-                <li class="has"><span class="check">✓</span> JSON responses</li>
-                <li><span class="cross">–</span> Historical data</li>
-                <li><span class="cross">–</span> Bulk city queries</li>
-                <li><span class="cross">–</span> CSV exports</li>
-                <li><span class="cross">–</span> Priority support</li>
-            </ul>
-            <a href="#request-key" class="plan-cta secondary">Get Free Key →</a>
-        </div>
-
-        <!-- PRO -->
-        <div class="pricing-card featured">
-            <div class="featured-badge">Most Popular</div>
-            <div class="plan-name">Pro</div>
-            <div class="plan-price">
-                <span class="plan-price-currency">£</span>
-                <span class="plan-price-num">20</span>
-            </div>
-            <div class="plan-price-period">per month</div>
-            <div class="plan-desc">For apps, dashboards, and projects that need reliable, high-volume data.</div>
-            <div class="plan-limit">5,000 requests / day</div>
-            <ul class="plan-features">
-                <li class="has"><span class="check">✓</span> Everything in Free</li>
-                <li class="has"><span class="check">✓</span> 30-day historical AQI</li>
-                <li class="has"><span class="check">✓</span> Hourly + daily averages</li>
-                <li class="has"><span class="check">✓</span> PM2.5, PM10, O₃, NO₂, SO₂, CO</li>
-                <li class="has"><span class="check">✓</span> WHO guideline comparisons</li>
-                <li class="has"><span class="check">✓</span> No attribution required</li>
-                <li class="has"><span class="check">✓</span> Email support</li>
-                <li><span class="cross">–</span> CSV bulk exports</li>
-            </ul>
-            <a href="#request-key" class="plan-cta primary">Get Pro Key →</a>
-        </div>
-
-        <!-- BUSINESS -->
-        <div class="pricing-card">
-            <div class="plan-name">Business</div>
-            <div class="plan-price">
-                <span class="plan-price-currency">£</span>
-                <span class="plan-price-num">99</span>
-            </div>
-            <div class="plan-price-period">per month</div>
-            <div class="plan-desc">For commercial products, research teams, and high-traffic applications.</div>
-            <div class="plan-limit">50,000 requests / day</div>
-            <ul class="plan-features">
-                <li class="has"><span class="check">✓</span> Everything in Pro</li>
-                <li class="has"><span class="check">✓</span> CSV bulk data exports</li>
-                <li class="has"><span class="check">✓</span> Custom city coverage</li>
-                <li class="has"><span class="check">✓</span> Monthly trend reports</li>
-                <li class="has"><span class="check">✓</span> Dedicated support</li>
-                <li class="has"><span class="check">✓</span> SLA agreement</li>
-                <li class="has"><span class="check">✓</span> Invoice billing</li>
-                <li class="has"><span class="check">✓</span> Usage dashboard</li>
-            </ul>
-            <a href="#request-key" class="plan-cta secondary">Get Business Key →</a>
-        </div>
-
     </div>
 
     <!-- ── CODE EXAMPLES ── -->
@@ -708,23 +616,17 @@
                     <span class="example-method">GET</span>
                 </div>
                 <div class="example-body">
-                    <p class="example-desc">Fetch current air quality for any city. Pass your API key as a query parameter.</p>
+                    <p class="example-desc">Fetch current air quality for a city. No key is needed right now.</p>
                     <div class="code-block"><span class="code-comment"># Request</span>
-curl <span class="code-url">https://api.aqi.jeff-o-blogs.com/api/aqi/city</span> \
-  ?city=<span class="code-str">Bangkok</span> \
-  &country=<span class="code-str">Thailand</span> \
-  &key=<span class="code-str">your_api_key</span></div>
-                    <div class="code-block"><span class="code-comment">// Response</span>
+curl "<span class="code-url">https://api.aqi.jeff-o-blogs.com/api/aqi/city</span>?city=<span class="code-str">Bangkok</span>&amp;country=<span class="code-str">Thailand</span>"</div>
+                    <div class="code-block"><span class="code-comment">// Response (abridged)</span>
 {
   <span class="code-key">"success"</span>: <span class="code-val">true</span>,
   <span class="code-key">"data"</span>: {
     <span class="code-key">"name"</span>: <span class="code-str">"Bangkok"</span>,
     <span class="code-key">"aqi"</span>: { <span class="code-key">"us"</span>: <span class="code-num">87</span>, <span class="code-key">"cn"</span>: <span class="code-num">74</span> },
     <span class="code-key">"mainPollutant"</span>: <span class="code-str">"p2"</span>,
-    <span class="code-key">"weather"</span>: {
-      <span class="code-key">"temperature"</span>: <span class="code-num">34</span>,
-      <span class="code-key">"humidity"</span>: <span class="code-num">62</span>
-    }
+    <span class="code-key">"weather"</span>: { <span class="code-key">"temperature"</span>: <span class="code-num">34</span>, <span class="code-key">"humidity"</span>: <span class="code-num">62</span> }
   }
 }</div>
                 </div>
@@ -736,20 +638,16 @@ curl <span class="code-url">https://api.aqi.jeff-o-blogs.com/api/aqi/city</span>
                     <span class="example-method">GET</span>
                 </div>
                 <div class="example-body">
-                    <p class="example-desc">Find all monitoring stations within a radius of any coordinate. Great for mobile apps.</p>
+                    <p class="example-desc">Find monitoring stations around any coordinate. Combines IQAir, PurpleAir community sensors and OpenAQ where available.</p>
                     <div class="code-block"><span class="code-comment"># Request</span>
-curl <span class="code-url">https://api.aqi.jeff-o-blogs.com/api/aqi/nearby</span> \
-  ?lat=<span class="code-num">13.756</span> \
-  &lon=<span class="code-num">100.501</span> \
-  &radius=<span class="code-num">50</span> \
-  &key=<span class="code-str">your_api_key</span></div>
-                    <div class="code-block"><span class="code-comment">// Response</span>
+curl "<span class="code-url">https://api.aqi.jeff-o-blogs.com/api/aqi/nearby</span>?lat=<span class="code-num">13.756</span>&amp;lon=<span class="code-num">100.501</span>&amp;radius=<span class="code-num">50</span>"</div>
+                    <div class="code-block"><span class="code-comment">// Response (abridged)</span>
 {
   <span class="code-key">"success"</span>: <span class="code-val">true</span>,
   <span class="code-key">"data"</span>: {
-    <span class="code-key">"count"</span>: <span class="code-num">3</span>,
     <span class="code-key">"stations"</span>: [
       { <span class="code-key">"name"</span>: <span class="code-str">"Bangkok"</span>,
+        <span class="code-key">"source"</span>: <span class="code-str">"IQAir"</span>,
         <span class="code-key">"distance"</span>: <span class="code-num">2.4</span>,
         <span class="code-key">"aqi"</span>: { <span class="code-key">"us"</span>: <span class="code-num">87</span> } }
     ]
@@ -760,25 +658,22 @@ curl <span class="code-url">https://api.aqi.jeff-o-blogs.com/api/aqi/nearby</spa
 
             <div class="example-card">
                 <div class="example-header">
-                    <span class="example-title">Historical averages · Pro</span>
+                    <span class="example-title">Recorded history</span>
                     <span class="example-method">GET</span>
                 </div>
                 <div class="example-body">
-                    <p class="example-desc">Retrieve hourly or daily AQI averages for trend analysis. Available on Pro and above.</p>
-                    <div class="code-block"><span class="code-comment"># Request — last 7 days, daily averages</span>
-curl <span class="code-url">https://api.aqi.jeff-o-blogs.com/api/history/averages</span> \
-  ?lat=<span class="code-num">18.788</span>&lon=<span class="code-num">98.985</span> \
-  &period=<span class="code-str">day</span>&days=<span class="code-num">7</span> \
-  &key=<span class="code-str">your_pro_key</span></div>
-                    <div class="code-block"><span class="code-comment">// Response</span>
+                    <p class="example-desc">Readings we have recorded within about 15 km of a point, with min / max / average. <code>hours</code> defaults to 24. Readings are kept for 90 days.</p>
+                    <div class="code-block"><span class="code-comment"># Request: last 7 days (168 hours)</span>
+curl "<span class="code-url">https://api.aqi.jeff-o-blogs.com/api/history</span>?lat=<span class="code-num">18.788</span>&amp;lon=<span class="code-num">98.985</span>&amp;hours=<span class="code-num">168</span>"</div>
+                    <div class="code-block"><span class="code-comment">// Response (abridged)</span>
 {
   <span class="code-key">"success"</span>: <span class="code-val">true</span>,
   <span class="code-key">"data"</span>: {
-    <span class="code-key">"averages"</span>: [
-      { <span class="code-key">"date"</span>: <span class="code-str">"2026-03-21"</span>,
-        <span class="code-key">"avgAQI"</span>: <span class="code-num">112</span>,
-        <span class="code-key">"minAQI"</span>: <span class="code-num">88</span>,
-        <span class="code-key">"maxAQI"</span>: <span class="code-num">145</span> }
+    <span class="code-key">"count"</span>: <span class="code-num">84</span>,
+    <span class="code-key">"stats"</span>: { <span class="code-key">"min"</span>: <span class="code-num">88</span>, <span class="code-key">"max"</span>: <span class="code-num">145</span>, <span class="code-key">"avg"</span>: <span class="code-num">112</span> },
+    <span class="code-key">"readings"</span>: [
+      { <span class="code-key">"timestamp"</span>: <span class="code-str">"2026-11-21T06:00:00.000Z"</span>,
+        <span class="code-key">"aqi"</span>: <span class="code-num">112</span>, <span class="code-key">"source"</span>: <span class="code-str">"IQAir"</span> }
     ]
   }
 }</div>
@@ -791,18 +686,14 @@ curl <span class="code-url">https://api.aqi.jeff-o-blogs.com/api/history/average
                     <span class="example-method">JS</span>
                 </div>
                 <div class="example-body">
-                    <p class="example-desc">Drop this into any frontend project. No SDK required — it's a plain REST API.</p>
+                    <p class="example-desc">Drop this into any frontend project. No SDK required: it's a plain REST API.</p>
                     <div class="code-block"><span class="code-comment">// Fetch Bangkok AQI</span>
-<span class="code-key">const</span> res = <span class="code-val">await</span> fetch(
-  <span class="code-str">`https://api.aqi.jeff-o-blogs.com/api/aqi/city</span>
-   <span class="code-str">?city=Bangkok&country=Thailand</span>
-   <span class="code-str">&key=${</span><span class="code-key">YOUR_KEY</span><span class="code-str">}`</span>
-);
+<span class="code-key">const</span> url = <span class="code-str">'https://api.aqi.jeff-o-blogs.com/api/aqi/city'</span> +
+  <span class="code-str">'?city=Bangkok&amp;country=Thailand'</span>;
+<span class="code-key">const</span> res = <span class="code-val">await</span> fetch(url);
 <span class="code-key">const</span> { data } = <span class="code-val">await</span> res.json();
 
-console.log(
-  <span class="code-str">`AQI: ${</span>data.aqi.us<span class="code-str">}`</span>
-);</div>
+console.log(<span class="code-str">`AQI: ${</span>data.aqi.us<span class="code-str">}`</span>);</div>
                 </div>
             </div>
 
@@ -816,104 +707,90 @@ console.log(
             <div class="section-title">Available endpoints</div>
         </div>
 
+        <p class="example-desc" style="text-align:center;margin-bottom:20px;">Base URL: <span class="endpoint-path" style="display:inline;">https://api.aqi.jeff-o-blogs.com</span> · All endpoints use GET and return JSON.</p>
+
         <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
             <table class="endpoints-table" style="margin:0;padding:24px;">
                 <thead>
-                    <tr style="padding:0 24px;">
+                    <tr>
                         <th style="padding:16px 16px 12px 24px;">Endpoint</th>
                         <th>Description</th>
-                        <th>Tier</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td style="padding-left:24px;">
                             <span class="endpoint-method">GET</span>
+                            <span class="endpoint-path">/health</span>
+                        </td>
+                        <td style=""><span class="endpoint-desc">Service health check.</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left:24px;">
+                            <span class="endpoint-method">GET</span>
                             <span class="endpoint-path">/api/aqi/city</span>
                         </td>
-                        <td><span class="endpoint-desc">Live AQI for a named city. Params: city, country, state (optional)</span></td>
-                        <td><span class="tier-pill tier-free">Free</span></td>
+                        <td style=""><span class="endpoint-desc">Live AQI for a named city. Params: <code>city</code>, <code>country</code>, <code>state</code> (optional).</span></td>
                     </tr>
                     <tr>
                         <td style="padding-left:24px;">
                             <span class="endpoint-method">GET</span>
                             <span class="endpoint-path">/api/aqi/nearby</span>
                         </td>
-                        <td><span class="endpoint-desc">Stations near GPS coordinates. Params: lat, lon, radius</span></td>
-                        <td><span class="tier-pill tier-free">Free</span></td>
+                        <td style=""><span class="endpoint-desc">Stations near GPS coordinates. Params: <code>lat</code>, <code>lon</code>, <code>radius</code> (km, default 50).</span></td>
                     </tr>
                     <tr>
                         <td style="padding-left:24px;">
                             <span class="endpoint-method">GET</span>
                             <span class="endpoint-path">/api/aqi/countries</span>
                         </td>
-                        <td><span class="endpoint-desc">List of all supported countries</span></td>
-                        <td><span class="tier-pill tier-free">Free</span></td>
+                        <td style=""><span class="endpoint-desc">List of supported countries.</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left:24px;">
+                            <span class="endpoint-method">GET</span>
+                            <span class="endpoint-path">/api/aqi/states</span>
+                        </td>
+                        <td style=""><span class="endpoint-desc">List of states / provinces. Param: <code>country</code>.</span></td>
                     </tr>
                     <tr>
                         <td style="padding-left:24px;">
                             <span class="endpoint-method">GET</span>
                             <span class="endpoint-path">/api/aqi/cities</span>
                         </td>
-                        <td><span class="endpoint-desc">Cities within a state/country. Params: state, country</span></td>
-                        <td><span class="tier-pill tier-free">Free</span></td>
-                    </tr>
-                    <tr>
-                        <td style="padding-left:24px;">
-                            <span class="endpoint-method">GET</span>
-                            <span class="endpoint-path">/api/history/averages</span>
-                        </td>
-                        <td><span class="endpoint-desc">Hourly or daily AQI averages. Params: lat, lon, period, days</span></td>
-                        <td><span class="tier-pill tier-pro">Pro</span></td>
-                    </tr>
-                    <tr>
-                        <td style="padding-left:24px;">
-                            <span class="endpoint-method">GET</span>
-                            <span class="endpoint-path">/api/history/stats</span>
-                        </td>
-                        <td><span class="endpoint-desc">Min, max, average AQI over a time period</span></td>
-                        <td><span class="tier-pill tier-pro">Pro</span></td>
+                        <td style=""><span class="endpoint-desc">Cities within a state. Params: <code>state</code>, <code>country</code>.</span></td>
                     </tr>
                     <tr>
                         <td style="padding-left:24px; border-bottom:none;">
                             <span class="endpoint-method">GET</span>
-                            <span class="endpoint-path">/api/history/location</span>
+                            <span class="endpoint-path">/api/history</span>
                         </td>
-                        <td style="border-bottom:none;"><span class="endpoint-desc">Raw readings for a location with full pollutant breakdown</span></td>
-                        <td style="border-bottom:none;"><span class="tier-pill tier-business">Business</span></td>
+                        <td style="border-bottom:none;"><span class="endpoint-desc">Recorded readings within ~15 km of a point, plus min / max / average. Params: <code>lat</code>, <code>lon</code>, <code>hours</code> (default 24). Data is kept for 90 days.</span></td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- ── REQUEST KEY FORM ── -->
+    <!-- ── REQUEST ACCESS FORM ── -->
     <div class="signup-section" id="request-key">
         <div class="signup-grid">
             <div class="signup-left">
-                <div class="section-label" style="text-align:left; margin-bottom:12px;">Get Access</div>
-                <h2>Request your<br>API key</h2>
-                <p>Fill in the form and we'll send your key within 24 hours. Free tier keys are issued automatically.</p>
+                <div class="section-label" style="text-align:left; margin-bottom:12px;">Early Access</div>
+                <h2>Request<br>API access</h2>
+                <p>The API is open while it is in early access. Tell us how you plan to use it and we will get in touch about access and any future key.</p>
                 <ul class="signup-perks">
-                    <li><span>⚡</span><span>Free keys issued same day</span></li>
-                    <li><span>🔒</span><span>No credit card for free tier</span></li>
-                    <li><span>📧</span><span>Key delivered to your email</span></li>
+                    <li><span>🔒</span><span>No credit card</span></li>
+                    <li><span>📧</span><span>We reply by email</span></li>
                     <li><span>🌏</span><span>Thailand coverage is our speciality</span></li>
-                    <li><span>📖</span><span>Full docs included with every key</span></li>
                 </ul>
             </div>
 
             <div class="signup-right">
                 <div id="signupForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label" for="firstName">First Name</label>
-                            <input type="text" id="firstName" class="form-input" placeholder="Robert">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="lastName">Last Name</label>
-                            <input type="text" id="lastName" class="form-input" placeholder="Jefferson">
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label" for="name">Name</label>
+                        <input type="text" id="name" class="form-input" placeholder="Your name">
                     </div>
 
                     <div class="form-group">
@@ -922,26 +799,14 @@ console.log(
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="plan">Plan</label>
-                        <select id="plan" class="form-select">
-                            <option value="free">Free — £0/month · 100 req/day</option>
-                            <option value="pro">Pro — £20/month · 5,000 req/day</option>
-                            <option value="business">Business — £99/month · 50,000 req/day</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
                         <label class="form-label" for="useCase">How will you use the API?</label>
-                        <textarea id="useCase" class="form-textarea" placeholder="e.g. Building a real estate app that shows AQI scores for property listings in Thailand…"></textarea>
+                        <textarea id="useCase" class="form-textarea" placeholder="e.g. A real estate app that shows AQI for property listings in Thailand…"></textarea>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="website">Website / App URL (optional)</label>
-                        <input type="url" id="website" class="form-input" placeholder="https://yourapp.com">
-                    </div>
+                    <div class="form-error" id="formError" style="display:none;color:#fca5a5;font-size:13px;margin-bottom:12px;"></div>
 
                     <button class="submit-btn" id="submitBtn" onclick="submitRequest()">
-                        Request API Key →
+                        Request Access →
                     </button>
                     <p class="form-note">By submitting you agree to fair use of the API. We never sell your data.</p>
                 </div>
@@ -949,7 +814,7 @@ console.log(
                 <div class="success-msg" id="successMsg">
                     <span class="icon">✅</span>
                     <h3>Request received!</h3>
-                    <p>Thanks for your interest. We'll review your request and send your API key to <strong id="confirmEmail"></strong> within 24 hours.<br><br>Free tier requests are usually processed within a few hours.</p>
+                    <p>Thanks for your interest. We will review your request and email <strong id="confirmEmail"></strong>.</p>
                 </div>
             </div>
         </div>
@@ -965,27 +830,27 @@ console.log(
         <div class="faq-grid">
             <div class="faq-card">
                 <div class="faq-q">Where does the data come from?</div>
-                <div class="faq-a">Data is sourced from IQAir's global network of professional monitoring stations, supplemented by PurpleAir community sensors for higher density coverage in some areas.</div>
+                <div class="faq-a">Live readings come from IQAir's network of monitoring stations, supplemented by PurpleAir community sensors and OpenAQ stations where they are available nearby.</div>
             </div>
             <div class="faq-card">
-                <div class="faq-q">How often is data updated?</div>
-                <div class="faq-a">Live AQI readings are updated hourly from IQAir's network. Historical averages are computed from readings stored in our MongoDB database each time a user loads a city page.</div>
+                <div class="faq-q">How is history recorded?</div>
+                <div class="faq-a">A background job records readings for a watch list of more than 200 places: key local spots every 2 hours, Thai provinces daily, and European and world cities every 6 hours. History is only available near those places and is kept for 90 days.</div>
             </div>
             <div class="faq-card">
                 <div class="faq-q">Is Thailand coverage better than other regions?</div>
-                <div class="faq-a">Yes — we have dedicated coverage for all 77 Thai provinces including remote areas like Mae Hong Son. We use coordinate-based nearest-station fallback when named stations aren't available.</div>
+                <div class="faq-a">Yes. All 75 Thai provinces with a recorded reading are on the watch list, and we fall back to the nearest station when a named station is not available.</div>
             </div>
             <div class="faq-card">
-                <div class="faq-q">Can I use this for a commercial product?</div>
-                <div class="faq-a">Pro and Business tiers allow commercial use with no attribution required. Free tier requires a small "Data: Jeffo Blogs AQI" attribution in your UI.</div>
+                <div class="faq-q">Do I need an API key?</div>
+                <div class="faq-a">Not at the moment. The API is in early access and open to use. Please be reasonable with request volume: upstream data providers limit how often we can refresh.</div>
             </div>
             <div class="faq-card">
-                <div class="faq-q">What happens if I exceed my daily limit?</div>
-                <div class="faq-a">Requests beyond your daily limit return a 429 response with a clear error message. We'll email you before you hit the limit consistently so you can upgrade.</div>
+                <div class="faq-q">What happens if I send too many requests?</div>
+                <div class="faq-a">Upstream providers may rate-limit us, in which case you may see a 429 or an error response. Cached results are reused for a few minutes, so repeated identical requests are cheap.</div>
             </div>
             <div class="faq-card">
-                <div class="faq-q">Can I get a custom plan or higher limits?</div>
-                <div class="faq-a">Yes — select Business tier in the form and describe your needs in the use case field. We can accommodate higher limits, custom city coverage, or research/academic pricing.</div>
+                <div class="faq-q">Will there be paid plans or higher limits?</div>
+                <div class="faq-a">Possibly in future. If you need higher volume, custom places or research access, describe it in the form above.</div>
             </div>
         </div>
     </div>
@@ -1003,75 +868,51 @@ console.log(
 </div>
 
 <script>
-    // Scroll to form when plan CTA is clicked
-    document.querySelectorAll('a[href="#request-key"]').forEach(a => {
-        a.addEventListener('click', e => {
-            e.preventDefault();
-            const plan = a.closest('.pricing-card').querySelector('.plan-name').textContent.toLowerCase();
-            document.getElementById('plan').value = plan;
-            document.getElementById('request-key').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            setTimeout(() => document.getElementById('firstName').focus(), 600);
-        });
-    });
+    async function submitRequest() {
+        const name    = document.getElementById('name').value.trim();
+        const email   = document.getElementById('email').value.trim();
+        const useCase = document.getElementById('useCase').value.trim();
+        const errBox  = document.getElementById('formError');
+        errBox.style.display = 'none';
 
-    // Form submission — stores to localStorage for now
-    // Replace with a real backend endpoint or Formspree/EmailJS when ready
-    function submitRequest() {
-        const firstName = document.getElementById('firstName').value.trim();
-        const lastName  = document.getElementById('lastName').value.trim();
-        const email     = document.getElementById('email').value.trim();
-        const plan      = document.getElementById('plan').value;
-        const useCase   = document.getElementById('useCase').value.trim();
+        const bad = (id) => {
+            const el = document.getElementById(id);
+            el.focus();
+            el.style.borderColor = '#ef4444';
+            setTimeout(() => el.style.borderColor = '', 2000);
+        };
 
-        // Basic validation
-        if (!firstName || !email) {
-            document.getElementById('firstName').focus();
-            document.getElementById('firstName').style.borderColor = '#ef4444';
-            setTimeout(() => document.getElementById('firstName').style.borderColor = '', 2000);
-            return;
-        }
-
-        if (!email.includes('@')) {
-            document.getElementById('email').style.borderColor = '#ef4444';
-            setTimeout(() => document.getElementById('email').style.borderColor = '', 2000);
-            return;
-        }
+        if (!name)  return bad('name');
+        if (!email || !email.includes('@')) return bad('email');
+        if (!useCase) return bad('useCase');
 
         const btn = document.getElementById('submitBtn');
         btn.disabled = true;
         btn.textContent = 'Submitting…';
 
-        // Store request locally — swap this for a real API call when ready
-        const request = {
-            firstName, lastName, email, plan, useCase,
-            website: document.getElementById('website').value.trim(),
-            submittedAt: new Date().toISOString()
-        };
-
         try {
-            const existing = JSON.parse(localStorage.getItem('api_key_requests') || '[]');
-            existing.push(request);
-            localStorage.setItem('api_key_requests', JSON.stringify(existing));
-        } catch(e) { /* localStorage not available */ }
+            const res = await fetch('https://api.aqi.jeff-o-blogs.com/contact/request-access', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, useCase })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || 'Something went wrong, please try again.');
 
-        // TODO: Replace with real endpoint e.g.:
-        // await fetch('https://api.aqi.jeff-o-blogs.com/api/access/request', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(request)
-        // });
-
-        setTimeout(() => {
             document.getElementById('signupForm').style.display = 'none';
             document.getElementById('confirmEmail').textContent = email;
             document.getElementById('successMsg').classList.add('show');
-        }, 800);
+        } catch (e) {
+            errBox.textContent = e.message;
+            errBox.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Request Access →';
+        }
     }
 
-    // Allow Enter to submit from any field
-    document.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(el => {
+    document.querySelectorAll('.form-input').forEach(el => {
         el.addEventListener('keydown', e => {
-            if (e.key === 'Enter' && el.tagName !== 'TEXTAREA') submitRequest();
+            if (e.key === 'Enter') submitRequest();
         });
     });
 </script>
