@@ -149,7 +149,7 @@ app.get('/api/aqi/nearby', async (req, res) => {
       return res.status(400).json({ error: 'Invalid coordinates' });
     }
 
-    const searchRadius = parseInt(radius);
+    const searchRadius = parseInt(radius) || 50;
     let allStations = [];
 
     try {

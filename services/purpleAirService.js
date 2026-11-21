@@ -94,7 +94,10 @@ class PurpleAirService {
       throw new Error('PurpleAir API key not configured');
     }
 
-    const cacheKey = `purpleair_nearby_${lat}_${lon}_${radius}`;
+    // A NaN or missing radius (e.g. no ?radius= in the request) falls back to 50 km
+    const r = Number(radius) > 0 ? Number(radius) : 50;
+
+    const cacheKey = `purpleair_nearby_${lat}_${lon}_${r}`;
     const cached = cache.get(cacheKey);
     
     if (cached) {
@@ -103,7 +106,11 @@ class PurpleAirService {
     }
 
     try {
-      // Get sensors within bounding box
+      // Bounding box. PurpleAir wants the NORTH-WEST corner (west = smaller longitude)
+      // and the SOUTH-EAST corner (east = larger longitude).
+      const latOffset = r / 111;
+      const lonOffset = r / (111 * Math.max(Math.cos(lat * Math.PI / 180), 0.01));
+
       const url = `${this.baseURL}/sensors`;
       const response = await axios.get(url, {
         headers: {
@@ -113,10 +120,10 @@ class PurpleAirService {
           fields: 'name,latitude,longitude,pm2.5,pm2.5_10minute,pm2.5_60minute,temperature,humidity,pressure',
           location_type: 0, // Outside sensors only
           max_age: 3600, // Last hour
-          nwlng: lon + (radius / 111), // Rough bounding box
-          nwlat: lat + (radius / 111),
-          selng: lon - (radius / 111),
-          selat: lat - (radius / 111)
+          nwlng: lon - lonOffset, // west edge
+          nwlat: lat + latOffset, // north edge
+          selng: lon + lonOffset, // east edge
+          selat: lat - latOffset  // south edge
         }
       });
 
@@ -177,7 +184,7 @@ class PurpleAirService {
 
       // Filter by radius and sort by distance
       const filtered = sensors
-        .filter(s => s.distance <= radius)
+        .filter(s => s.distance <= r)
         .sort((a, b) => a.distance - b.distance)
         .slice(0, 10); // Limit to 10 sensors
 
