@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 
 const historicalReadingSchema = new mongoose.Schema({
+  // Stable id of the watchlist place this reading belongs to (see services/watchlist.js).
+  // Lets the scheduler ask "when was this place last recorded?" with one query.
+  watchKey: String,
   location: {
     name: { type: String, required: true },
     coordinates: {
@@ -45,6 +48,12 @@ const historicalReadingSchema = new mongoose.Schema({
 historicalReadingSchema.index({ timestamp: -1 });
 historicalReadingSchema.index({ 'location.coordinates.lat': 1, 'location.coordinates.lon': 1 });
 historicalReadingSchema.index({ 'location.name': 1, timestamp: -1 });
+historicalReadingSchema.index({ watchKey: 1, timestamp: -1 });
+
+// Automatic expiry: MongoDB deletes readings older than 90 days (keeps the free 512 MB cluster small).
+// Note: to change this number later, the existing index must be dropped in Atlas first
+// (Browse Collections > historicalreadings > Indexes > delete "timestamp_1"), then redeploy.
+historicalReadingSchema.index({ timestamp: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 90 });
 
 // Get readings for a location within a time range
 historicalReadingSchema.statics.getReadingsInRange = async function(lat, lon, startDate, endDate, maxDistance = 10) {
