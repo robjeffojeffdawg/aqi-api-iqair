@@ -1,0 +1,275 @@
+// services/watchlist.js
+// Places the scheduler records, grouped into tiers.
+//
+// Tune how often each tier is recorded by editing `everyHours` in TIERS.
+// Add or remove places by editing the rows below: [name, latitude, longitude].
+//
+// IQAir budget (free plan, 10,000 calls/month):
+//   core     5 places  x every 2h  = 60 calls/day
+//   thailand 75 places x every 24h = 75 calls/day
+//   => about 135 calls/day, roughly 4,100/month, leaving the rest for live visitors.
+// OpenAQ has far higher limits, so Europe and the rest of the world use it.
+
+const TIERS = {
+  core:     { source: 'IQAir',  everyHours: 2 },
+  thailand: { source: 'IQAir',  everyHours: 24 },
+  europe:   { source: 'OpenAQ', everyHours: 6 },
+  world:    { source: 'OpenAQ', everyHours: 6 }
+};
+
+const CORE = [
+  ['Muak Lek, Saraburi', 14.6494, 101.2011],
+  ['Pak Chong, Nakhon Ratchasima', 14.7118, 101.4194],
+  ['Bangkok', 13.7563, 100.5018],
+  ['Chiang Mai', 18.7883, 98.9853],
+  ['London, UK', 51.5074, -0.1278]
+];
+
+// Thailand's provinces (Bangkok and Chiang Mai are in CORE), at the provincial capital.
+const THAILAND = [
+  ['Samut Prakan', 13.5991, 100.5998],
+  ['Nonthaburi', 13.8591, 100.5217],
+  ['Pathum Thani', 14.0208, 100.5250],
+  ['Phra Nakhon Si Ayutthaya', 14.3532, 100.5689],
+  ['Ang Thong', 14.5896, 100.4551],
+  ['Lop Buri', 14.7995, 100.6534],
+  ['Sing Buri', 14.8907, 100.4017],
+  ['Chai Nat', 15.1851, 100.1251],
+  ['Saraburi', 14.5289, 100.9101],
+  ['Nakhon Nayok', 14.2069, 101.2131],
+  ['Nakhon Pathom', 13.8199, 100.0443],
+  ['Suphan Buri', 14.4745, 100.1222],
+  ['Samut Sakhon', 13.5475, 100.2744],
+  ['Samut Songkhram', 13.4098, 100.0023],
+  ['Ratchaburi', 13.5283, 99.8134],
+  ['Kanchanaburi', 14.0228, 99.5328],
+  ['Phetchaburi', 13.1112, 99.9447],
+  ['Prachuap Khiri Khan', 11.8126, 99.7957],
+  ['Chachoengsao', 13.6904, 101.0780],
+  ['Prachin Buri', 14.0509, 101.3727],
+  ['Sa Kaeo', 13.8240, 102.0646],
+  ['Chon Buri', 13.3611, 100.9847],
+  ['Rayong', 12.6814, 101.2816],
+  ['Chanthaburi', 12.6114, 102.1039],
+  ['Trat', 12.2428, 102.5175],
+  ['Lamphun', 18.5745, 99.0087],
+  ['Lampang', 18.2888, 99.4908],
+  ['Uttaradit', 17.6200, 100.0993],
+  ['Phrae', 18.1459, 100.1410],
+  ['Nan', 18.7756, 100.7730],
+  ['Phayao', 19.1665, 99.9017],
+  ['Chiang Rai', 19.9105, 99.8406],
+  ['Mae Hong Son', 19.3020, 97.9654],
+  ['Nakhon Sawan', 15.7047, 100.1372],
+  ['Uthai Thani', 15.3835, 100.0245],
+  ['Kamphaeng Phet', 16.4828, 99.5227],
+  ['Tak', 16.8840, 99.1258],
+  ['Sukhothai', 17.0056, 99.8264],
+  ['Phitsanulok', 16.8211, 100.2659],
+  ['Phichit', 16.4429, 100.3487],
+  ['Phetchabun', 16.4190, 101.1606],
+  ['Nakhon Ratchasima', 14.9799, 102.0978],
+  ['Buri Ram', 14.9930, 103.1029],
+  ['Surin', 14.8818, 103.4936],
+  ['Si Sa Ket', 15.1186, 104.3220],
+  ['Ubon Ratchathani', 15.2287, 104.8564],
+  ['Yasothon', 15.7926, 104.1453],
+  ['Chaiyaphum', 15.8068, 102.0315],
+  ['Amnat Charoen', 15.8657, 104.6258],
+  ['Bueng Kan', 18.3609, 103.6464],
+  ['Nong Bua Lamphu', 17.2218, 102.4260],
+  ['Khon Kaen', 16.4322, 102.8236],
+  ['Udon Thani', 17.4138, 102.7870],
+  ['Loei', 17.4860, 101.7223],
+  ['Nong Khai', 17.8783, 102.7420],
+  ['Maha Sarakham', 16.1851, 103.3010],
+  ['Roi Et', 16.0538, 103.6520],
+  ['Kalasin', 16.4315, 103.5060],
+  ['Sakon Nakhon', 17.1664, 104.1486],
+  ['Nakhon Phanom', 17.3920, 104.7695],
+  ['Mukdahan', 16.5453, 104.7235],
+  ['Nakhon Si Thammarat', 8.4304, 99.9631],
+  ['Krabi', 8.0863, 98.9063],
+  ['Phang Nga', 8.4509, 98.5255],
+  ['Phuket', 7.8804, 98.3923],
+  ['Surat Thani', 9.1382, 99.3217],
+  ['Ranong', 9.9529, 98.6085],
+  ['Chumphon', 10.4930, 99.1800],
+  ['Songkhla', 7.1897, 100.5951],
+  ['Satun', 6.6238, 100.0674],
+  ['Trang', 7.5563, 99.6114],
+  ['Phatthalung', 7.6167, 100.0833],
+  ['Pattani', 6.8695, 101.2505],
+  ['Yala', 6.5410, 101.2804],
+  ['Narathiwat', 6.4254, 101.8253]
+];
+
+const EUROPE = [
+  ['Paris, France', 48.8566, 2.3522],
+  ['Berlin, Germany', 52.5200, 13.4050],
+  ['Madrid, Spain', 40.4168, -3.7038],
+  ['Rome, Italy', 41.9028, 12.4964],
+  ['Lisbon, Portugal', 38.7223, -9.1393],
+  ['Dublin, Ireland', 53.3498, -6.2603],
+  ['Amsterdam, Netherlands', 52.3676, 4.9041],
+  ['Brussels, Belgium', 50.8503, 4.3517],
+  ['Luxembourg', 49.6116, 6.1319],
+  ['Bern, Switzerland', 46.9480, 7.4474],
+  ['Vienna, Austria', 48.2082, 16.3738],
+  ['Prague, Czechia', 50.0755, 14.4378],
+  ['Warsaw, Poland', 52.2297, 21.0122],
+  ['Budapest, Hungary', 47.4979, 19.0402],
+  ['Bratislava, Slovakia', 48.1486, 17.1077],
+  ['Ljubljana, Slovenia', 46.0569, 14.5058],
+  ['Zagreb, Croatia', 45.8150, 15.9819],
+  ['Belgrade, Serbia', 44.7866, 20.4489],
+  ['Sarajevo, Bosnia and Herzegovina', 43.8563, 18.4131],
+  ['Podgorica, Montenegro', 42.4304, 19.2594],
+  ['Skopje, North Macedonia', 41.9981, 21.4254],
+  ['Tirana, Albania', 41.3275, 19.8187],
+  ['Athens, Greece', 37.9838, 23.7275],
+  ['Sofia, Bulgaria', 42.6977, 23.3219],
+  ['Bucharest, Romania', 44.4268, 26.1025],
+  ['Chisinau, Moldova', 47.0105, 28.8638],
+  ['Kyiv, Ukraine', 50.4501, 30.5234],
+  ['Vilnius, Lithuania', 54.6872, 25.2797],
+  ['Riga, Latvia', 56.9496, 24.1052],
+  ['Tallinn, Estonia', 59.4370, 24.7536],
+  ['Helsinki, Finland', 60.1699, 24.9384],
+  ['Stockholm, Sweden', 59.3293, 18.0686],
+  ['Oslo, Norway', 59.9139, 10.7522],
+  ['Copenhagen, Denmark', 55.6761, 12.5683],
+  ['Reykjavik, Iceland', 64.1466, -21.9426],
+  ['Valletta, Malta', 35.8989, 14.5146],
+  ['Nicosia, Cyprus', 35.1856, 33.3823],
+  ['Minsk, Belarus', 53.9006, 27.5590],
+  ['Pristina, Kosovo', 42.6629, 21.1655],
+  ['Edinburgh, UK', 55.9533, -3.1883],
+  ['Cardiff, UK', 51.4816, -3.1791],
+  ['Belfast, UK', 54.5973, -5.9301],
+  ['Manchester, UK', 53.4808, -2.2426],
+  ['Birmingham, UK', 52.4862, -1.8904],
+  ['Istanbul, Turkey', 41.0082, 28.9784]
+];
+
+const WORLD = [
+  // Asia and Middle East
+  ['Tokyo, Japan', 35.6762, 139.6503],
+  ['Seoul, South Korea', 37.5665, 126.9780],
+  ['Beijing, China', 39.9042, 116.4074],
+  ['Shanghai, China', 31.2304, 121.4737],
+  ['Hong Kong', 22.3193, 114.1694],
+  ['Taipei, Taiwan', 25.0330, 121.5654],
+  ['Manila, Philippines', 14.5995, 120.9842],
+  ['Hanoi, Vietnam', 21.0285, 105.8542],
+  ['Ho Chi Minh City, Vietnam', 10.8231, 106.6297],
+  ['Vientiane, Laos', 17.9757, 102.6331],
+  ['Phnom Penh, Cambodia', 11.5564, 104.9282],
+  ['Yangon, Myanmar', 16.8409, 96.1735],
+  ['Kuala Lumpur, Malaysia', 3.1390, 101.6869],
+  ['Singapore', 1.3521, 103.8198],
+  ['Jakarta, Indonesia', -6.2088, 106.8456],
+  ['Delhi, India', 28.6139, 77.2090],
+  ['Mumbai, India', 19.0760, 72.8777],
+  ['Kolkata, India', 22.5726, 88.3639],
+  ['Dhaka, Bangladesh', 23.8103, 90.4125],
+  ['Kathmandu, Nepal', 27.7172, 85.3240],
+  ['Colombo, Sri Lanka', 6.9271, 79.8612],
+  ['Islamabad, Pakistan', 33.6844, 73.0479],
+  ['Lahore, Pakistan', 31.5204, 74.3587],
+  ['Karachi, Pakistan', 24.8607, 67.0011],
+  ['Tehran, Iran', 35.6892, 51.3890],
+  ['Dubai, UAE', 25.2048, 55.2708],
+  ['Riyadh, Saudi Arabia', 24.7136, 46.6753],
+  ['Tel Aviv, Israel', 32.0853, 34.7818],
+  ['Ulaanbaatar, Mongolia', 47.8864, 106.9057],
+  ['Almaty, Kazakhstan', 43.2220, 76.8512],
+  ['Tashkent, Uzbekistan', 41.2995, 69.2401],
+  ['Bishkek, Kyrgyzstan', 42.8746, 74.5698],
+  ['Baku, Azerbaijan', 40.4093, 49.8671],
+  ['Tbilisi, Georgia', 41.7151, 44.8271],
+  ['Yerevan, Armenia', 40.1792, 44.4991],
+  // Africa
+  ['Cairo, Egypt', 30.0444, 31.2357],
+  ['Lagos, Nigeria', 6.5244, 3.3792],
+  ['Accra, Ghana', 5.6037, -0.1870],
+  ['Nairobi, Kenya', -1.2921, 36.8219],
+  ['Addis Ababa, Ethiopia', 9.0320, 38.7469],
+  ['Kampala, Uganda', 0.3476, 32.5825],
+  ['Kigali, Rwanda', -1.9441, 30.0619],
+  ['Johannesburg, South Africa', -26.2041, 28.0473],
+  ['Cape Town, South Africa', -33.9249, 18.4241],
+  ['Casablanca, Morocco', 33.5731, -7.5898],
+  ['Algiers, Algeria', 36.7538, 3.0588],
+  ['Tunis, Tunisia', 36.8065, 10.1815],
+  ['Dakar, Senegal', 14.7167, -17.4677],
+  ['Kinshasa, DR Congo', -4.4419, 15.2663],
+  ['Maputo, Mozambique', -25.9692, 32.5732],
+  ['Lusaka, Zambia', -15.3875, 28.3228],
+  ['Harare, Zimbabwe', -17.8252, 31.0335],
+  ['Windhoek, Namibia', -22.5609, 17.0658],
+  ['Antananarivo, Madagascar', -18.8792, 47.5079],
+  // Americas
+  ['New York, USA', 40.7128, -74.0060],
+  ['Los Angeles, USA', 34.0522, -118.2437],
+  ['Chicago, USA', 41.8781, -87.6298],
+  ['Houston, USA', 29.7604, -95.3698],
+  ['San Francisco, USA', 37.7749, -122.4194],
+  ['Seattle, USA', 47.6062, -122.3321],
+  ['Denver, USA', 39.7392, -104.9903],
+  ['Phoenix, USA', 33.4484, -112.0740],
+  ['Washington DC, USA', 38.9072, -77.0369],
+  ['Toronto, Canada', 43.6532, -79.3832],
+  ['Vancouver, Canada', 49.2827, -123.1207],
+  ['Montreal, Canada', 45.5017, -73.5673],
+  ['Mexico City, Mexico', 19.4326, -99.1332],
+  ['Guatemala City, Guatemala', 14.6349, -90.5069],
+  ['Bogota, Colombia', 4.7110, -74.0721],
+  ['Lima, Peru', -12.0464, -77.0428],
+  ['Santiago, Chile', -33.4489, -70.6693],
+  ['Buenos Aires, Argentina', -34.6037, -58.3816],
+  ['Sao Paulo, Brazil', -23.5505, -46.6333],
+  ['Rio de Janeiro, Brazil', -22.9068, -43.1729],
+  ['Quito, Ecuador', -0.1807, -78.4678],
+  ['La Paz, Bolivia', -16.4897, -68.1193],
+  ['Montevideo, Uruguay', -34.9011, -56.1645],
+  ['Caracas, Venezuela', 10.4806, -66.9036],
+  ['Panama City, Panama', 8.9824, -79.5199],
+  ['San Jose, Costa Rica', 9.9281, -84.0907],
+  // Oceania
+  ['Sydney, Australia', -33.8688, 151.2093],
+  ['Melbourne, Australia', -37.8136, 144.9631],
+  ['Brisbane, Australia', -27.4698, 153.0251],
+  ['Perth, Australia', -31.9505, 115.8605],
+  ['Adelaide, Australia', -34.9285, 138.6007],
+  ['Auckland, New Zealand', -36.8485, 174.7633],
+  ['Wellington, New Zealand', -41.2866, 174.7756],
+  ['Suva, Fiji', -18.1248, 178.4501],
+  ['Port Moresby, Papua New Guinea', -9.4438, 147.1803]
+];
+
+function slug(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+function build(tier, rows) {
+  const { source, everyHours } = TIERS[tier];
+  return rows.map(([name, lat, lon]) => ({
+    key: slug(name), // stable id stored on every reading as `watchKey`
+    name,
+    lat,
+    lon,
+    tier,
+    source,
+    everyHours
+  }));
+}
+
+const WATCHLIST = [
+  ...build('core', CORE),
+  ...build('thailand', THAILAND),
+  ...build('europe', EUROPE),
+  ...build('world', WORLD)
+];
+
+module.exports = { WATCHLIST, TIERS };
